@@ -1,0 +1,61 @@
+OVERVIEW:
+
+This library implements arithmetic and logical operations over
+arbitrary-precision integers.  
+
+The module is simply named "Z".  Its interface is similar to that of
+the Int32, Int64 and Nativeint modules from the OCaml standard
+library, with some additional functions.  See the file z.mlip for
+documentation.
+
+The implementation uses GMP, the GNU Multiple Precision arithmetic
+library, to compute over big integers.  Small integers are represented
+as unboxed Caml integers, to save space and improve performance.  
+Big integers are allocated in the Caml heap, bypassing GMP's memory
+management and achieving better GC behavior than e.g. the MLGMP library.
+
+In contrast with the Big_int module from the OCaml standard distribution,
+arbitrary-precision integers of type Z.t can correctly be compared
+using OCaml's generic comparison operators (=, <, >, etc).  This
+requires OCaml version 3.12.1 or later, though.
+
+
+REQUIREMENTS:
+
+- OCaml, preferably version 3.12.1 or later.  
+  (Earlier versions are usable but generic comparisons will misbehave.)
+- The GMP library, including its development files.
+- The gcc C compiler.
+- The gas assembler.
+
+
+LICENSE:
+
+This Library is distributed under the terms of the GNU Library General
+Public License version 2, with a special exception allowing
+unconstrained static linking.  See file LICENSE for details.
+
+
+AUTHOR:
+
+Antoine Miné, ENS Paris.
+
+
+CONTENTS:
+
+The files are:
+* caml_z.c          - C implementation of all functions
+* caml_z_compare.c  - polymorphic compare compatible with big integers
+* caml_z_i686.c     - x86 Linux asm implementation for a few functions
+* caml_z_x86_64.c   - x86_64 Linux asm implementation for a few functions
+* z_pp.pl           - script to generate z.ml, z.mli
+* z.mlp, z.mlip     - templates used to generate z.ml, z.mli
+* big_int_z.ml      - wrapper to provide a Big_int compatible API to Z
+* test.ml           - simple test
+* bitest.ml         - consistency test between Z and Big_int
+* Makefile          - builds Z and the tests
+
+Note: z_pp.pl simply scans the asm file (if any) to see which functions have
+an asm implementation. It then fixes the external statements in .mlp and 
+.mlip accordingly.
+The argument to z_pp.pl is the suffix * of the caml_z_*.S to use.

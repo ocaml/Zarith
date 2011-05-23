@@ -1,0 +1,81 @@
+(**
+    Integers.
+
+    @author Antoine Miné
+ *)
+
+type t
+
+exception Overflow
+
+external init: unit -> unit = "ml_z_init"
+let _ = init ()
+
+external install_frametable: unit -> unit = install_frametable@ASM
+let _ =  install_frametable ()
+
+let _ = Callback.register_exception "ml_z_overflow" Overflow
+
+external neg: t -> t = neg@ASM
+external add: t -> t -> t = add@ASM
+external sub: t -> t -> t = sub@ASM
+external mul: t -> t -> t = mul@ASM
+external div: t -> t -> t = div@ASM
+external cdiv: t -> t -> t = "ml_z_cdiv"
+external fdiv: t -> t -> t = "ml_z_fdiv"
+external rem: t -> t -> t = rem@ASM
+external div_rem: t -> t -> (t * t) = "ml_z_div_rem"
+external succ: t -> t = succ@ASM
+external pred: t -> t = pred@ASM
+external abs: t -> t = abs@ASM
+external logand: t -> t -> t = logand@ASM
+external logor: t -> t -> t = logor@ASM
+external logxor: t -> t -> t = logxor@ASM
+external lognot: t -> t = lognot@ASM
+external shift_left: t -> int -> t = shift_left@ASM
+external shift_right: t -> int -> t = shift_right@ASM
+external shift_right_trunc: t -> int -> t = shift_right_trunc@ASM
+external of_int32: int32 -> t = "ml_z_of_int32"
+external of_int64: int64 -> t = "ml_z_of_int64"
+external of_nativeint: nativeint -> t = "ml_z_of_nativeint"
+external of_float: float -> t = "ml_z_of_float"
+external to_int: t -> int = "ml_z_to_int"
+external to_int32: t -> int32 = "ml_z_to_int32"
+external to_int64: t -> int64 = "ml_z_to_int64"
+external to_nativeint: t -> nativeint = "ml_z_to_nativeint"
+external to_float: t -> float = "ml_z_to_float"
+external format: string -> t -> string = "ml_z_format"
+external of_string_base: int -> string -> t = "ml_z_of_string_base"
+external compare: t -> t -> int = "ml_z_compare" "noalloc"
+external equal: t -> t -> bool = "ml_z_equal" "noalloc"
+external sign: t -> int = "ml_z_sign" "noalloc"
+external gcd: t -> t -> t = "ml_z_gcd"
+external gcdext_intern: t -> t -> (t * t * bool) = "ml_z_gcdext_intern"
+external sqrt: t -> t = "ml_z_sqrt"
+external sqrt_rem: t -> (t * t) = "ml_z_sqrt_rem"
+external popcount: t -> int = "ml_z_popcount"
+external hamdist: t -> t -> int = "ml_z_hamdist"
+external size: t -> int = "ml_z_size" "noalloc"
+external fits_int: t -> bool = "ml_z_fits_int" "noalloc"
+external fits_int32: t -> bool = "ml_z_fits_int32" "noalloc"
+external fits_int64: t -> bool = "ml_z_fits_int64" "noalloc"
+external fits_nativeint: t -> bool = "ml_z_fits_nativeint" "noalloc"
+external extract: t -> int -> int -> t = "ml_z_extract"
+
+let of_int x : t = Obj.magic x (* it's magic... *)
+(*external of_int: int -> t = "ml_z_of_int"*)
+
+let zero = of_int 0
+let one = of_int 1
+let minus_one = of_int (-1)
+
+let min a b = if compare a b <= 0 then a else b
+let max a b = if compare a b >= 0 then a else b
+
+let to_string = format "%d"
+let of_string = of_string_base 0
+
+let gcdext u v =
+  let g,s,z = gcdext_intern u v in
+  if z then g, s, div (sub g (mul u s)) v
+  else g, div (sub g (mul v s)) u, s

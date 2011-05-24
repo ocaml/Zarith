@@ -138,6 +138,7 @@ let fsnd f x = snd (f x)
 let ffst2 f x y = fst (f x y)
 let fsnd2 f x y = snd (f x y)
 
+(*
 let _ = test_un "int_of_big_int" filt_none (fun x -> x) (fun x -> T.big_int_of_int (T.int_of_big_int x))
 let _ = test_un "int32_of_big_int" filt_none (fun x -> x) (fun x -> T.big_int_of_int32 (T.int32_of_big_int x))
 let _ = test_un "int64_of_big_int" filt_none (fun x -> x) (fun x -> T.big_int_of_int64 (T.int64_of_big_int x))
@@ -172,5 +173,8 @@ missing in OCaml 3.11
 let _ = test_shift "shift_right_big_int" B.shift_right_big_int T.shift_right_big_int
 let _ = test_shift "shift_right_towards_zero_big_int" B.shift_right_towards_zero_big_int T.shift_right_towards_zero_big_int
 *)
+*)
+
+let _ = test_shift "power_big_int_positive_int" B.power_big_int_positive_int T.power_big_int_positive_int
 
 let _ = Printf.printf "All tests passed!\n"

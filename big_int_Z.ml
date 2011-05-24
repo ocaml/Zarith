@@ -65,18 +65,10 @@ let mod_big_int a b =
 
 let gcd_big_int = Z.gcd
 
+let power = Z.pow
 
-(* WARNING: not tail recursive *)
-let rec power a b =
-  if b = 0 then Z.one else
-  let aa = power a (b asr 1) in
-  if b land 1 = 0 then Z.mul aa aa else Z.mul (Z.mul aa aa) a
-
-(* WARNING: not tail recursive *)
-let rec power_big a b =
-  if Z.sign b = 0 then Z.one else
-  let aa = power_big a (Z.shift_right b 1) in
-  if Z.sign (Z.logand b Z.one) = 0 then Z.mul aa aa else Z.mul (Z.mul aa aa) a
+let power_big a b = 
+  Z.pow a (Z.to_int b)
 
 let power_int_positive_int a b =
   if b < 0 then raise (Invalid_argument "power_int_positive_int");
@@ -156,6 +148,5 @@ let shift_right_towards_zero_big_int = Z.shift_right_trunc
 
 let extract_big_int = Z.extract
 
-let toto x = match x with `A x -> x | `B y -> Z.of_float y
 
 

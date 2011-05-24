@@ -173,8 +173,8 @@ static const double inf_helper = 1.0;
 
 
 /* performance counters */
-static unsigned long ml_z_ops;
-static unsigned long ml_z_slow;
+unsigned long ml_z_ops = 0;
+unsigned long ml_z_slow = 0;
 unsigned long ml_z_ops_as = 0;
 
 #if Z_PERF_COUNTER
@@ -875,21 +875,25 @@ CAMLprim value ml_z_equal(value arg1, value arg2)
   return Val_true;
 }
 
+int ml_z_sgn(value arg)
+{
+  if (Is_long(arg)) {
+    if (arg > Val_long(0)) return 1;
+    else if (arg < Val_long(0)) return -1;
+    else return 0;
+  }
+  else {
+    Z_MARK_SLOW;
+    if (!Z_SIZE(arg)) return 0;
+    else if (Z_SIGN(arg)) return -1;
+    else return 1;
+  }
+}
 CAMLprim value ml_z_sign(value arg)
 {
   Z_MARK_OP;
   Z_CHECK(arg);
-  if (Is_long(arg)) {
-    if (arg > Val_long(0)) return Val_long(1);
-    else if (arg < Val_long(0)) return Val_long(-1);
-    else return Val_long(0);
-  }
-  else {
-    Z_MARK_SLOW;
-    if (!Z_SIZE(arg)) return Val_long(0);
-    else if (Z_SIGN(arg)) return Val_long(-1);
-    else return Val_long(1);
-  }
+  return Val_long(ml_z_sgn(arg));
 }
 
 CAMLprim value ml_z_fits_int(value v)
@@ -2142,6 +2146,204 @@ CAMLprim value ml_z_hamdist(value arg1, value arg2)
 
 
 /*---------------------------------------------------
+  FUNCTIONS BASED ON mpz_t
+  ---------------------------------------------------*/
+
+/* sets rop to the value in op (limbs are copied) */
+void ml_z_mpz_set_z(mpz_t rop, value op)
+{
+  Z_DECL(op);
+  Z_CHECK(op);
+  Z_ARG(op);
+  mpz_realloc2(rop, size_op * Z_LIMB_BITS);
+  rop->_mp_size = (sign_op >= 0) ? size_op : -size_op;
+  ml_z_cpy_limb(rop->_mp_d, ptr_op, size_op);
+}
+
+/* inits and sets rop to the value in op (limbs are copied) */
+void ml_z_mpz_init_set_z(mpz_t rop, value op)
+{
+  mpz_init(rop);
+  ml_z_mpz_set_z(rop,op);
+}
+
+/* returns a new z objects equal to op (limbs are copied) */
+value ml_z_from_mpz(mpz_t op)
+{
+  value r;
+  size_t sz = mpz_size(op);
+  r = ml_z_alloc(sz);
+  ml_z_cpy_limb(Z_LIMB(r), op->_mp_d, sz);
+  return ml_z_reduce(r, sz, (mpz_sgn(op) >= 0) ? 0 : Z_SIGN_MASK);
+}
+
+CAMLprim value ml_z_divexact(value arg1, value arg2)
+{
+  Z_MARK_OP;
+  Z_CHECK(arg1); Z_CHECK(arg2);
+#if Z_FAST_PATH
+  if (Is_long(arg1) && Is_long(arg2)) {
+    /* fast path */
+    intnat a1 = Long_val(arg1);
+    intnat a2 = Long_val(arg2);
+    intnat q;
+    if (!a2) ml_z_raise_divide_by_zero();
+    q = a1 / a2;
+    if (Z_FITS_INT(q)) return Val_long(q);
+  }
+#endif
+  /* mpz_ version */
+  Z_MARK_SLOW;
+  {
+    CAMLparam2(arg1,arg2);
+    CAMLlocal1(r);
+    mpz_t a,b;
+    if (!ml_z_sgn(arg2))
+      ml_z_raise_divide_by_zero();
+    ml_z_mpz_init_set_z(a, arg1);
+    ml_z_mpz_init_set_z(b, arg2);
+    mpz_divexact(a, a, b);
+    r = ml_z_from_mpz(a);
+    mpz_clear(a);
+    mpz_clear(b);
+    CAMLreturn(r);
+  }
+}
+ 
+CAMLprim value ml_z_powm(value base, value exp, value mod)
+{
+  CAMLparam3(base,exp,mod);
+  CAMLlocal1(r);
+  mpz_t mbase, mexp, mmod;
+  ml_z_mpz_init_set_z(mbase, base);
+  ml_z_mpz_init_set_z(mexp, exp);
+  ml_z_mpz_init_set_z(mmod, mod);
+  if (mpz_sgn(mexp) < 0) {
+    /* we need to check whether base is invertible to avoid a division by zero
+       in mpz_powm, so we can as well use the computed inverse
+     */
+    if (!mpz_invert(mbase, mbase, mmod))
+      ml_z_raise_divide_by_zero();
+    mpz_neg(mexp, mexp);
+  }
+  mpz_powm(mbase, mbase, mexp, mmod);
+  r = ml_z_from_mpz(mbase);
+  mpz_clear(mbase);
+  mpz_clear(mexp);
+  mpz_clear(mmod);
+  CAMLreturn(r);
+}
+
+CAMLprim value ml_z_pow(value base, value exp)
+{
+  CAMLparam2(base,exp);
+  CAMLlocal1(r);
+  mpz_t mbase;
+  int e = Long_val(exp);
+  if (e < 0) 
+    caml_invalid_argument("Z.pow: exponent must be non-negative");
+  ml_z_mpz_init_set_z(mbase, base);
+  mpz_pow_ui(mbase, mbase, e);
+  r = ml_z_from_mpz(mbase);
+  mpz_clear(mbase);
+  CAMLreturn(r);
+}
+
+CAMLprim value ml_z_root(value a, value b)
+{
+  CAMLparam2(a,b);
+  CAMLlocal1(r);
+  mpz_t ma;
+  int mb = Long_val(b);
+  if (mb < 0) 
+    caml_invalid_argument("Z.root: exponent must be non-negative");
+  ml_z_mpz_init_set_z(ma, a);
+  mpz_root(ma, ma, mb);
+  r = ml_z_from_mpz(ma);
+  mpz_clear(ma);
+  CAMLreturn(r);
+}
+
+CAMLprim value ml_z_perfect_power(value a)
+{
+  CAMLparam1(a);
+  int r;
+  mpz_t ma;
+  ml_z_mpz_init_set_z(ma, a);
+  r = mpz_perfect_power_p(ma);
+  mpz_clear(ma);
+  CAMLreturn(r ? Val_true : Val_false);
+}
+
+CAMLprim value ml_z_perfect_square(value a)
+{
+  CAMLparam1(a);
+  int r;
+  mpz_t ma;
+  ml_z_mpz_init_set_z(ma, a);
+  r = mpz_perfect_square_p(ma);
+  mpz_clear(ma);
+  CAMLreturn(r ? Val_true : Val_false);
+}
+
+CAMLprim value ml_z_probab_prime(value a, int b)
+{
+  CAMLparam1(a);
+  int r;
+  mpz_t ma;
+  ml_z_mpz_init_set_z(ma, a);
+  r = mpz_probab_prime_p(ma, Int_val(b));
+  mpz_clear(ma);
+  CAMLreturn(Val_int(r));
+}
+
+CAMLprim value ml_z_nextprime(value a)
+{
+  CAMLparam1(a);
+  CAMLlocal1(r);
+  mpz_t ma;
+  ml_z_mpz_init_set_z(ma, a);
+  mpz_nextprime(ma, ma);
+  r = ml_z_from_mpz(ma);
+  mpz_clear(ma);
+  CAMLreturn(r);
+}
+
+CAMLprim value ml_z_invert(value base, value mod)
+{
+  CAMLparam2(base,mod);
+  CAMLlocal1(r);
+  mpz_t mbase, mmod;
+  ml_z_mpz_init_set_z(mbase, base);
+  ml_z_mpz_init_set_z(mmod, mod);
+  if (!mpz_invert(mbase, mbase, mmod))
+    ml_z_raise_divide_by_zero();
+  r = ml_z_from_mpz(mbase);
+  mpz_clear(mbase);
+  mpz_clear(mmod);
+  CAMLreturn(r);
+}
+
+/* XXX should we support the following?
+   mpz_divisible_p
+   mpz_congruent_p
+   mpz_powm_sec
+   mpz_rootrem
+   mpz_jacobi
+   mpz_legendre
+   mpz_kronecker
+   mpz_remove
+   mpz_fac_ui
+   mpz_bin_ui
+   mpz_fib_ui
+   mpz_lucnum_ui
+   mpz_scan0, mpz_scan1
+   mpz_setbit, mpz_clrbit, mpz_combit, mpz_tstbit
+   random numbers
+*/
+
+
+/*---------------------------------------------------
   CUSTOMS BLOCKS
   ---------------------------------------------------*/
 
@@ -2263,18 +2465,19 @@ struct custom_operations ml_z_custom_ops = {
 };
 
 
-
 /*---------------------------------------------------
   INIT / EXIT
   ---------------------------------------------------*/
 
 /* called at program exit to display performance information */
+#if Z_PERF_COUNTER
 static void ml_z_dump_count()
 {
   printf("Z: %lu asm operations, %lu C operations, %lu slow (%lu%%)\n",
          ml_z_ops_as, ml_z_ops, ml_z_slow, 
          ml_z_ops ? (ml_z_slow*100/(ml_z_ops+ml_z_ops_as)) : 0);
 }
+#endif
 
 CAMLprim value ml_z_install_frametable()
 {

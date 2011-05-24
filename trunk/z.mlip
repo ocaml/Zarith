@@ -217,6 +217,13 @@ val gcdext: t -> t -> (t * t * t)
     Can raise [Division_by_zero]. 
  *)
 
+val lcm: t -> t -> t
+(** 
+    Least common multiple.
+    The result is always positive.
+    Can raise [Division_by_zero]. 
+ *)
+
 external sqrt: t -> t = "ml_z_sqrt"
 (** Returns the square root. The result is truncated. 
     Raises an [Invalid_argument] on negative arguments.
@@ -259,4 +266,55 @@ external extract: t -> int -> int -> t = "ml_z_extract"
     to [off]+[len]-1 of [b].
     Negative [b] are considered in infinite-length 2's complementation
     representation.
+ *)
+
+external powm: t -> t -> t -> t = "ml_z_powm"
+(** [powm base exp mod] computes [base]^[exp] modulo [mod].
+    Negative [exp] are supported, in which case ([base]^-1)^(-[exp]) modulo 
+    [mod] is computed.
+    However, if [exp] is negative but [base] has no inverse modulo [mod], then
+    [Division_by_zero] is raised.
+ *)
+
+external pow: t -> int -> t = "ml_z_pow"
+(** [pow base exp] computes [base]^[exp].
+    [exp] must be non-negative.
+    Note that only exponents fitting in a machine integer are supported, as
+    larger exponents would surely make the result's size overflow the 
+    address space.
+ *)
+
+external divexact: t -> t -> t = "ml_z_divexact"
+(** [div a b] divides [a] by [b], only producing correct result when the
+    division is exact, i.e., [b] divides [a].
+    It should be faster than general division.
+    Can raise [Division_by_zero]. 
+*)
+
+external root: t -> int -> t = "ml_z_root"
+(** [root base n] computes the [n]-th root of [exp].
+    [n] must be non-negative.
+ *)
+
+external invert: t -> t -> t = "ml_z_invert"
+(** [invert base mod] returns the inverse of [base] modulo [mod].
+    Raises a [Division_by_zero] if [base] is not invertible modulo [mod].
+ *)
+
+external perfect_power: t -> bool = "ml_z_perfect_power"
+(** True if the argument has the form a^b, with b>1 *)
+
+external perfect_square: t -> bool = "ml_z_perfect_square"
+(** True if the argument has the form a^2. *)
+
+external probab_prime: t -> int -> int = "ml_z_probab_prime"
+(** [probab_prime x r] returns 0 if [x] is definitely composite,
+    1 if [x] is probably prime, and 2 if [x] is definitely prime.
+    The [r] argument controls how many Miller-Rabin probabilistic
+    primality tests are performed (5 to 10 is a reasonable value).
+ *)
+
+external nextprime: t -> t = "ml_z_nextprime"
+(** Returns the next prime greater than the argument.
+    The result is only prime with very high probability.
  *)

@@ -24,9 +24,10 @@ REQUIREMENTS:
 
 - OCaml, preferably version 3.12.1 or later.  
   (Earlier versions are usable but generic comparisons will misbehave.)
-- The GMP library, including its development files.
+- Either the GMP library or the MPIR library, including development files.
 - The gcc C compiler.
 - The gas assembler.
+- The Perl programming language.
 
 
 LICENSE:

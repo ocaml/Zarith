@@ -2,8 +2,19 @@
 
 # Simple preprocessor to fix @ASM directives in z.mlp and z.mlip, and
 # generate z.ml and z.mli
-#
-# (C) 2011 Antoine Miné
+
+# This file is part of the Zarith library 
+# http://forge.ocamlcore.org/projects/zarith .
+# It is distributed under LGPL 2 licensing, with static linking exception.
+# See the LICENSE file included in the distribution.
+#   
+# Copyright (c) 2010-2011 Antoine Miné, Abstraction project.
+# Abstraction is part of the LIENS (Laboratoire d'Informatique de l'ENS),
+# a joint laboratory by:
+# CNRS (Centre national de la recherche scientifique, France),
+# ENS (École normale supérieure, Paris, France),
+# INRIA Rocquencourt (Institut national de recherche en informatique, France).
+
 
 die "Usage: './z_pp.pl architecture'" unless $#ARGV==0;
 

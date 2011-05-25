@@ -674,6 +674,9 @@ CAMLprim value ml_z_to_float(value v)
   }
 }
 
+/* XXX: characters that do not belong to the format are ignored, this departs
+   from the classic printf behavior (it copies them in the output)
+ */
 CAMLprim value ml_z_format(value f, value v)
 {
   CAMLparam2(f,v);

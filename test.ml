@@ -1,4 +1,4 @@
-(* simple test for Z module 
+(* Simple tests for the Z and Q modules.
 
 
    This file is part of the Zarith library 
@@ -15,6 +15,8 @@
 
 *)
 
+
+(* testing Z *)
 
 module I = Z
 
@@ -73,7 +75,7 @@ let mini64 = I.of_int64 Int64.min_int
 let maxni = I.of_nativeint Nativeint.max_int
 let minni = I.of_nativeint Nativeint.min_int
 
-let _ =
+let test_Z() =
   Printf.printf "0\n = %a\n" pr I.zero;
   Printf.printf "1\n = %a\n" pr I.one;
   Printf.printf "-1\n = %a\n" pr I.minus_one;
@@ -598,3 +600,69 @@ let _ =
   Printf.printf "extract -42 1 32 = %a\n" pr (I.extract (I.of_int (-42)) 1 32);
   Printf.printf "extract -42 1 64 = %a\n" pr (I.extract (I.of_int (-42)) 1 64);
   ()
+
+
+(* testing Q *)
+
+(* gcd extended to: gcd x 0 = gcd 0 x = 0 *)
+let gcd2 a b =
+  if Z.sign a = 0 then b
+  else if Z.sign b = 0 then a
+  else Z.gcd a b
+
+(* check invariant *)
+let check x =
+  assert (Z.sign x.Q.den >= 0);
+  assert (Z.compare (gcd2 x.Q.num x.Q.den) Z.one <= 0)
+
+
+let t_list = [Q.zero;Q.one;Q.minus_one;Q.inf;Q.minus_inf;Q.undef]
+
+let test1 msg op =
+  List.iter
+    (fun x -> 
+      let r = op x in
+      check r;
+      Printf.printf "%s %s = %s\n" msg (Q.to_string x)  (Q.to_string r)
+    ) t_list
+
+let test2 msg op =
+  List.iter
+    (fun x -> 
+      List.iter
+        (fun y -> 
+          let r = op x y in
+          check r;
+          Printf.printf "%s %s %s = %s\n" (Q.to_string x) msg (Q.to_string y) (Q.to_string r)
+        ) t_list
+    ) t_list
+
+let test_Q () =
+  let _ = List.iter check t_list in
+  let _ = test1 "-" Q.neg in
+  let _ = test1 "1/" Q.inv in
+  let _ = test1 "abs" Q.abs in
+  let _ = test2 "+" Q.add in 
+  let _ = test2 "-" Q.sub in
+  let _ = test2 "*" Q.mul in
+  let _ = test2 "/" Q.div in
+  let _ = test2 "* 1/" (fun a b -> Q.mul a (Q.inv b)) in
+  (* check simple identitites *)
+  List.iter
+    (fun x -> 
+      List.iter
+        (fun y -> 
+          Printf.printf "identity checking %s %s\n" (Q.to_string x) (Q.to_string y);
+          assert (Q.equal (Q.add x y) (Q.add y x));
+          assert (Q.equal (Q.sub x y) (Q.neg (Q.sub y x)));
+          assert (Q.equal (Q.sub x y) (Q.add x (Q.neg y)));
+          assert (Q.equal (Q.mul x y) (Q.mul y x));
+          assert (Q.equal (Q.div x y) (Q.mul x (Q.inv y)));
+        ) t_list
+    ) t_list
+
+
+(* main *)
+
+(* let _ = test_Z() *)
+let _ = test_Q()

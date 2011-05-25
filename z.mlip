@@ -166,8 +166,32 @@ val to_string: t -> string
 (** Gives a string representation of the argument. *)
 
 external format: string -> t -> string = "ml_z_format"
-(** Gives a string representation of the argument int the specified
+(** Gives a string representation of the argument in the specified
     printf-like format.
+
+    The general specification has the following form:
+
+    [% \[flags\] \[width\] type]
+
+    Where the type actually indicates the base:
+    
+    - [i], [d], [u]: decimal
+    - [b]: binary
+    - [o]: octal
+    - [x]: lowercase hexadecimal
+    - [X]: upercase hexadecimal
+
+    Supported flags are:
+
+    - [+]: prefix positive numbers with a [+] sign
+    - space: prefix positive numbers with a space
+    - [-]: left-justify (default is right justification)
+    - [0]: pad with zeroes (instead of spaces)
+    - [#]: alternate formatting (actually, simply output a C-like prefix: [0x], [0b], [0])
+
+    Unlike the classic [printf], all numbers are signed (even hexadecimal ones),
+    there is no precision field, and characters that are not part of the format
+    are simply ignored (and not copied in the output).
  *)
 
 val of_string: string -> t
@@ -186,8 +210,9 @@ external of_string_base: int -> string -> t = "ml_z_of_string_base"
 external compare: t -> t -> int = "ml_z_compare" "noalloc"
 (** Comparison.
     Returns 0, -1 or 1.
-    Note that Pervasive.compare cannot be used to compare reliably two
-    integers.
+
+    Note that Pervasive.compare can be used to compare reliably two integers
+    only on OCaml 3.12.1 and later versions.
  *)
 
 external equal: t -> t -> bool = "ml_z_equal" "noalloc"

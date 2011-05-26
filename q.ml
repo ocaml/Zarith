@@ -106,6 +106,9 @@ let classify n =
   | -1,0 -> MINF
   | _    -> NZERO
 
+let is_real n = match classify n with
+| ZERO | NZERO -> true
+| INF | MINF | UNDEF -> false
 
 let num x = x.num
 

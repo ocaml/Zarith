@@ -2406,6 +2406,12 @@ static intnat ml_z_custom_hash(value v)
 #endif
 }
 
+CAMLprim value ml_z_hash(value v)
+{
+  return Val_long(ml_z_custom_hash(v));
+}
+
+
 static void ml_z_custom_serialize(value v, 
                                   uintnat * wsize_32,
                                   uintnat * wsize_64)

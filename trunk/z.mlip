@@ -1,4 +1,4 @@
-(** 
+(**
    Integers.
 
    This modules provides arbitrary-precision integers.
@@ -25,6 +25,9 @@
 
  *)
 
+
+(** {1 Types} *)
+
 type t
 (** Type of integers of arbitrary length. *)
 
@@ -32,6 +35,8 @@ exception Overflow
 (** Raised by conversion functions when the value cannot be represented in
     the destination type.
  *)
+
+(** {1 Construction} *)
 
 val zero: t
 (** The number 0. *)
@@ -41,91 +46,6 @@ val one: t
 
 val minus_one: t
 (** The number -1. *)
-
-external neg: t -> t = neg@ASM
-(** Unary negation. *)
-
-external add: t -> t -> t = add@ASM
-(** Addition. *)
-
-external sub: t -> t -> t = sub@ASM
-(** Subtraction. *)
-
-external mul: t -> t -> t = mul@ASM
-(** Multiplication. *)
-
-external div: t -> t -> t = div@ASM
-(** Integer division. The result is truncated and obeys the rule of signs.
-    Can raise [Division_by_zero]. 
-*)
-
-external cdiv: t -> t -> t = "ml_z_cdiv"
-(** Integer division with rounding towards +oo. Can raise [Division_by_zero]. *)
-
-external fdiv: t -> t -> t = "ml_z_fdiv"
-(** Integer division with rounding towards -oo. Can raise [Division_by_zero]. *)
-
-external rem: t -> t -> t = rem@ASM
-(** Integer remainder. Can raise [Division_by_zero].
-    The result has the sign of its first argument, and its absolute value is
-    strictly smaller than the absolute value of the second argument.
-    We have [a = add (rem a b) (mul (div a b) b)].
-*)
-
-external div_rem: t -> t -> (t * t) = "ml_z_div_rem"
-(** Computes both the integer quotient and the remainder. *)
-
-external succ: t -> t = succ@ASM
-(** Returns its argument plus one. *)
-
-external pred: t -> t = pred@ASM
-(** Returns its argument minus one. *)
-
-external abs: t -> t = abs@ASM
-(** Absolute value. *)
-
-external logand: t -> t -> t = logand@ASM
-(** Bitwise logical and. 
-    Negative number are considered in infinite-length 2's complementation
-    representation.
- *)
-    
-external logor: t -> t -> t = logor@ASM
-(** Bitwise logical or.
-    Negative number are considered in infinite-length 2's complementation
-    representation.
- *)
-    
-external logxor: t -> t -> t = logxor@ASM
-(** Bitwise logical exclusive or.
-    Negative number are considered in infinite-length 2's complementation
-    representation.
- *)
-
-external lognot: t -> t = lognot@ASM
-(** Bitwise logical negation. [lognot a] equals [-a-1].
-    Negative number are considered in infinite-length 2's complementation
-    representation. 
-    Thus, [lognot a] equals [-a-1].
- *)
-
-external shift_left: t -> int -> t = shift_left@ASM
-(** Shifts to the left. 
-    Equivalent to a multiplication by a power of 2.
-    The second argument must be non-negative.
- *)
-
-external shift_right: t -> int -> t = shift_right@ASM
-(** Shifts to the right. 
-    This is an arithmetic shift, 
-    equivalent to a division by a power of 2 with rounding towards -oo.
-    The second argument must be non-negative.
- *)
-
-external shift_right_trunc: t -> int -> t = shift_right_trunc@ASM
-(** Shifts to the right, rounding towards 0.
-    The second argument must be non-negative.
- *)
 
 val of_int: int -> t
 (** Converts from a base integer. *)
@@ -145,30 +65,168 @@ external of_float: float -> t = "ml_z_of_float"
     Raises [Overflow] on infinity and NaN arguments.
  *)
 
+val of_string: string -> t
+(** Converts a string to an integer.
+    An optional [-] prefix indicates a negative number, while a [+]
+    prefix is ignored.
+    An optional prefix [0x], [0o], or [0b] (following the optional [-]
+    or [+] prefix) indicates that the number is,
+    represented, in hexadecimal, octal, or binary, respectively.
+    Otherwise, base 10 is assumed.
+    (Unlike C, a lone [0] prefix does not denote octal.)
+ *)
+
+external of_string_base: int -> string -> t = "ml_z_of_string_base"
+(** Parses a number represented as a string in the specified base,
+    with optional [-] or [+] prefix.
+    The base must be between 2 and 16.
+ *)
+
+
+(** {1 Basic arithmetic operations} *)
+
+external succ: t -> t = succ@ASM
+(** Returns its argument plus one. *)
+
+external pred: t -> t = pred@ASM
+(** Returns its argument minus one. *)
+
+external abs: t -> t = abs@ASM
+(** Absolute value. *)
+
+external neg: t -> t = neg@ASM
+(** Unary negation. *)
+
+external add: t -> t -> t = add@ASM
+(** Addition. *)
+
+external sub: t -> t -> t = sub@ASM
+(** Subtraction. *)
+
+external mul: t -> t -> t = mul@ASM
+(** Multiplication. *)
+
+external div: t -> t -> t = div@ASM
+(** Integer division. The result is truncated and obeys the rule of signs.
+    Can raise a [Division_by_zero]. 
+ *)
+
+external rem: t -> t -> t = rem@ASM
+(** Integer remainder. Can raise a [Division_by_zero].
+    The result has the sign of its first argument, and its absolute value is
+    strictly smaller than the absolute value of the second argument.
+    We have [a = add (rem a b) (mul (div a b) b)].
+ *)
+
+external div_rem: t -> t -> (t * t) = "ml_z_div_rem"
+(** Computes both the integer quotient and the remainder. *)
+
+external cdiv: t -> t -> t = "ml_z_cdiv"
+(** Integer division with rounding towards +oo. 
+    Can raise a [Division_by_zero]. 
+ *)
+
+external fdiv: t -> t -> t = "ml_z_fdiv"
+(** Integer division with rounding towards -oo. 
+    Can raise a [Division_by_zero]. 
+ *)
+
+external divexact: t -> t -> t = "ml_z_divexact"
+(** [divexact a b] divides [a] by [b], only producing correct result when the
+    division is exact, i.e., when [b] divides [a].
+    It should be faster than general division.
+    Can raise a [Division_by_zero]. 
+*)
+
+
+(** {1 Bit-level operations} *)
+
+(** For all bit-level operations, negative numbers are considered in 2's
+    complementation representation, starting with a virtual infinite number of 
+    1s.
+ *)
+
+external logand: t -> t -> t = logand@ASM
+(** Bitwise logical and. *)
+    
+external logor: t -> t -> t = logor@ASM
+(** Bitwise logical or. *)
+    
+external logxor: t -> t -> t = logxor@ASM
+(** Bitwise logical exclusive or. *)
+
+external lognot: t -> t = lognot@ASM
+(** Bitwise logical negation. 
+    The identity [lognot a]=[-a-1] always hold.
+ *)
+
+external shift_left: t -> int -> t = shift_left@ASM
+(** Shifts to the left. 
+    Equivalent to a multiplication by a power of 2.
+    The second argument must be non-negative.
+ *)
+
+external shift_right: t -> int -> t = shift_right@ASM
+(** Shifts to the right. 
+    This is an arithmetic shift, 
+    equivalent to a division by a power of 2 with rounding towards -oo.
+    The second argument must be non-negative.
+ *)
+
+external shift_right_trunc: t -> int -> t = shift_right_trunc@ASM
+(** Shifts to the right, rounding towards 0.
+    This is equivalent to a division by a power of 2, with truncation.
+    The second argument must be non-negative.
+ *)
+
+external popcount: t -> int = "ml_z_popcount"
+(** Counts the number of bits set. 
+    Raises [Overflow] for negative arguments, as those have an infinite
+    number of bits set.
+ *)
+
+external hamdist: t -> t -> int = "ml_z_hamdist"
+(** Counts the number of different bits. 
+    Raises [Overflow] if the arguments have different signs
+    (in which case the distance is infinite).
+ *)
+
+
+(** {1 Conversions} *)
+
+(** Note that, when converting to an integer type that cannot represent the 
+    converted value, an [Overflow] exception is raised.
+ *)
+
 external to_int: t -> int = "ml_z_to_int"
-(** Converts to a base integer. May raise [Overflow]. *)
+(** Converts to a base integer. May raise an [Overflow]. *)
 
 external to_int32: t -> int32 = "ml_z_to_int32"
-(** Converts to a 32-bit integer. May raise [Overflow]. *)
+(** Converts to a 32-bit integer. May raise an [Overflow]. *)
 
 external to_int64: t -> int64 = "ml_z_to_int64"
 (** Converts to a 64-bit integer. May raise [Overflow]. *)
 
 external to_nativeint: t -> nativeint = "ml_z_to_nativeint"
-(** Converts to a native integer. May raise [Overflow]. *)
+(** Converts to a native integer. May raise an [Overflow]. *)
 
 external to_float: t -> float = "ml_z_to_float"
 (** Converts to a floating-point value.
-    If the FPU rounds towards +oo, then an over-approximation is returned.
+    This function is designed explicitly for the case where the FPU 
+    rounds towards +oo, in which case the resulting float always
+    over-approximates the argument.
+    It is not guaranteed to be the least over-approximation though.
+    In the (default) case where the FPU does not round towards +oo, it is
+    only guaranteed that the result approximates the argument (but it may
+    not be the nearest float).
  *)
 
 val to_string: t -> string
-(** Gives a string representation of the argument. *)
+(** Gives a human-readable, decimal string representation of the argument. *)
 
 external format: string -> t -> string = "ml_z_format"
 (** Gives a string representation of the argument in the specified
     printf-like format.
-
     The general specification has the following form:
 
     [% \[flags\] \[width\] type]
@@ -187,25 +245,27 @@ external format: string -> t -> string = "ml_z_format"
     - space: prefix positive numbers with a space
     - [-]: left-justify (default is right justification)
     - [0]: pad with zeroes (instead of spaces)
-    - [#]: alternate formatting (actually, simply output a C-like prefix: [0x], [0b], [0])
+    - [#]: alternate formatting (actually, simply output a literal-like prefix: [0x], [0b], [0o])
 
     Unlike the classic [printf], all numbers are signed (even hexadecimal ones),
     there is no precision field, and characters that are not part of the format
     are simply ignored (and not copied in the output).
  *)
 
-val of_string: string -> t
-(** Converts a string to an integer.
-    An optional [-] indicates a negative number.
-    An optional prefix [0x], [0o], or [0b] indicates that the number is 
-    represented in hexadecimal, octal, or binary.
-    Otherwise, base 10 is assumed.
- *)
+external fits_int: t -> bool = "ml_z_fits_int" "noalloc"
+(** Whether the argument fits in a regular int. *)
 
-external of_string_base: int -> string -> t = "ml_z_of_string_base"
-(** Parses a number represented as a string in the specified base.
-    The base must be between 2 and 16.
- *)
+external fits_int32: t -> bool = "ml_z_fits_int32" "noalloc"
+(** Whether the argument fits in an int32. *)
+
+external fits_int64: t -> bool = "ml_z_fits_int64" "noalloc"
+(** Whether the argument fits in an int64. *)
+
+external fits_nativeint: t -> bool = "ml_z_fits_nativeint" "noalloc"
+(** Whether the argument fits in a nativeint. *)
+
+
+(** {1 Ordering} *)
 
 external compare: t -> t -> int = "ml_z_compare" "noalloc"
 (** Comparison.
@@ -229,24 +289,70 @@ val min: t -> t -> t
 val max: t -> t -> t
 (** Returns the maximum of its arguments. *)
 
+val hash: t -> int
+(** Hashes a number.
+    This functions gives the same result as OCaml's polymorphic hashing
+    function.
+    The result is consistent with the equality: if [a] = [b], then [hash a] =
+    [hash b].
+ *)
+
+(** {1 Elementary number theory} *)
+
 external gcd: t -> t -> t = "ml_z_gcd"
 (** Greatest common divisor. 
     The result is always positive.
-    Can raise [Division_by_zero]. 
+    Raises a [Division_by_zero] is either argument is null.
 *)
 
 val gcdext: t -> t -> (t * t * t)
 (** [gcd_ext u v] returns [(g,s,t)]  where [g] is the greatest common divisor
     and [g=us+vt].
     [g] is always positive.
-    Can raise [Division_by_zero]. 
+    Raises a [Division_by_zero] is either argument is null.
  *)
 
 val lcm: t -> t -> t
 (** 
     Least common multiple.
     The result is always positive.
-    Can raise [Division_by_zero]. 
+    Raises a [Division_by_zero] is either argument is null.
+ *)
+
+external powm: t -> t -> t -> t = "ml_z_powm"
+(** [powm base exp mod] computes [base]^[exp] modulo [mod].
+    Negative [exp] are supported, in which case ([base]^-1)^(-[exp]) modulo 
+    [mod] is computed.
+    However, if [exp] is negative but [base] has no inverse modulo [mod], then
+    a [Division_by_zero] is raised.
+ *)
+
+external invert: t -> t -> t = "ml_z_invert"
+(** [invert base mod] returns the inverse of [base] modulo [mod].
+    Raises a [Division_by_zero] if [base] is not invertible modulo [mod].
+ *)
+
+external probab_prime: t -> int -> int = "ml_z_probab_prime"
+(** [probab_prime x r] returns 0 if [x] is definitely composite,
+    1 if [x] is probably prime, and 2 if [x] is definitely prime.
+    The [r] argument controls how many Miller-Rabin probabilistic
+    primality tests are performed (5 to 10 is a reasonable value).
+ *)
+
+external nextprime: t -> t = "ml_z_nextprime"
+(** Returns the next prime greater than the argument.
+    The result is only prime with very high probability.
+ *)
+
+
+(** {1 Powers} *)
+
+external pow: t -> int -> t = "ml_z_pow"
+(** [pow base exp] computes [base]^[exp].
+    [exp] must be non-negative.
+    Note that only exponents fitting in a machine integer are supported, as
+    larger exponents would surely make the result's size overflow the 
+    address space.
  *)
 
 external sqrt: t -> t = "ml_z_sqrt"
@@ -259,71 +365,9 @@ external sqrt_rem: t -> (t * t) = "ml_z_sqrt_rem"
     Raises an [Invalid_argument] on negative arguments.
  *)
 
-external popcount: t -> int = "ml_z_popcount"
-(** Counts the number of bits set. 
-    Can raise [Overflow] (e.g., for negative arguments).
- *)
-
-external hamdist: t -> t -> int = "ml_z_hamdist"
-(** Counts the number of different bits. 
-    Negative number are considered in infinite-length 2's complementation
-    representation.
-    Can raise [Overflow] (e.g., if the arguments have different sign).
- *)
-
-external size: t -> int = "ml_z_size" "noalloc"
-(** Returns the number of machine words used to represent the number. *)
-
-external fits_int: t -> bool = "ml_z_fits_int" "noalloc"
-(** Whether the argument fits in a regular int. *)
-
-external fits_int32: t -> bool = "ml_z_fits_int32" "noalloc"
-(** Whether the argument fits in an int32. *)
-
-external fits_int64: t -> bool = "ml_z_fits_int64" "noalloc"
-(** Whether the argument fits in an int64. *)
-
-external fits_nativeint: t -> bool = "ml_z_fits_nativeint" "noalloc"
-(** Whether the argument fits in a nativeint. *)
-
-external extract: t -> int -> int -> t = "ml_z_extract"
-(** [extract a off len] returns a positive number corresponding to bits [off]
-    to [off]+[len]-1 of [b].
-    Negative [b] are considered in infinite-length 2's complementation
-    representation.
- *)
-
-external powm: t -> t -> t -> t = "ml_z_powm"
-(** [powm base exp mod] computes [base]^[exp] modulo [mod].
-    Negative [exp] are supported, in which case ([base]^-1)^(-[exp]) modulo 
-    [mod] is computed.
-    However, if [exp] is negative but [base] has no inverse modulo [mod], then
-    [Division_by_zero] is raised.
- *)
-
-external pow: t -> int -> t = "ml_z_pow"
-(** [pow base exp] computes [base]^[exp].
-    [exp] must be non-negative.
-    Note that only exponents fitting in a machine integer are supported, as
-    larger exponents would surely make the result's size overflow the 
-    address space.
- *)
-
-external divexact: t -> t -> t = "ml_z_divexact"
-(** [div a b] divides [a] by [b], only producing correct result when the
-    division is exact, i.e., [b] divides [a].
-    It should be faster than general division.
-    Can raise [Division_by_zero]. 
-*)
-
 external root: t -> int -> t = "ml_z_root"
 (** [root base n] computes the [n]-th root of [exp].
     [n] must be non-negative.
- *)
-
-external invert: t -> t -> t = "ml_z_invert"
-(** [invert base mod] returns the inverse of [base] modulo [mod].
-    Raises a [Division_by_zero] if [base] is not invertible modulo [mod].
  *)
 
 external perfect_power: t -> bool = "ml_z_perfect_power"
@@ -332,14 +376,15 @@ external perfect_power: t -> bool = "ml_z_perfect_power"
 external perfect_square: t -> bool = "ml_z_perfect_square"
 (** True if the argument has the form a^2. *)
 
-external probab_prime: t -> int -> int = "ml_z_probab_prime"
-(** [probab_prime x r] returns 0 if [x] is definitely composite,
-    1 if [x] is probably prime, and 2 if [x] is definitely prime.
-    The [r] argument controls how many Miller-Rabin probabilistic
-    primality tests are performed (5 to 10 is a reasonable value).
- *)
 
-external nextprime: t -> t = "ml_z_nextprime"
-(** Returns the next prime greater than the argument.
-    The result is only prime with very high probability.
+(** {1 Representation} *)
+
+external size: t -> int = "ml_z_size" "noalloc"
+(** Returns the number of machine words used to represent the number. *)
+
+external extract: t -> int -> int -> t = "ml_z_extract"
+(** [extract a off len] returns a positive number corresponding to bits [off]
+    to [off]+[len]-1 of [b].
+    Negative [b] are considered in infinite-length 2's complementation
+    representation.
  *)

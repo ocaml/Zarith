@@ -664,5 +664,10 @@ let test_Q () =
 
 (* main *)
 
-(* let _ = test_Z() *)
+let _ = test_Z()
 let _ = test_Q()
+
+
+
+
+

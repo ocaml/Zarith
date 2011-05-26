@@ -84,8 +84,7 @@ external probab_prime: t -> int -> int = "ml_z_probab_prime"
 external nextprime: t -> t = "ml_z_nextprime"
 external hash: t -> int = "ml_z_hash"
 
-let of_int x : t = Obj.magic x (* it's magic... *)
-(*external of_int: int -> t = "ml_z_of_int"*)
+external of_int: int -> t = "%identity" (* it's magic... *)
 
 let zero = of_int 0
 let one = of_int 1
@@ -105,3 +104,29 @@ let gcdext u v =
 let lcm u v = 
   let g = gcd u v in
   abs (mul (divexact u g) v)
+
+let print x = print_string (to_string x)
+let output chan x = output_string chan (to_string x)
+let sprint () x = to_string x
+let bprint b x = Buffer.add_string b (to_string x)
+let pp_print f x = Format.pp_print_string f (to_string x)
+
+external (~-): t -> t = neg@ASM
+external (~+): t -> t = "%identity"
+external (+): t -> t -> t = add@ASM
+external (-): t -> t -> t = sub@ASM
+external ( * ): t -> t -> t = mul@ASM
+external (/): t -> t -> t = div@ASM
+external (/>): t -> t -> t = "ml_z_cdiv"
+external (/<): t -> t -> t = "ml_z_fdiv"
+external (/|): t -> t -> t = "ml_z_divexact"
+external (mod): t -> t -> t = rem@ASM
+external (land): t -> t -> t = logand@ASM
+external (lor): t -> t -> t = logor@ASM
+external (lxor): t -> t -> t = logxor@ASM
+external (~!): t -> t = lognot@ASM
+external (lsl): t -> int -> t = shift_left@ASM
+external (asr): t -> int -> t = shift_right@ASM
+external (~$): int -> t = "%identity" 
+external ( ** ): t -> int -> t = "ml_z_pow"
+

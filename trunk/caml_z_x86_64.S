@@ -296,7 +296,7 @@ ml_as_z_\proc:
 
         
          /* shift_left */
-#        prolog  shift_left
+        prolog  shift_left
         test    $1, %rdi
         jz      .Lshift_left
         mov     %rsi, %rcx

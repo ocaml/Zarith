@@ -716,7 +716,7 @@ CAMLprim value ml_z_format(value f, value v)
   switch (*fmt) {
   case 'i': case 'd': case 'u': break;
   case 'b': base = 2; if (alt) prefix = "0b"; break;
-  case 'o': base = 8; if (alt) prefix = "0"; break;
+  case 'o': base = 8; if (alt) prefix = "0o"; break;
   case 'x': base = 16; if (alt) prefix = "0x"; cas = 1; break;
   case 'X': base = 16; if (alt) prefix = "0X"; break;
   default: caml_invalid_argument("Z.format: invalid format");
@@ -2342,6 +2342,7 @@ CAMLprim value ml_z_invert(value base, value mod)
    mpz_lucnum_ui
    mpz_scan0, mpz_scan1
    mpz_setbit, mpz_clrbit, mpz_combit, mpz_tstbit
+   mpz_odd_p, mpz_even_p
    random numbers
 */
 

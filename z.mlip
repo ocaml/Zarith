@@ -265,6 +265,28 @@ external fits_nativeint: t -> bool = "ml_z_fits_nativeint" "noalloc"
 (** Whether the argument fits in a nativeint. *)
 
 
+(** {1 Printing} *)
+
+val print: t -> unit
+(** Prints the argument on the standard output. *)
+
+val output: out_channel -> t -> unit
+(** Prints the argument on the specified channel.
+    Also intended to be used as [%a] format printer in [Printf.printf].
+ *)
+
+val sprint: unit -> t -> string
+(** To be used as [%a] format printer in [Printf.sprintf]. *)
+
+val bprint: Buffer.t -> t -> unit
+(** To be used as [%a] format printer in [Printf.bprintf]. *)
+
+val pp_print: Format.formatter -> t -> unit
+(** Prints the argument on the specified formatter. 
+    Also intended to be used as [%a] format printer in [Format.printf].
+ *)
+
+
 (** {1 Ordering} *)
 
 external compare: t -> t -> int = "ml_z_compare" "noalloc"
@@ -388,3 +410,69 @@ external extract: t -> int -> int -> t = "ml_z_extract"
     Negative [b] are considered in infinite-length 2's complementation
     representation.
  *)
+
+
+(** {1 Prefix and infix operators} *)
+
+(**
+   Classic (and less classic) prefix and infix [int] operators are 
+   redefined on [t].
+
+   This makes it easy to typeset expressions.
+   Using OCaml 3.12's local open, you can simply write
+   [Z.(~$2 + ~$5 * ~$10)].
+ *)
+
+external (~-): t -> t = neg@ASM
+(** Negation [neg]. *)
+
+external (~+): t -> t = "%identity"
+(** Identity. *)
+
+external (+): t -> t -> t = add@ASM
+(** Addition [add]. *)
+
+external (-): t -> t -> t = sub@ASM
+(** Subtraction [sub]. *)
+
+external ( * ): t -> t -> t = mul@ASM
+(** Multiplication [mul]. *)
+
+external (/): t -> t -> t = div@ASM
+(** Truncated division [div]. *)
+
+external (/>): t -> t -> t = "ml_z_cdiv"
+(** Ceiling division [cdiv]. *)
+
+external (/<): t -> t -> t = "ml_z_fdiv"
+(** Flooring division [fdiv]. *)
+
+external (/|): t -> t -> t = "ml_z_divexact"
+(** Exact division [div_exact]. *)
+
+external (mod): t -> t -> t = rem@ASM
+(** Remainder [rem]. *)
+
+external (land): t -> t -> t = logand@ASM
+(** Bit-wise logical and [logand]. *)
+
+external (lor): t -> t -> t = logor@ASM
+(** Bit-wise logical inclusive or [logor]. *)
+
+external (lxor): t -> t -> t = logxor@ASM
+(** Bit-wise logical exclusive or [logxor]. *)
+
+external (~!): t -> t = lognot@ASM
+(** Bit-wise logical negation [lognot]. *)
+
+external (lsl): t -> int -> t = shift_left@ASM
+(** Bit-wise shift to the left [shift_left]. *)
+
+external (asr): t -> int -> t = shift_right@ASM
+(** Bit-wise shift to the right [shift_right]. *)
+
+external (~$): int -> t = "%identity" 
+(** Conversion from [int] [of_int]. *)
+
+external ( ** ): t -> int -> t = "ml_z_pow"
+(** Power [pow]. *)

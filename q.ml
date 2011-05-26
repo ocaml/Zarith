@@ -57,6 +57,8 @@ let of_int64 n = of_bigint (Z.of_int64 n)
 
 let of_nativeint n = of_bigint (Z.of_nativeint n)
 
+let of_ints n d = make (Z.of_int n) (Z.of_int d)
+
 let zero = of_bigint  Z.zero
 (* 0/1 *)
 
@@ -253,3 +255,29 @@ let  div_2exp x n =
   if Z.sign x.num = 0 then x
   else mk x.num (Z.shift_left x.den n)
 
+
+(* printing *)
+(* -------- *)
+
+let print x = print_string (to_string x)
+let output chan x = output_string chan (to_string x)
+let sprint () x = to_string x
+let bprint b x = Buffer.add_string b (to_string x)
+let pp_print f x = Format.pp_print_string f (to_string x)
+
+
+(* prefix and infix *)
+(* ---------------- *)
+
+let (~-) = neg
+let (~+) x = x
+let (+)  = add
+let (-) = sub
+let ( * ) = mul
+let (/) = div
+let (lsl) = mul_2exp
+let (asr) = div_2exp
+let (~$) = of_int
+let (//) = of_ints
+let (~$$) = of_bigint
+let (///) = make

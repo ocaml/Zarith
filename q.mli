@@ -60,6 +60,9 @@ val of_int64: int64 -> t
 val of_nativeint: nativeint -> t
 (** Conversions from various integer types. *)
 
+val of_ints: int -> int -> t
+(** Conversion from an [int] numerator and an [int] denominator. *)
+
 val of_string: string -> t
 (** Converts a string to a rational.
     Plain decimals, and [/] separated decimal ratios (with optional sign) are
@@ -181,3 +184,68 @@ val mul_2exp: t -> int -> t
 
 val div_2exp: t -> int -> t
 (** [div_2exp x n] divides [x] by 2 to the power of [n]. *)
+
+
+(** {1 Printing} *)
+
+val print: t -> unit
+(** Prints the argument on the standard output. *)
+
+val output: out_channel -> t -> unit
+(** Prints the argument on the specified channel.
+    Also intended to be used as [%a] format printer in [Printf.printf].
+ *)
+
+val sprint: unit -> t -> string
+(** To be used as [%a] format printer in [Printf.sprintf]. *)
+
+val bprint: Buffer.t -> t -> unit
+(** To be used as [%a] format printer in [Printf.bprintf]. *)
+
+val pp_print: Format.formatter -> t -> unit
+(** Prints the argument on the specified formatter. 
+    Also intended to be used as [%a] format printer in [Format.printf].
+ *)
+
+
+(** {1 Prefix and infix operators} *)
+
+(**
+   Classic prefix and infix [int] operators are redefined on [t].
+*)
+
+val (~-): t -> t
+(** Negation [neg]. *)
+
+val (~+): t -> t
+(** Identity. *)
+
+val (+): t -> t -> t
+(** Addition [add]. *)
+
+val (-): t -> t -> t
+(** Subtraction [sub]. *)
+
+val ( * ): t -> t -> t
+(** Multiplication [mul]. *)
+
+val (/): t -> t -> t
+(** Division [div]. *)
+
+val (lsl): t -> int -> t
+(** Multiplication by a power of two [mul_2exp]. *)
+
+val (asr): t -> int -> t
+(** Division by a power of two [shift_right]. *)
+
+val (~$): int -> t 
+(** Conversion from [int]. *)
+
+val (//): int -> int -> t
+(** Creates a rational from two [int]s. *)
+
+val (~$$): Z.t -> t 
+(** Conversion from [Z.t]. *)
+
+val (///): Z.t -> Z.t -> t
+(** Creates a rational from two [Z.t]. *)

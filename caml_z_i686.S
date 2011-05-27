@@ -23,57 +23,72 @@
         /* helper functions */
         /* **************** */
 
-        /* function prolog epilog */
         
-        .macro  prolog proc
-        .text
-        .globl  ml_as_z_\proc
-        .type   ml_as_z_\proc, @function
-        .align  16
-ml_as_z_\proc:
-        .endm
+        /* optional underscope prefix for symbols */
+#ifdef Z_UNDERSCORE_PREFIX
+#define SYMB(x) _##x
+#else
+#define SYMB(x)  x
+#endif
 
-        .macro  epilog proc
-        .size   ml_as_z_\proc, .-ml_as_z_\proc
-        .endm
+        /* disable ELF-specific code on COFF targets */
+#ifdef Z_COFF
+#define ELF(...)
+#else
+#define ELF(...) __VA_ARGS__
+#endif
+
+#define PROLOG(proc) \
+        .text;   \
+        .globl  SYMB(ml_as_z_##proc); \
+        ELF(.type   SYMB(ml_as_z_##proc), @function;) \
+        .align  16; \
+SYMB(ml_as_z_##proc):
+
+#define EPILOG(proc) \
+        ELF(.size   SYMB(ml_as_z_##proc), .-SYMB(ml_as_z_##proc))
 
 
         /* calling C functions */
-        
-        .macro  c_call proc
-        call    ml_z_\proc\()
-        .endm
+
+#define C_CALL(proc) \
+        call    SYMB(ml_z_##proc)
 
 
         /* operation counter */
-        .macro  op
-        incl    ml_z_ops_as
-        .endm
+        
+#ifdef Z_PERF_COUNTER
+#define OP \
+        incl    SYMB(ml_z_ops_as)
+#else
+#define OP
+#endif
+
 
         
         /* unary arithmetics */
         /* ***************** */
 
         /* neg */
-        prolog  neg
+        PROLOG(neg)
         mov     4(%esp), %eax
         test    $1, %eax
         jz      .Lneg
         not     %eax
         add     $3, %eax
         jo      .Lneg
-        op
+        OP
         ret
 .Lneg:
         pushl   4(%esp)
-        c_call  neg
+        C_CALL(neg)
         add     $4, %esp
         ret
-        epilog  neg
+        EPILOG(neg)
 
 
         /* abs */
-        prolog  abs
+        PROLOG(abs)
         mov     4(%esp), %eax
         test    $1, %eax
         jz      .Labs
@@ -83,48 +98,48 @@ ml_as_z_\proc:
         add     $3, %eax
         jo      .Labs
 .Labs2:
-        op
+        OP
         ret
 .Labs:
         pushl   4(%esp)
-        c_call  abs
+        C_CALL(abs)
         add     $4, %esp
         ret
-        epilog  abs
+        EPILOG(abs)
 
         
         /* succ */
-        prolog  succ
+        PROLOG(succ)
         mov     4(%esp), %eax
         test    $1, %eax
         jz      .Lsucc
         add     $2, %eax
         jo      .Lsucc
-        op
+        OP
         ret
 .Lsucc:
         pushl   4(%esp)
-        c_call  succ
+        C_CALL(succ)
         add     $4, %esp
         ret
-        epilog  succ
+        EPILOG(succ)
 
 
         /* pred */
-        prolog  pred
+        PROLOG(pred)
         mov     4(%esp), %eax
         test    $1, %eax
         jz      .Lpred
         sub     $2, %eax
         jo      .Lpred
-        op
+        OP
         ret
 .Lpred:
         pushl   4(%esp)
-        c_call  pred
+        C_CALL(pred)
         add     $4, %esp
         ret
-        epilog  pred
+        EPILOG(pred)
 
 
         
@@ -133,7 +148,7 @@ ml_as_z_\proc:
         /* ****************** */
 
         /* add */
-        prolog  add
+        PROLOG(add)
         mov     4(%esp), %eax
         test    $1, %eax
         jz      .Ladd
@@ -143,19 +158,19 @@ ml_as_z_\proc:
         dec     %eax
         add     %ecx, %eax
         jo      .Ladd
-        op
+        OP
         ret
 .Ladd:
         pushl   8(%esp)
         pushl   8(%esp)
-        c_call  add
+        C_CALL(add)
         add     $8, %esp
         ret
-        epilog  add
+        EPILOG(add)
 
  
         /* sub */
-        prolog  sub
+        PROLOG(sub)
         mov     4(%esp), %eax
         test    $1, %eax
         jz      .Lsub
@@ -165,19 +180,19 @@ ml_as_z_\proc:
         sub     %ecx, %eax
         jo      .Lsub
         inc     %eax
-        op
+        OP
         ret
 .Lsub:
         pushl   8(%esp)
         pushl   8(%esp)
-        c_call  sub
+        C_CALL(sub)
         add     $8, %esp
         ret
-        epilog  sub
+        EPILOG(sub)
 
         
         /* mul */
-        prolog  mul
+        PROLOG(mul)
         mov     4(%esp), %eax
         test    $1, %eax
         jz      .Lmul
@@ -189,19 +204,19 @@ ml_as_z_\proc:
         imul    %ecx, %eax
         jo      .Lmul
         inc     %eax
-        op
+        OP
         ret
 .Lmul:
         pushl   8(%esp)
         pushl   8(%esp)
-        c_call  mul
+        C_CALL(mul)
         add     $8, %esp
         ret
-        epilog  sub
+        EPILOG(sub)
 
         
         /* div */
-        prolog  div
+        PROLOG(div)
         mov     4(%esp), %eax
         test    $1, %eax
         jz      .Ldiv
@@ -217,26 +232,26 @@ ml_as_z_\proc:
         idiv    %ecx
         sal     %eax
         inc     %eax
-        op
+        OP
         ret
 .Ldivneg:
         /* division by -1, the only one that can overflow */
         not     %eax
         add     $3, %eax
         jo      .Ldiv
-        op
+        OP
         ret
 .Ldiv:
         pushl   8(%esp)
         pushl   8(%esp)
-        c_call  div
+        C_CALL(div)
         add     $8, %esp
         ret
-        epilog  div
+        EPILOG(div)
 
         
         /* rem */
-        prolog  rem
+        PROLOG(rem)
         mov     4(%esp), %eax
         test    $1, %eax
         jz      .Lrem
@@ -252,20 +267,20 @@ ml_as_z_\proc:
         idiv    %ecx
         sal     %edx
         lea     1(%edx), %eax
-        op
+        OP
         ret
 .Lremneg:
         /* division by -1 */
         mov     $1, %eax
-        op
+        OP
         ret
 .Lrem:
         pushl   8(%esp)
         pushl   8(%esp)
-        c_call  rem
+        C_CALL(rem)
         add     $8, %esp
         ret
-        epilog  rem
+        EPILOG(rem)
 
         
         /* bit operations */
@@ -273,7 +288,7 @@ ml_as_z_\proc:
 
         
         /* not */
-        prolog  lognot
+        PROLOG(lognot)
         mov     4(%esp), %eax
         test    $1, %eax
         jz      .Llognot
@@ -282,14 +297,14 @@ ml_as_z_\proc:
         ret
 .Llognot:
         pushl   %eax
-        c_call  lognot
+        C_CALL(lognot)
         add     $4, %esp
         ret
-        epilog  lognot
+        EPILOG(lognot)
 
 
         /* or */
-        prolog  logor
+        PROLOG(logor)
         mov     4(%esp), %eax
         test    $1, %eax
         jz      .Llogor
@@ -297,18 +312,18 @@ ml_as_z_\proc:
         test    $1, %ecx
         jz      .Llogor
         or      %ecx, %eax
-        op
+        OP
         ret
 .Llogor:
         pushl   8(%esp)
         pushl   8(%esp)
-        c_call  logor
+        C_CALL(logor)
         add     $8, %esp
         ret
-        epilog  logor
+        EPILOG(logor)
 
         /* and */
-        prolog  logand
+        PROLOG(logand)
         mov     4(%esp), %eax
         test    $1, %eax
         jz      .Llogand
@@ -316,19 +331,19 @@ ml_as_z_\proc:
         test    $1, %ecx
         jz      .Llogand
         and     %ecx, %eax
-        op
+        OP
         ret
 .Llogand:
         pushl   8(%esp)
         pushl   8(%esp)
-        c_call  logand
+        C_CALL(logand)
         add     $8, %esp
         ret
-        epilog  logand
+        EPILOG(logand)
 
         
         /* xor */
-        prolog  logxor
+        PROLOG(logxor)
         mov     4(%esp), %eax
         test    $1, %eax
         jz      .Llogxor
@@ -337,19 +352,19 @@ ml_as_z_\proc:
         jz      .Llogxor
         xor     %ecx, %eax
         inc     %eax
-        op
+        OP
         ret
 .Llogxor:
         pushl   8(%esp)
         pushl   8(%esp)
-        c_call  logxor
+        C_CALL(logxor)
         add     $8, %esp
         ret
-        epilog  logxor
+        EPILOG(logxor)
 
 
         /* shift_left */
-        prolog  shift_left
+        PROLOG(shift_left)
         mov     4(%esp), %eax
         test    $1, %eax
         jz      .Lshift_left
@@ -367,19 +382,19 @@ ml_as_z_\proc:
         cmp     4(%esp), %edx
         jne     .Lshift_left /* overflow */
         inc     %eax
-        op
+        OP
         ret
 .Lshift_left:
         pushl   8(%esp)
         pushl   8(%esp)
-        c_call  shift_left
+        C_CALL(shift_left)
         add     $8, %esp
         ret
-        epilog  shift_left
+        EPILOG(shift_left)
 
 
         /* shift_right */
-        prolog  shift_right
+        PROLOG(shift_right)
         mov     4(%esp), %eax
         test    $1, %eax
         jz      .Lshift_right
@@ -391,23 +406,23 @@ ml_as_z_\proc:
         jae     .Lshift_right2
         sar     %cl, %eax
         or      $1, %eax
-        op
+        OP
         ret
 .Lshift_right2:
         /* shift by 31 or more */
         test    %eax, %eax
         js      .Lshift_right3
         mov     $1, %eax
-        op
+        OP
         ret
 .Lshift_right3:
         mov     $-1, %eax
-        op
+        OP
         ret
 .Lshift_right:
         pushl   8(%esp)
         pushl   8(%esp)
-        c_call  shift_right
+        C_CALL(shift_right)
         add     $8, %esp
         ret
-        epilog  shift_right
+        EPILOG(shift_right)

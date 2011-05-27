@@ -25,9 +25,38 @@ REQUIREMENTS:
 - OCaml, preferably version 3.12.1 or later.  
   (Earlier versions are usable but generic comparisons will misbehave.)
 - Either the GMP library or the MPIR library, including development files.
-- The gcc C compiler.
-- The gas assembler.
+- The GNU C compiler (gcc) and assembler.
 - The Perl programming language.
+- (optional) The Findlib package manager.
+
+
+INSTALLATION:
+
+First, run the "configure" script by typing:
+
+   ./configure
+
+It creates a Makefile, which can be invoked by:
+
+   make
+
+This builds native and bytecode versions of the library and test programs.
+The libraries are installed by typing:
+
+   make install
+
+or, if you install to a system location but are not an administrator
+
+   sudo make install
+
+If Findlib is detected, it is used to install files. 
+Otherwise, the files are simply copied to the location given by `ocamlc -where`.
+The libraries are named "zarith.cmxa" and "zarith.cma", and the Findlib module
+is named "zarith".
+The "configure" script has a few options. Use the "-help" option to get a
+list and short description of each option.
+HTML API documentation is built by the additional "make doc" command (but
+not installed).
 
 
 LICENSE:
@@ -45,17 +74,18 @@ Antoine Miné, ENS Paris.
 CONTENTS:
 
 The files are:
+* configure         - configuration script
 * caml_z.c          - C implementation of all functions
 * caml_z_compare.c  - polymorphic compare compatible with big integers
-* caml_z_i686.c     - x86 Linux asm implementation for a few functions
-* caml_z_x86_64.c   - x86_64 Linux asm implementation for a few functions
+* caml_z_i686.S     - x86 asm implementation for a few functions
+* caml_z_x86_64.S   - x86_64 asm implementation for a few functions
 * z_pp.pl           - script to generate z.ml, z.mli
 * z.mlp, z.mlip     - templates used to generate z.ml, z.mli
 * big_int_z.ml      - wrapper to provide a Big_int compatible API to Z
 * q.ml, q.mli       - rational library, pure OCaml on top of Z
 * test.ml           - simple test
 * bitest.ml         - consistency test between Z and Big_int
-* Makefile          - builds Z, Q and the tests
+* projet.mak        - builds Z, Q and the tests
 
 Note: z_pp.pl simply scans the asm file (if any) to see which functions have
 an asm implementation. It then fixes the external statements in .mlp and 

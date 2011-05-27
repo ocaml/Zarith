@@ -88,7 +88,7 @@ static const double inf_helper = 1.0;
    The compare_ext operation is supported in OCaml since version 3.12.1. 
 */
 /*
-  #define OCAML_COMPARE_EXT 0
+  #define Z_OCAML_COMPARE_EXT 0
   now set by configure
 */
 
@@ -2479,7 +2479,7 @@ struct custom_operations ml_z_custom_ops = {
   ml_z_custom_hash,
   ml_z_custom_serialize,
   ml_z_custom_deserialize,
-#if OCAML_COMPARE_EXT
+#if Z_OCAML_COMPARE_EXT
   ml_z_custom_compare,
 #endif
 };

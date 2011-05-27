@@ -28,13 +28,13 @@ TOINSTALL = zarith.a zarith.cma zarith.cmxa libzarith.a $(MLISRC) $(CMIOBJ)
 # build targets
 ###############
 
-all: $(TOINSTALL)
+all: $(TOINSTALL) test test.b
 
 zarith.cma: $(MLSRC:%.ml=%.cmo)
 	$(OCAMLC) -custom -a $(OCAMLFLAGS) $(OCAMLINC) $+ -cclib "$(LIBS) -lzarith" -o $@
 
 zarith.cmxa zarith.a: $(MLSRC:%.ml=%.cmx)
-	$(OCAMLOPT) -a $(OCAMLOPTFLAGS) $(OCAMLINC) $+ -cclib "$(LIBS) -lzarith " -o $@
+	$(OCAMLOPT) -a $(OCAMLOPTFLAGS) $(OCAMLINC) $+ -cclib "$(LIBS) -lzarith " -o zarith.cmxa
 
 libzarith.a: $(SSRC:%.S=%.o) $(CSRC:%.c=%.o) 
 	$(AR) rc $@ $+

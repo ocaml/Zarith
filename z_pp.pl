@@ -25,7 +25,7 @@ if (-e $ASM) {
     print "found assembly file $ASM\n";
     open F, "<$ASM";
     while (defined($l = <F>)) {
-        if ($l =~ /^\s*prolog\s+([A-Za-z0-9_]+)/) {
+        if ($l =~ /^\s*PROLOG\s*\(\s*([A-Za-z0-9_]+)/) {
             $ASM_FUNS{$1} = 1;
         }
     }

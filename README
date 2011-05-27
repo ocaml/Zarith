@@ -52,9 +52,10 @@ The files are:
 * z_pp.pl           - script to generate z.ml, z.mli
 * z.mlp, z.mlip     - templates used to generate z.ml, z.mli
 * big_int_z.ml      - wrapper to provide a Big_int compatible API to Z
+* q.ml, q.mli       - rational library, pure OCaml on top of Z
 * test.ml           - simple test
 * bitest.ml         - consistency test between Z and Big_int
-* Makefile          - builds Z and the tests
+* Makefile          - builds Z, Q and the tests
 
 Note: z_pp.pl simply scans the asm file (if any) to see which functions have
 an asm implementation. It then fixes the external statements in .mlp and 

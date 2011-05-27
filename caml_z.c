@@ -26,8 +26,12 @@
 #include <string.h>
 #include <math.h>
 
+#ifdef HAS_GMP
 #include <gmp.h>
-/*#include <mpir.h>*/
+#endif
+#ifdef HAS_MPIR
+#include <mpir.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,7 +72,10 @@ static const double inf_helper = 1.0;
 /* Enable performance counters. 
    Prints some info on stdout at exit. 
 */
-#define Z_PERF_COUNTER 0 /* set to 0 on Visual Studio */
+/*
+  #define Z_PERF_COUNTER 0
+  now set by configure
+*/
 
 /* whether to use custom blocks (supporting serialization, comparison &
    hashing) instead of abstract tags
@@ -80,7 +87,10 @@ static const double inf_helper = 1.0;
    operate properly over values of type Z.t.
    The compare_ext operation is supported in OCaml since version 3.12.1. 
 */
-#define OCAML_COMPARE_EXT 0
+/*
+  #define OCAML_COMPARE_EXT 0
+  now set by configure
+*/
 
 /*---------------------------------------------------
   DATA STRUCTURES

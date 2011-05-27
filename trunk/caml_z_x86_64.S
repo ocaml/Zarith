@@ -19,59 +19,69 @@
 
  */
 
-
+        
         /* helper functions */
         /* **************** */
 
-        /* function prolog epilog */
-        
-        .macro  prolog proc
-        .text
-        .globl  ml_as_z_\proc
-        .type   ml_as_z_\proc, @function
-        .align  16
-ml_as_z_\proc:
-        .endm
 
-        .macro  epilog proc
-        .size   ml_as_z_\proc, .-ml_as_z_\proc
-        .endm
+        /* optional underscope prefix for symbols */
+#ifdef Z_UNDERSCORE_PREFIX
+#define SYMB(x) _##x
+#else
+#define SYMB(x)  x
+#endif
+
+
+        /* function prolog epilog */
+
+#define PROLOG(proc) \
+        .text;   \
+        .globl  SYMB(ml_as_z_##proc); \
+        .type   SYMB(ml_as_z_##proc), @function; \
+        .align  16; \
+SYMB(ml_as_z_##proc):
+
+#define EPILOG(proc) \
+        .size   SYMB(ml_as_z_##proc), .-SYMB(ml_as_z_##proc)
 
 
         /* calling C functions */
-        
-        .macro  c_jmp proc
-        jmp     ml_z_\proc\()@PLT
-        .endm
+
+#define C_JMP(proc) \
+        jmp     SYMB(ml_z_##proc@PLT)
 
 
         /* operation counter */
-        .macro  op
-        mov     ml_z_ops_as@GOTPCREL(%rip), %rcx
+        
+#ifdef Z_PERF_COUNTER
+#define OP \
+        mov     SYMB(ml_z_ops_as@GOTPCREL(%rip)), %rcx; \
         addq    $1, (%rcx)
-        .endm
-
+#else
+#define OP
+#endif
+        
         
         /* unary arithmetics */
         /* ***************** */
 
         /* neg */
-        prolog  neg
+        PROLOG(neg)
         test    $1, %rdi
         jz      .Lneg
         mov     %rdi, %rax
         not     %rax
         add     $3, %rax
         jo      .Lneg
-        op
+        OP
         ret
 .Lneg:
-        c_jmp   neg
-        epilog  neg
+        C_JMP(neg)
+        EPILOG(neg)
 
         
         /* abs */
-        prolog  abs
+        PROLOG(abs)
         test    $1, %rdi
         jz      .Labs
         mov     %rdi, %rax
@@ -81,39 +91,39 @@ ml_as_z_\proc:
         add     $3, %rax
         jo      .Lneg
 .Labs2:
-        op
+        OP
         ret
 .Labs:
-        c_jmp   abs
-        epilog  abs
+        C_JMP(abs)
+        EPILOG(abs)
 
         
         /* succ */
-        prolog  succ
+        PROLOG(succ)
         test    $1, %rdi
         jz      .Lsucc
         mov     %rdi, %rax
         add     $2, %rax
         jo      .Lsucc
-        op
+        OP
         ret
 .Lsucc:
-        c_jmp   succ
-        epilog  succ
+        C_JMP(succ)
+        EPILOG(succ)
 
         
         /* pred */
-        prolog  pred
+        PROLOG(pred)
         test    $1, %rdi
         jz      .Lpred
         mov     %rdi, %rax
         sub     $2, %rax
         jo      .Lpred
-        op
+        OP
         ret
 .Lpred:
-        c_jmp   pred
-        epilog  pred
+        C_JMP(pred)
+        EPILOG(pred)
 
 
 
@@ -123,7 +133,7 @@ ml_as_z_\proc:
 
         
         /* add */
-        prolog  add
+        PROLOG(add)
         test    $1, %rdi
         jz      .Ladd
         test    $1, %rsi
@@ -131,15 +141,15 @@ ml_as_z_\proc:
         lea     -1(%rdi), %rax
         add     %rsi, %rax
         jo      .Ladd
-        op
+        OP
         ret
 .Ladd:
-        c_jmp   add
-        epilog  add
+        C_JMP(add)
+        EPILOG(add)
 
         
         /* sub */
-        prolog  sub
+        PROLOG(sub)
         test    $1, %rdi
         jz      .Lsub
         test    $1, %rsi
@@ -148,15 +158,15 @@ ml_as_z_\proc:
         sub     %rsi, %rax
         jo      .Lsub
         inc     %rax
-        op
+        OP
         ret
 .Lsub:
-        c_jmp   sub
-        epilog  sub
+        C_JMP(sub)
+        EPILOG(sub)
 
   
         /* mul */
-        prolog  mul
+        PROLOG(mul)
         test    $1, %rdi
         jz      .Lmul
         test    $1, %rsi
@@ -167,15 +177,15 @@ ml_as_z_\proc:
         imul    %rcx, %rax
         jo      .Lmul
         inc     %rax
-        op
+        OP
         ret
 .Lmul:
-        c_jmp   mul
-        epilog  mul
+        C_JMP(mul)
+        EPILOG(mul)
 
   
         /* div */
-        prolog  div
+        PROLOG(div)
         test    $1, %rdi
         jz      .Ldiv
         test    $1, %rsi
@@ -191,22 +201,22 @@ ml_as_z_\proc:
         idiv    %rcx
         sal     %rax
         inc     %rax
-        op
+        OP
         ret
 .Ldivneg:
         /* division by -1, the only one that can overflow */
         not     %rax
         add     $3, %rax
         jo      .Ldiv
-        op
+        OP
         ret
 .Ldiv:
-        c_jmp   div
-        epilog  div
+        C_JMP(div)
+        EPILOG(div)
 
         
         /* rem */
-        prolog  rem
+        PROLOG(rem)
         test    $1, %rdi
         jz      .Lrem
         test    $1, %rsi
@@ -222,16 +232,16 @@ ml_as_z_\proc:
         idiv    %rcx
         sal     %rdx
         lea     1(%rdx), %rax
-        op
+        OP
         ret
 .Lremneg:
         /* division by -1 */
         mov     $1, %rax
-        op
+        OP
         ret
 .Lrem:
-        c_jmp   rem
-        epilog  rem
+        C_JMP(rem)
+        EPILOG(rem)
 
         
         /* bit operations */
@@ -239,48 +249,48 @@ ml_as_z_\proc:
 
 
         /* not */
-        prolog  lognot
+        PROLOG(lognot)
         test    $1, %rdi
         jz      .Llognot
         lea     -1(%rdi), %rax
         not     %rax
-        op
+        OP
         ret
 .Llognot:
-        c_jmp   lognot
-        epilog  lognot
+        C_JMP(lognot)
+        EPILOG(lognot)
 
         
         /* and */
-        prolog  logand
+        PROLOG(logand)
         mov     %rdi, %rax
         and     %rsi, %rax
         test    $1, %rax
         jz      .Llogand
-        op
+        OP
         ret
 .Llogand:
-        c_jmp   logand
-        epilog  logand
+        C_JMP(logand)
+        EPILOG(logand)
 
         
          /* or */
-        prolog  logor
+        PROLOG(logor)
         test    $1, %rdi
         jz      .Llogor
         test    $1, %rsi
         jz      .Llogor
         mov     %rdi, %rax
         or      %rsi, %rax
-        op
+        OP
         ret
 .Llogor:
-        c_jmp   logor
-        epilog  logor
+        C_JMP(logor)
+        EPILOG(logor)
 
         
          /* xor */
-        prolog  logxor
+        PROLOG(logxor)
         test    $1, %rdi
         jz      .Llogxor
         test    $1, %rsi
@@ -288,15 +298,15 @@ ml_as_z_\proc:
         mov     %rdi, %rax
         xor     %rsi, %rax
         inc     %rax
-        op
+        OP
         ret
 .Llogxor:
-        c_jmp   logxor
-        epilog  logxor
+        C_JMP(logxor)
+        EPILOG(logxor)
 
         
          /* shift_left */
-        prolog  shift_left
+        PROLOG(shift_left)
         test    $1, %rdi
         jz      .Lshift_left
         mov     %rsi, %rcx
@@ -311,15 +321,15 @@ ml_as_z_\proc:
         cmp     %r8, %rdx
         jne     .Lshift_left /* overflow */
         inc     %rax
-        op
+        OP
         ret
 .Lshift_left:
-        c_jmp   shift_left
-        epilog  shift_left
+        C_JMP(shift_left)
+        EPILOG(shift_left)
 
 
         /* shift_right */
-        prolog  shift_right
+        PROLOG(shift_right)
         test    $1, %rdi
         jz      .Lshift_right
         mov     %rsi, %rcx
@@ -329,20 +339,21 @@ ml_as_z_\proc:
         mov     %rdi, %rax
         sar     %cl, %rax
         or      $1, %rax
-        op
+        OP
         ret
 .Lshift_right2:
         /* shift by 63 or more */
         test    %rdi, %rdi
         js      .Lshift_right3
         mov     $1, %rax
-        op
+        OP
         ret
 .Lshift_right3:
         mov     $-1, %rax
-        op
+        OP
         ret
 .Lshift_right:
-        c_jmp   shift_right
-        epilog  shift_right
+        C_JMP(shift_right)
+        EPILOG(shift_right)
+        
 

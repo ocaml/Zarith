@@ -75,6 +75,13 @@ let mini64 = I.of_int64 Int64.min_int
 let maxni = I.of_nativeint Nativeint.max_int
 let minni = I.of_nativeint Nativeint.min_int
 
+let chk_bits x =
+  Printf.printf "to_bits %a\n =" pr x;
+  String.iter (fun c -> Printf.printf " %02x" (Char.code c)) (I.to_bits x);
+  Printf.printf "\n";
+  assert(I.equal (I.abs x) (I.of_bits (I.to_bits x)));
+  assert((I.to_bits x) = (I.to_bits (I.neg x)))
+
 let test_Z() =
   Printf.printf "0\n = %a\n" pr I.zero;
   Printf.printf "1\n = %a\n" pr I.one;
@@ -599,6 +606,24 @@ let test_Z() =
   Printf.printf "extract -42 1 5 = %a\n" pr (I.extract (I.of_int (-42)) 1 5);
   Printf.printf "extract -42 1 32 = %a\n" pr (I.extract (I.of_int (-42)) 1 32);
   Printf.printf "extract -42 1 64 = %a\n" pr (I.extract (I.of_int (-42)) 1 64);
+  chk_bits I.zero;
+  chk_bits p2;
+  chk_bits (I.neg p2);
+  chk_bits p30;
+  chk_bits (I.neg p30);
+  chk_bits p62;
+  chk_bits (I.neg p62);
+  chk_bits p300;
+  chk_bits p120;
+  chk_bits p121;
+  chk_bits maxi;
+  chk_bits mini;
+  chk_bits maxi32;
+  chk_bits mini32;
+  chk_bits maxi64;
+  chk_bits mini64;
+  chk_bits maxni;
+  chk_bits minni;
   ()
 
 

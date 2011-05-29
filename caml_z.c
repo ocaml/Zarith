@@ -828,6 +828,81 @@ CAMLprim value ml_z_extract(value arg, value off, value len)
   CAMLreturn(r);
 }
 
+/* NOTE: the sign is not stored */
+CAMLprim value ml_z_to_bits(value arg)
+{
+  CAMLparam1(arg);
+  CAMLlocal1(r);
+  Z_DECL(arg);
+  mp_size_t i;
+  unsigned char* p;
+  Z_MARK_OP;
+  Z_MARK_SLOW;
+  Z_ARG(arg);
+  r = caml_alloc_string(size_arg * sizeof(mp_limb_t));
+  p = (unsigned char*) String_val(r);
+  memset(p, 0, size_arg * sizeof(mp_limb_t));
+  for (i = 0; i < size_arg; i++) {
+    mp_limb_t x = ptr_arg[i];
+    *(p++) = x;
+    *(p++) = x >> 8;
+    *(p++) = x >> 16;
+    *(p++) = x >> 24;
+#ifdef ARCH_SIXTYFOUR
+    *(p++) = x >> 32;
+    *(p++) = x >> 40;
+    *(p++) = x >> 48;
+    *(p++) = x >> 56;
+#endif
+  }
+  CAMLreturn(r);
+}
+
+CAMLprim value ml_z_of_bits(value arg)
+{
+  CAMLparam1(arg);
+  CAMLlocal1(r);
+  mp_size_t i, sz, szw;
+  mp_limb_t x;
+  unsigned char* p;
+  Z_MARK_OP;
+  Z_MARK_SLOW;
+  sz = caml_string_length(arg);
+  p = (unsigned char*) String_val(arg);
+  szw = sz / sizeof(mp_limb_t) + 1;
+  r = ml_z_alloc(szw);
+  /* all limbs but last */
+  for (i = 0; i < szw - 1; i++) {
+    x = *(p++);
+    x |= ((mp_limb_t) *(p++)) << 8;
+    x |= ((mp_limb_t) *(p++)) << 16;
+    x |= ((mp_limb_t) *(p++)) << 24;
+#ifdef ARCH_SIXTYFOUR
+    x |= ((mp_limb_t) *(p++)) << 32;
+    x |= ((mp_limb_t) *(p++)) << 40;
+    x |= ((mp_limb_t) *(p++)) << 48;
+    x |= ((mp_limb_t) *(p++)) << 56;
+#endif
+    Z_LIMB(r)[i] = x;
+  }
+  /* last limb */
+  sz %= sizeof(mp_limb_t);
+  x = 0;
+  if (sz > 0) x = *(p++);
+  if (sz > 1) x |= ((mp_limb_t) *(p++)) << 8;
+  if (sz > 2) x |= ((mp_limb_t) *(p++)) << 16;
+  if (sz > 3) x |= ((mp_limb_t) *(p++)) << 24;
+#ifdef ARCH_SIXTYFOUR
+  if (sz > 4) x |= ((mp_limb_t) *(p++)) << 32;
+  if (sz > 5) x |= ((mp_limb_t) *(p++)) << 40;
+  if (sz > 6) x |= ((mp_limb_t) *(p++)) << 48;
+  if (sz > 7) x |= ((mp_limb_t) *(p++)) << 56;
+#endif
+  Z_LIMB(r)[i] = x;
+  r = ml_z_reduce(r, szw, 0);
+  Z_CHECK(r);
+  CAMLreturn(r);
+}
 
 /*---------------------------------------------------
   TESTS AND COMPARISONS

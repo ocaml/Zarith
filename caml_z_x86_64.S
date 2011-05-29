@@ -31,36 +31,61 @@
 #define SYMB(x)  x
 #endif
 
+        /* function prolog & epilog */
 
-        /* function prolog epilog */
+#if defined(Z_ELF)
+#define FUNCTION_ALIGN 16
+#endif
+#if defined(Z_MACOS)
+#define FUNCTION_ALIGN 4
+#endif
 
+#if defined(Z_ELF)
 #define PROLOG(proc) \
         .text;   \
         .globl  SYMB(ml_as_z_##proc); \
         .type   SYMB(ml_as_z_##proc), @function; \
-        .align  16; \
+        .align  FUNCTION_ALIGN; \
 SYMB(ml_as_z_##proc):
 
 #define EPILOG(proc) \
         .size   SYMB(ml_as_z_##proc), .-SYMB(ml_as_z_##proc)
+#endif
 
+#if defined(Z_MACOS)
+#define PROLOG(proc) \
+        .text;   \
+        .globl  SYMB(ml_as_z_##proc); \
+        .align  FUNCTION_ALIGN; \
+SYMB(ml_as_z_##proc):
+
+#define EPILOG(proc)
+
+#endif
 
         /* calling C functions */
 
+#if defined(Z_ELF)
 #define C_JMP(proc) \
         jmp     SYMB(ml_z_##proc@PLT)
+#endif
 
+#if defined(Z_MACOS)
+#define C_JMP(proc) \
+        jmp     SYMB(ml_z_##proc)
+#endif
 
         /* operation counter */
         
-#ifdef Z_PERF_COUNTER
+#ifndef Z_PERF_COUNTER
+#define OP
+#else
+#if defined(Z_ELF) || defined(Z_MACOS)
 #define OP \
         mov     SYMB(ml_z_ops_as@GOTPCREL(%rip)), %rcx; \
         addq    $1, (%rcx)
-#else
-#define OP
 #endif
-        
+#endif
         
         /* unary arithmetics */
         /* ***************** */

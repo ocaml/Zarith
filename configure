@@ -23,16 +23,21 @@ gmp='auto'
 perf='no'
 
 # should we make the following auto-detected or configurable?
-cc='gcc'
+if test -n "$CC"; then
+  cc="$CC"
+  ccopt="$CFLAGS"
+else
+  cc='gcc'
+  ccopt="-O3 -Wall -Wextra $CFLAGS"
+fi
 ar='ar'
 ocaml='ocaml'
 ocamlc='ocamlc'
 ocamlopt='ocamlopt'
 ocamldep='ocamldep'
 ocamldoc='ocamldoc'
-ccmlinc=''
+ccinc="$CPPFLAGS"
 cclib="$LDFLAGS"
-ccopt="-O3 -Wall -Wextra $CFLAGS"
 asopt=''
 ccdef=''
 mlflags="$OCAMLFLAGS"
@@ -60,6 +65,15 @@ where options include:
   -gmp                 use GMP library (default if found)
   -mpir                use MPIR library instead of GMP
   -perf                enable performance statistics
+
+Environment variables that affect configuration:
+  CC                   C compiler to use (default: gcc)
+  CFLAGS               extra flags to pass to the C compiler
+  CPPFLAGS             extra includes, e.g. -I/path/to/gmp/include
+  LDFLAGS              extra link flags, e.g. -L/path/to/gmp/lib
+  OCAMLFLAGS           extra flags to pass to the ocamlc Caml compiler
+  OCAMLOPTFLAGS        extra flags to pass to the ocamlopt Caml compiler
+  OCAMLINC             extra includes to pass to the Caml compilers
 EOF
     exit
 }
@@ -100,12 +114,16 @@ done
 
 if test "$perf" = "yes"; then ccdef="-DZ_PERF_COUNTER $ccdef"; fi
 
+echo_n()
+{
+    echo "$1" | tr -d '\012'
+}
 
 # checking binaries in $PATH
 
 searchbin()
 {
-    echo -n "binary $1: "
+    echo_n "binary $1: "
     IFS=':'
     for i in $PATH
     do
@@ -128,12 +146,12 @@ searchbinreq()
 
 checkinc()
 {
-    echo -n "include $1: "
+    echo_n "include $1: "
     rm -f tmp.c tmp.o
     echo "#include <$1>" > tmp.c
     echo "int main() { return 1; }" >> tmp.c
     r=1
-    $cc $ccopt "$ccmlinc" -c tmp.c -o tmp.o >/dev/null 2>/dev/null || r=0
+    $cc $ccopt $ccinc -c tmp.c -o tmp.o >/dev/null 2>/dev/null || r=0
     if test ! -f tmp.o; then r=0; fi
     rm -f tmp.c tmp.o
     if test $r -eq 0; then echo "not found"; else echo "found"; fi
@@ -142,7 +160,7 @@ checkinc()
 
 checklib()
 {
-    echo -n "library $1: "
+    echo_n "library $1: "
     rm -f tmp.c tmp.out
     echo "int main() { return 1; }" >> tmp.c
     r=1
@@ -155,7 +173,7 @@ checklib()
 
 checkcc()
 {
-    echo -n "checking compilation with $cc $ccopt: "
+    echo_n "checking compilation with $cc $ccopt: "
     rm -f tmp.c tmp.out
     echo "int main() { return 1; }" >> tmp.c
     r=1
@@ -196,7 +214,7 @@ if test "$ocamllibdir" = "auto"; then ocamllibdir=`ocamlc -where`; fi
 
 if ! test -f "$ocamllibdir/caml/mlvalues.h"
 then echo "cannot find OCaml libraries in $ocamllibdir"; exit 2; fi
-ccmlinc="-I$ocamllibdir"
+ccinc="-I$ocamllibdir $ccinc"
 checkinc "caml/mlvalues.h"
 if test $? -eq 0; then echo "cannot include caml/mlvalues.h"; exit 2; fi
 
@@ -246,14 +264,17 @@ case $host in
         ccdef="-DZ_UNDERSCORE_PREFIX -DZ_COFF $ccdef"
         arch='i686';;
     i686-*darwin* | x86_64-*darwin*)
-        ccdef="-DZ_UNDERSCORE_PREFIX $ccdef"
+        ccdef="-DZ_UNDERSCORE_PREFIX -DZ_MACOS $ccdef"
         if test "x$wordsize" = "x64"; then
             ccopt="-arch x86_64 $ccopt"
             asopt="-arch x86_64 $asopt"
             arch='x86_64'
             checkcc
         else
+            ccopt="-arch i386 $ccopt"
+            asopt="-arch i386 $asopt"
             arch='i686'
+            checkcc
         fi
         ;;
     none)
@@ -324,7 +345,7 @@ OCAMLDOC=$ocamldoc
 OCAMLFLAGS=$mlflags
 OCAMLOPTFLAGS=$mloptflags
 OCAMLINC=$mlinc
-CFLAGS="$ccmlinc" $ccdef $ccopt
+CFLAGS=$ccinc $ccdef $ccopt
 ASFLAGS=$ccdef $asopt
 LIBS=$cclib
 ARCH=$arch

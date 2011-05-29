@@ -22,7 +22,7 @@ MLISRC = z.mli q.mli
 AUTOGEN = z.ml z.mli
 
 CMIOBJ=$(MLISRC:%.mli=%.cmi)
-TOINSTALL = zarith.a zarith.cma zarith.cmxa libzarith.a $(MLISRC) $(CMIOBJ)
+TOINSTALL = zarith.a zarith.cma zarith.cmxa zarith.cmxs libzarith.a $(MLISRC) $(CMIOBJ)
 
 
 # build targets
@@ -31,13 +31,16 @@ TOINSTALL = zarith.a zarith.cma zarith.cmxa libzarith.a $(MLISRC) $(CMIOBJ)
 all: $(TOINSTALL) test test.b
 
 zarith.cma: $(MLSRC:%.ml=%.cmo)
-	$(OCAMLC) -custom -a $(OCAMLFLAGS) $(OCAMLINC) $+ -cclib "$(LIBS) -lzarith" -o $@
+	$(OCAMLMKLIB) -o zarith $+ $(LIBS)
 
 zarith.cmxa zarith.a: $(MLSRC:%.ml=%.cmx)
-	$(OCAMLOPT) -a $(OCAMLOPTFLAGS) $(OCAMLINC) $+ -cclib "$(LIBS) -lzarith " -o zarith.cmxa
+	$(OCAMLMKLIB) -o zarith $+ $(LIBS)
 
-libzarith.a: $(SSRC:%.S=%.o) $(CSRC:%.c=%.o) 
-	$(AR) rc $@ $+
+zarith.cmxs: zarith.cmxa libzarith.a
+	$(OCAMLOPT) -shared -o $@ -I . zarith.cmxa
+
+libzarith.a dllzarith.so: $(SSRC:%.S=%.o) $(CSRC:%.c=%.o) 
+	$(OCAMLMKLIB) -o zarith $+ $(LIBS)
 
 test: zarith.cmxa test.cmx
 	$(OCAMLOPT) $(OCAMLOPTFLAGS) $(OCAMLINC) -cclib "-L." $+ -o $@
@@ -66,16 +69,18 @@ install:
 	for i in $(TOINSTALL); do \
 		if test -f $$i; then $(INSTALL) --mode=0644 $$i $(INSTALLDIR); fi; \
 	done
+	if test -f dllzarith.so; then $(INSTALL) --mode=0755 dllzarith.so `$(OCAMLC) -where`/stublibs; fi
 
 uninstall:
 	for i in $(TOINSTALL); do \
 		rm -f $(INSTALLDIR)/$$i; \
 	done
+	if test -f `$(OCAMLC) -where`/stublibs/dllzarith.so; then rm -f `$(OCAMLC) -where`/stublibs/dllzarith.so; fi
 endif
 
 ifeq ($(INSTMETH),findlib)
 install:
-	$(OCAMLFIND) install -destdir $(INSTALLDIR) zarith META $(TOINSTALL)
+	$(OCAMLFIND) install -destdir $(INSTALLDIR) zarith META $(TOINSTALL) dllzarith.so
 
 uninstall:
 	$(OCAMLFIND) remove -destdir $(INSTALLDIR) zarith
@@ -102,6 +107,9 @@ $(AUTOGEN): z.mlp z.mlip $(SSRC) z_pp.pl
 
 %.cmx: %.ml
 	$(OCAMLOPT) $(OCAMLOPTFLAGS) $(OCAMLINC) -c $<
+
+%.o: %.c
+	$(OCAMLC) -ccopt "$(CFLAGS)" -c $<
 
 clean:
 	/bin/rm -rf *.o *.a *.so *.cmi *.cmo *.cmx *.cmxa *.cma *~ \#* depend test $(AUTOGEN) tmp.c depend

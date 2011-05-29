@@ -34,6 +34,7 @@ ar='ar'
 ocaml='ocaml'
 ocamlc='ocamlc'
 ocamlopt='ocamlopt'
+ocamlmklib='ocamlmklib'
 ocamldep='ocamldep'
 ocamldoc='ocamldoc'
 ccinc="$CPPFLAGS"
@@ -191,6 +192,7 @@ searchbinreq $ocaml
 searchbinreq $ocamlc
 searchbinreq $ocamlopt
 searchbinreq $ocamldep
+searchbinreq $ocamlmklib
 searchbinreq $ocamldoc
 searchbinreq $cc
 searchbinreq $ar
@@ -257,8 +259,10 @@ fi
 arch='none'
 case $host in
     x86_64-*linux-gnu)
+        ccdef="-DZ_ELF $ccdef"
         arch='x86_64';;
     i686-*linux-gnu)
+        ccdef="-DZ_ELF $ccdef"
         arch='i686';;
     i686-*cygwin)
         ccdef="-DZ_UNDERSCORE_PREFIX -DZ_COFF $ccdef"
@@ -341,6 +345,7 @@ CC=$cc
 OCAMLC=$ocamlc
 OCAMLOPT=$ocamlopt
 OCAMLDEP=$ocamldep
+OCAMLMKLIB=$ocamlmklib
 OCAMLDOC=$ocamldoc
 OCAMLFLAGS=$mlflags
 OCAMLOPTFLAGS=$mloptflags

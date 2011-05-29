@@ -69,13 +69,13 @@ install:
 	for i in $(TOINSTALL); do \
 		if test -f $$i; then $(INSTALL) --mode=0644 $$i $(INSTALLDIR); fi; \
 	done
-	if test -f dllzarith.so; then $(INSTALL) --mode=0755 dllzarith.so `$(OCAMLC) -where`/stublibs; fi
+	if test -f dllzarith.so; then $(INSTALL) --mode=0755 dllzarith.so $(INSTALLDIR)/stublibs; fi
 
 uninstall:
 	for i in $(TOINSTALL); do \
 		rm -f $(INSTALLDIR)/$$i; \
 	done
-	if test -f `$(OCAMLC) -where`/stublibs/dllzarith.so; then rm -f `$(OCAMLC) -where`/stublibs/dllzarith.so; fi
+	if test -f $(INSTALLDIR)/stublibs/dllzarith.so; then rm -f $(INSTALLDIR)/stublibs/dllzarith.so; fi
 endif
 
 ifeq ($(INSTMETH),findlib)
@@ -112,7 +112,7 @@ $(AUTOGEN): z.mlp z.mlip $(SSRC) z_pp.pl
 	$(OCAMLC) -ccopt "$(CFLAGS)" -c $<
 
 clean:
-	/bin/rm -rf *.o *.a *.so *.cmi *.cmo *.cmx *.cmxa *.cma *~ \#* depend test $(AUTOGEN) tmp.c depend
+	/bin/rm -rf *.o *.a *.so *.cmi *.cmo *.cmx *.cmxa *.cmxs *.cma *~ \#* depend test $(AUTOGEN) tmp.c depend
 	/bin/rm -rf test test.b rtest bitest html
 
 depend: $(AUTOGEN)

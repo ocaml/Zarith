@@ -87,7 +87,7 @@ while : ; do
         -cc|--cc)
             cc="$2"
             shift;;
-       -installdir|--installdir)
+        -installdir|--installdir)
             installdir="$2"
             shift;;
         -ocamllibdir|---ocamllibdir)
@@ -371,7 +371,6 @@ cat <<EOF
 detected configuration:
 
   asm path:             $arch
-  includes:             $ccinc
   defines:              $ccdef
   libraries:            $cclib
   C options:            $ccopt

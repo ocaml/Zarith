@@ -411,6 +411,23 @@ external extract: t -> int -> int -> t = "ml_z_extract"
     representation.
  *)
 
+external to_bits: t -> string = "ml_z_to_bits"
+(** Returns a binary representation of the argument.
+    The string result should be interpreted as a sequence of bytes,
+    corresponding to the binary representation of the absolute value of 
+    the argument in little endian ordering.
+    The sign is not stored in the string.
+ *)
+
+external of_bits: string -> t = "ml_z_of_bits"
+(** Constructs a number from a binary string representation.
+    The string is interpreted as a sequence of bytes in little endian order,
+    and the result is always positive.
+    We have the identity: [of_bits (to_bits x) = abs x].
+    However, we can have [to_bits (of_bits s) <> s] due to the presence of
+    trailing zeros in s.
+ *)
+
 
 (** {1 Prefix and infix operators} *)
 

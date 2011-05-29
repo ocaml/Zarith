@@ -31,26 +31,43 @@
 #define SYMB(x)  x
 #endif
 
-        /* disable ELF-specific code on COFF targets */
-#ifdef Z_COFF
-#define ELF(...)
-#else
-#define ELF(...) __VA_ARGS__
+        /* function prolog & epilog */
+
+#if defined(Z_ELF) || defined(Z_COFF)
+#define FUNCTION_ALIGN 16
+#endif
+#if defined(Z_MACOS)
+#define FUNCTION_ALIGN 4
 #endif
 
+#if defined(Z_ELF)
 #define PROLOG(proc) \
         .text;   \
         .globl  SYMB(ml_as_z_##proc); \
-        ELF(.type   SYMB(ml_as_z_##proc), @function;) \
-        .align  16; \
+        .type   SYMB(ml_as_z_##proc), @function; \
+        .align  FUNCTION_ALIGN; \
 SYMB(ml_as_z_##proc):
 
 #define EPILOG(proc) \
-        ELF(.size   SYMB(ml_as_z_##proc), .-SYMB(ml_as_z_##proc))
+        .size   SYMB(ml_as_z_##proc), .-SYMB(ml_as_z_##proc)
+#endif
 
+#if defined(Z_COFF) || defined(Z_MACOS)
+#define PROLOG(proc) \
+        .text;   \
+        .globl  SYMB(ml_as_z_##proc); \
+        .align  FUNCTION_ALIGN; \
+SYMB(ml_as_z_##proc):
+
+#define EPILOG(proc)
+#endif
 
         /* calling C functions */
 
+#define Z_USE_JMP
+
+#define C_JMP(proc) \
+        jmp     SYMB(ml_z_##proc)
 #define C_CALL(proc) \
         call    SYMB(ml_z_##proc)
 
@@ -80,10 +97,14 @@ SYMB(ml_as_z_##proc):
         OP
         ret
 .Lneg:
+#ifdef Z_USE_JMP
+        C_JMP(neg)
+#else
         pushl   4(%esp)
         C_CALL(neg)
         add     $4, %esp
         ret
+#endif
         EPILOG(neg)
 
 
@@ -101,10 +122,14 @@ SYMB(ml_as_z_##proc):
         OP
         ret
 .Labs:
+#ifdef Z_USE_JMP
+        C_JMP(abs)
+#else
         pushl   4(%esp)
         C_CALL(abs)
         add     $4, %esp
         ret
+#endif
         EPILOG(abs)
 
         
@@ -118,10 +143,14 @@ SYMB(ml_as_z_##proc):
         OP
         ret
 .Lsucc:
+#ifdef Z_USE_JMP
+        C_JMP(succ)
+#else
         pushl   4(%esp)
         C_CALL(succ)
         add     $4, %esp
         ret
+#endif
         EPILOG(succ)
 
 
@@ -135,10 +164,14 @@ SYMB(ml_as_z_##proc):
         OP
         ret
 .Lpred:
+#ifdef Z_USE_JMP
+        C_JMP(pred)
+#else
         pushl   4(%esp)
         C_CALL(pred)
         add     $4, %esp
         ret
+#endif
         EPILOG(pred)
 
 
@@ -161,11 +194,15 @@ SYMB(ml_as_z_##proc):
         OP
         ret
 .Ladd:
+#ifdef Z_USE_JMP
+        C_JMP(add)
+#else
         pushl   8(%esp)
         pushl   8(%esp)
         C_CALL(add)
         add     $8, %esp
         ret
+#endif
         EPILOG(add)
 
  
@@ -183,11 +220,15 @@ SYMB(ml_as_z_##proc):
         OP
         ret
 .Lsub:
+#ifdef Z_USE_JMP
+        C_JMP(sub)
+#else
         pushl   8(%esp)
         pushl   8(%esp)
         C_CALL(sub)
         add     $8, %esp
         ret
+#endif
         EPILOG(sub)
 
         
@@ -207,11 +248,15 @@ SYMB(ml_as_z_##proc):
         OP
         ret
 .Lmul:
+#ifdef Z_USE_JMP
+        C_JMP(mul)
+#else
         pushl   8(%esp)
         pushl   8(%esp)
         C_CALL(mul)
         add     $8, %esp
         ret
+#endif
         EPILOG(sub)
 
         
@@ -242,11 +287,15 @@ SYMB(ml_as_z_##proc):
         OP
         ret
 .Ldiv:
+#ifdef Z_USE_JMP
+        C_JMP(div)
+#else
         pushl   8(%esp)
         pushl   8(%esp)
         C_CALL(div)
         add     $8, %esp
         ret
+#endif
         EPILOG(div)
 
         
@@ -275,11 +324,15 @@ SYMB(ml_as_z_##proc):
         OP
         ret
 .Lrem:
+#ifdef Z_USE_JMP
+        C_JMP(rem)
+#else
         pushl   8(%esp)
         pushl   8(%esp)
         C_CALL(rem)
         add     $8, %esp
         ret
+#endif
         EPILOG(rem)
 
         
@@ -296,10 +349,14 @@ SYMB(ml_as_z_##proc):
         not     %eax
         ret
 .Llognot:
+#ifdef Z_USE_JMP
+        C_JMP(lognot)
+#else
         pushl   %eax
         C_CALL(lognot)
         add     $4, %esp
         ret
+#endif
         EPILOG(lognot)
 
 
@@ -315,11 +372,15 @@ SYMB(ml_as_z_##proc):
         OP
         ret
 .Llogor:
+#ifdef Z_USE_JMP
+        C_JMP(logor)
+#else
         pushl   8(%esp)
         pushl   8(%esp)
         C_CALL(logor)
         add     $8, %esp
         ret
+#endif
         EPILOG(logor)
 
         /* and */
@@ -334,11 +395,15 @@ SYMB(ml_as_z_##proc):
         OP
         ret
 .Llogand:
+#ifdef Z_USE_JMP
+        C_JMP(logand)
+#else
         pushl   8(%esp)
         pushl   8(%esp)
         C_CALL(logand)
         add     $8, %esp
         ret
+#endif
         EPILOG(logand)
 
         
@@ -355,11 +420,15 @@ SYMB(ml_as_z_##proc):
         OP
         ret
 .Llogxor:
+#ifdef Z_USE_JMP
+        C_JMP(logxor)
+#else
         pushl   8(%esp)
         pushl   8(%esp)
         C_CALL(logxor)
         add     $8, %esp
         ret
+#endif
         EPILOG(logxor)
 
 
@@ -385,11 +454,15 @@ SYMB(ml_as_z_##proc):
         OP
         ret
 .Lshift_left:
+#ifdef Z_USE_JMP
+        C_JMP(shift_left)
+#else
         pushl   8(%esp)
         pushl   8(%esp)
         C_CALL(shift_left)
         add     $8, %esp
         ret
+#endif
         EPILOG(shift_left)
 
 
@@ -420,9 +493,13 @@ SYMB(ml_as_z_##proc):
         OP
         ret
 .Lshift_right:
+#ifdef Z_USE_JMP
+        C_JMP(shift_right)
+#else
         pushl   8(%esp)
         pushl   8(%esp)
         C_CALL(shift_right)
         add     $8, %esp
         ret
+#endif
         EPILOG(shift_right)

@@ -58,7 +58,6 @@ help()
 usage: configure [options]
 
 where options include:
-  -cc prog             C compiler and assembler to use
   -installdir dir      installation directory
   -ocamllibdir dir     ocaml library directory
   -host arch           host type, for platform-specific asm code
@@ -84,9 +83,6 @@ while : ; do
     case "$1" in
         "") 
             break;;
-        -cc|--cc)
-            cc="$2"
-            shift;;
         -installdir|--installdir)
             installdir="$2"
             shift;;
@@ -214,8 +210,9 @@ fi
 
 if test "$ocamllibdir" = "auto"; then ocamllibdir=`ocamlc -where`; fi
 
-if ! test -f "$ocamllibdir/caml/mlvalues.h"
-then echo "cannot find OCaml libraries in $ocamllibdir"; exit 2; fi
+# fails on Cygwin:
+# if test ! -f "$ocamllibdir/caml/mlvalues.h"
+# then echo "cannot find OCaml libraries in $ocamllibdir"; exit 2; fi
 ccinc="-I$ocamllibdir $ccinc"
 checkinc "caml/mlvalues.h"
 if test $? -eq 0; then echo "cannot include caml/mlvalues.h"; exit 2; fi
@@ -265,8 +262,14 @@ case $host in
         ccdef="-DZ_ELF $ccdef"
         arch='i686';;
     i686-*cygwin)
-        ccdef="-DZ_UNDERSCORE_PREFIX -DZ_COFF $ccdef"
-        arch='i686';;
+        if test "x$wordsize" = "x64"; then
+            ccdef="-DZ_COFF $ccdef"
+            arch='x86_64_mingw64'
+        else
+            ccdef="-DZ_UNDERSCORE_PREFIX -DZ_COFF $ccdef"
+            arch='i686'
+        fi
+	;;
     i686-*darwin* | x86_64-*darwin*)
         ccdef="-DZ_UNDERSCORE_PREFIX -DZ_MACOS $ccdef"
         if test "x$wordsize" = "x64"; then
@@ -318,7 +321,7 @@ if test "$gmp" = 'mpir' -o "$gmp" = 'auto'; then
         fi
     fi
 fi
-if test "$gmp" != 'OK'; then echo "cannot find GMP or MPIR"; exit 2; fi
+if test "$gmp" != 'OK'; then echo "cannot find GMP nor MPIR"; exit 2; fi
 
 
 # OCaml version

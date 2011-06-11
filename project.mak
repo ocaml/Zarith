@@ -109,10 +109,10 @@ $(AUTOGEN): z.mlp z.mlip $(SSRC) z_pp.pl
 	$(OCAMLOPT) $(OCAMLOPTFLAGS) $(OCAMLINC) -c $<
 
 %.o: %.c
-	$(OCAMLC) -ccopt "$(CFLAGS)" -c $<
+	$(OCAMLC) -verbose -ccopt "$(CFLAGS)" -c $<
 
 clean:
-	/bin/rm -rf *.o *.a *.so *.cmi *.cmo *.cmx *.cmxa *.cmxs *.cma *~ \#* depend test $(AUTOGEN) tmp.c depend
+	/bin/rm -rf *.o *.a *.so *.cmi *.cmo *.cmx *.cmxa *.cmxs *.cma *.dll *~ \#* depend test $(AUTOGEN) tmp.c depend
 	/bin/rm -rf test test.b rtest bitest html
 
 depend: $(AUTOGEN)

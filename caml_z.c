@@ -103,7 +103,11 @@ static const double inf_helper = 1.0;
    - sizeof(intnat) == sizeof(mp_limb_t) == either 4 or 8
 */
 
+#ifdef _WIN64
+#define PRINTF_LIMB "I64"
+#else
 #define PRINTF_LIMB "l"
+#endif
 
 /*
   A z object x can be:
@@ -629,7 +633,7 @@ CAMLprim value ml_z_to_int64(value v)
   Z_MARK_SLOW;
   {
     CAMLparam1(v);
-    int64 x;
+    int64 x = 0;
     Z_DECL(v);
     Z_ARG(v);
     switch (size_v) {

@@ -26,6 +26,19 @@
  *)
 
 
+(** {1 Toplevel} *)
+
+(** For an optimal experience with the [ocaml] interactive toplevel, 
+    the magic commands are:
+
+    {[
+    #load "zarith.cma";;
+    #install_printer Z.pp_print;;
+    ]}
+*)
+
+
+
 (** {1 Types} *)
 
 type t
@@ -283,6 +296,8 @@ val bprint: Buffer.t -> t -> unit
 
 val pp_print: Format.formatter -> t -> unit
 (** Prints the argument on the specified formatter. 
+    Can be used as [%a] format printer in [Format.printf] and as
+    argument to [#install_printer] in the toplevel.
     Also intended to be used as [%a] format printer in [Format.printf].
  *)
 

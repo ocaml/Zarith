@@ -96,9 +96,9 @@ let le_big_int a b = Z.compare a b <= 0
 
 let ge_big_int a b = Z.compare a b >= 0
 
-let lt_big_int a b = Z.compare a b > 0
+let lt_big_int a b = Z.compare a b < 0
 
-let gt_big_int a b = Z.compare a b < 0
+let gt_big_int a b = Z.compare a b > 0
 
 let max_big_int = Z.max
 

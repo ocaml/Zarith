@@ -226,10 +226,27 @@ static void ml_z_dump(const char* msg, mp_limb_t* p, mp_size_t sz)
 /* for debugging: check invariant */
 void ml_z_check(const char* fn, int line, const char* arg, value v)
 {
+  mp_size_t sz;
+
   if (Is_block(v)) {
-    if (Z_SIZE(v) + 1 > (mp_size_t)Wosize_val(v)) {
+#if Z_CUSTOM_BLOCK
+    if (Custom_ops_val(v) != &ml_z_custom_ops) {
+      printf("ml_z_check: wrong custom block for %s at %s:%i.\n", 
+             arg, fn, line);
+      exit(1);
+    }
+    sz = Wosize_val(v) - 1;
+#else
+    sz = Wosize_val(v);
+#endif
+    if (Z_SIZE(v) + 2 > sz) {
       printf("ml_z_check: invalid block size (%i / %i) for %s at %s:%i.\n", 
-             (int)Z_SIZE(v), (int)Wosize_val(v),
+             (int)Z_SIZE(v), (int)sz,
+             arg, fn, line);
+      exit(1);
+    }
+    if ((mp_size_t) Z_LIMB(v)[sz - 2] != (0xDEADBEEF ^ (sz - 2))) {
+      printf("ml_z_check: corrupted block for %s at %s:%i.\n", 
              arg, fn, line);
       exit(1);
     }
@@ -262,16 +279,33 @@ void ml_z_check(const char* fn, int line, const char* arg, value v)
 #define Z_CHECK(v)
 #endif
 
-
 /* allocates z object block with space for sz mp_limb_t;
    does not set the header
  */
+
+#if !Z_PERFORM_CHECK
+/* inlined allocation */
 #if Z_CUSTOM_BLOCK
 #define ml_z_alloc(sz) \
   caml_alloc_custom(&ml_z_custom_ops, (1 + (sz)) * sizeof(value), 0, 1)
 #else
 #define ml_z_alloc(sz) \
   caml_alloc(1 + (sz), Abstract_tag);
+#endif
+
+#else
+/* out-of-line allocation, inserting a canary after the last limb */
+static value ml_z_alloc(mp_size_t sz)
+{
+  value v;
+#if Z_CUSTOM_BLOCK
+  v = caml_alloc_custom(&ml_z_custom_ops, (1 + sz + 1) * sizeof(value), 0, 1);
+#else
+  v = caml_alloc(1 + sz + 1, Abstract_tag);
+#endif
+  Z_LIMB(v)[sz] = 0xDEADBEEF ^ sz;
+  return v;
+}
 #endif
 
 /* duplicates the caml block src */
@@ -2440,8 +2474,10 @@ CAMLprim value ml_z_invert(value base, value mod)
   CUSTOMS BLOCKS
   ---------------------------------------------------*/
 
-/* XXX: comparing a block an int with OCaml's polymorphic compare will
-   give erroneous results (int always strictly smaller than block).
+/* With OCaml < 3.12.1, comparing a block an int with OCaml's
+   polymorphic compare will give erroneous results (int always
+   strictly smaller than block).  OCaml 3.12.1 and above
+   give the correct result.
 */
 int ml_z_custom_compare(value arg1, value arg2)
 {
@@ -2524,6 +2560,11 @@ static void ml_z_custom_serialize(value v,
   }
   *wsize_32 = 4 * (1 + (sz + 3) / 4);
   *wsize_64 = 8 * (1 + (sz + 7) / 8);
+#if Z_PERFORM_CHECK
+  /* Add space for canary */
+  *wsize_32 += 4;
+  *wsize_64 += 8;
+#endif
 }
 
 /* XXX: serializing a large (i.e., > 2^31) int on a 64-bit machine and
@@ -2537,6 +2578,9 @@ static uintnat ml_z_custom_deserialize(void * dst)
   uint32 sz = caml_deserialize_uint_4();
   if (!sz) {
     *d = 0;
+#if Z_PERFORM_CHECK
+    d[1] = 0xDEADBEEF;
+#endif
     return 1;
   }
   else {
@@ -2547,6 +2591,10 @@ static uintnat ml_z_custom_deserialize(void * dst)
     *d = nb;
     if (sign) *d |= Z_SIGN_MASK;
     free(buf);
+#if Z_PERFORM_CHECK
+    d[nb + 1] = 0xDEADBEEF ^ nb;
+    nb += 1;
+#endif
     return sizeof(mp_limb_t) * (nb + 1);
   }
 }

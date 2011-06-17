@@ -829,6 +829,7 @@ CAMLprim value ml_z_extract(value arg, value off, value len)
   CAMLparam1(arg);
   intnat o, l;
   mp_size_t sz, c1, c2, csz, i;
+  mp_limb_t cr;
   value r;
   Z_DECL(arg);
   Z_MARK_OP;
@@ -845,8 +846,12 @@ CAMLprim value ml_z_extract(value arg, value off, value len)
   /* shift or copy */
   csz = size_arg - c1;
   if (csz > sz + 1) csz = sz + 1;
-  if (c2) mpn_rshift(Z_LIMB(r), ptr_arg + c1, csz, c2);
-  else ml_z_cpy_limb(Z_LIMB(r), ptr_arg + c1, csz);
+  cr = 0;
+  if (csz > 0) {
+    if (c2) cr = mpn_rshift(Z_LIMB(r), ptr_arg + c1, csz, c2);
+    else ml_z_cpy_limb(Z_LIMB(r), ptr_arg + c1, csz);
+  }
+  else csz = 0;
   /* 0-pad */
   for (i = csz; i < sz; i++)
     Z_LIMB(r)[i] = 0;
@@ -854,14 +859,14 @@ CAMLprim value ml_z_extract(value arg, value off, value len)
   if (sign_arg) {
     for (i = 0; i < sz; i++) 
       Z_LIMB(r)[i] = ~Z_LIMB(r)[i];
-    /* carry */
-    for (i = 0; i < c1; i++)
-      if (ptr_arg[i]) break;
-    if (i == c1) mpn_add_1(Z_LIMB(r), Z_LIMB(r), sz, 1);
+    /* carry (cr=0 if all shifted-out bits are 0) */
+    for (i = 0; !cr && i < c1 && i < size_arg; i++)
+      cr = ptr_arg[i];
+    if (!cr) mpn_add_1(Z_LIMB(r), Z_LIMB(r), sz, 1);
   }
-  /* pad high word */
+  /* mask out high bits */
   l %= Z_LIMB_BITS;
-  if (l) Z_LIMB(r)[sz-1] &= ((intnat)(-1)) >> (Z_LIMB_BITS - l);
+  if (l) Z_LIMB(r)[sz-1] &= ((uintnat)(intnat)-1) >> (Z_LIMB_BITS - l);
   r = ml_z_reduce(r, sz, 0);
   CAMLreturn(r);
 }

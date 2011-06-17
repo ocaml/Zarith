@@ -82,6 +82,29 @@ let chk_bits x =
   assert(I.equal (I.abs x) (I.of_bits (I.to_bits x)));
   assert((I.to_bits x) = (I.to_bits (I.neg x)))
 
+let chk_extract (x, o, l) =
+  let expected =
+    I.logand (I.shift_right x o) (I.pred (I.shift_left (I.of_int 1) l))
+  and actual =
+    I.extract x o l in
+  Printf.printf "extract %a %d %d = %a " pr x o l pr actual;
+  if I.equal actual expected
+  then Printf.printf "(passed)\n"
+  else Printf.printf "(FAILED, expected %a)\n" pr expected
+
+let chk_signed_extract (x, o, l) =
+  let uns_res = I.extract x o l in
+  let expected =
+    if I.compare uns_res (I.shift_left (I.of_int 1) (l-1)) >= 0
+    then I.sub uns_res (I.shift_left (I.of_int 1) l)
+    else uns_res in
+  let actual =
+    I.signed_extract x o l in
+  Printf.printf "signed_extract %a %d %d = %a " pr x o l pr actual;
+  if I.equal actual expected
+  then Printf.printf "(passed)\n"
+  else Printf.printf "(FAILED, expected %a)\n" pr expected
+
 let test_Z() =
   Printf.printf "0\n = %a\n" pr I.zero;
   Printf.printf "1\n = %a\n" pr I.one;
@@ -487,8 +510,9 @@ let test_Z() =
   Printf.printf "2^120 > 2^300\n = %B\n" (p120 > p300);
   Printf.printf "2^120 < 2^300\n = %B\n" (p120 < p300);
   Printf.printf "2^120 = 1\n = %B\n" (p120 = I.one);
-  (* the order is not consistent with integers when comparing mpn_ and ints
-     with OCaml's polymorphic compare operator
+  (* In OCaml < 3.12.1, the order is not consistent with integers when
+     comparing mpn_ and ints with OCaml's polymorphic compare operator.
+     In OCaml >= 3.12.1, the results are consistent.
    *)
   Printf.printf "2^120 > 1\n = %B\n" (p120 > I.one);
   Printf.printf "2^120 < 1\n = %B\n" (p120 < I.one);
@@ -590,29 +614,21 @@ let test_Z() =
   Printf.printf "format %%#-10o -1 = /%s/\n" (I.format "%#-10o" I.minus_one);
   Printf.printf "format %%#-10o 2^30 = /%s/\n" (I.format "%#-10o" p30);
   Printf.printf "format %%#-10o -2^30 = /%s/\n" (I.format "%#-10o" (I.neg p30));
-  Printf.printf "extract 42 0 1 = %a\n" pr (I.extract (I.of_int 42) 0 1);
-  Printf.printf "extract 42 0 5 = %a\n" pr (I.extract (I.of_int 42) 0 5);
-  Printf.printf "extract 42 0 32 = %a\n" pr (I.extract (I.of_int 42) 0 32);
-  Printf.printf "extract 42 0 64 = %a\n" pr (I.extract (I.of_int 42) 0 64);
-  Printf.printf "extract 42 1 1 = %a\n" pr (I.extract (I.of_int 42) 1 1);
-  Printf.printf "extract 42 1 5 = %a\n" pr (I.extract (I.of_int 42) 1 5);
-  Printf.printf "extract 42 1 32 = %a\n" pr (I.extract (I.of_int 42) 1 32);
-  Printf.printf "extract 42 1 63 = %a\n" pr (I.extract (I.of_int 42) 1 63);
-  Printf.printf "extract 42 1 64 = %a\n" pr (I.extract (I.of_int 42) 1 64);
-  Printf.printf "extract 42 1 127 = %a\n" pr (I.extract (I.of_int 42) 1 127);
-  Printf.printf "extract 42 1 128 = %a\n" pr (I.extract (I.of_int 42) 1 128);
-  Printf.printf "extract -42 0 1 = %a\n" pr (I.extract (I.of_int (-42)) 0 1);
-  Printf.printf "extract -42 0 5 = %a\n" pr (I.extract (I.of_int (-42)) 0 5);
-  Printf.printf "extract -42 0 32 = %a\n" pr (I.extract (I.of_int (-42)) 0 32);
-  Printf.printf "extract -42 0 64 = %a\n" pr (I.extract (I.of_int (-42)) 0 64);
-  Printf.printf "extract -42 1 1 = %a\n" pr (I.extract (I.of_int (-42)) 1 1);
-  Printf.printf "extract -42 1 5 = %a\n" pr (I.extract (I.of_int (-42)) 1 5);
-  Printf.printf "extract -42 1 32 = %a\n" pr (I.extract (I.of_int (-42)) 1 32);
-  Printf.printf "extract -42 1 63 = %a\n" pr (I.extract (I.of_int (-42)) 1 63);
-  Printf.printf "extract -42 1 64 = %a\n" pr (I.extract (I.of_int (-42)) 1 64);
-  Printf.printf "extract -42 1 65 = %a\n" pr (I.extract (I.of_int (-42)) 1 65);
-  Printf.printf "extract -42 1 127 = %a\n" pr (I.extract (I.of_int (-42)) 1 127);
-  Printf.printf "extract -42 1 128 = %a\n" pr (I.extract (I.of_int (-42)) 1 128);
+
+  let extract_testdata =
+    let a = I.of_int 42
+    and b = I.of_int (-42)
+    and c = I.of_string "3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701" in
+    [a,0,1; a,0,5; a,0,32; a,0,64;
+     a,1,1; a,1,5; a,1,32; a,1,63; a,1,64; a,1,127; a,1,128;
+     a,69,12;
+     b,0,1; b,0,5; b,0,32; b,0,64;
+     b,1,1; b,1,5; b,1,32; b,1,63; b,1,64; b,1,127; b,1,128;
+     b,69,12;
+     c,0,1; c,0,64; c,128,1; c,128,5; c,131,32; c,175,63; c,277,123] in
+  List.iter chk_extract extract_testdata;
+  List.iter chk_signed_extract extract_testdata;
+
   chk_bits I.zero;
   chk_bits p2;
   chk_bits (I.neg p2);

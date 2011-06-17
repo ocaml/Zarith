@@ -107,6 +107,14 @@ let lcm u v =
   let g = gcd u v in
   abs (mul (divexact u g) v)
 
+let signed_extract x o l =
+  if o < 0 then invalid_arg "Z.signed_extract: negative bit offset";
+  if l < 1 then invalid_arg "Z.signed_extract: non-positive bit length";
+  let sgn = extract x (o + l - 1) 1 in
+  if equal sgn (of_int 0)
+  then extract x o l
+  else lognot (extract (lognot x) o l)
+
 let print x = print_string (to_string x)
 let output chan x = output_string chan (to_string x)
 let sprint () x = to_string x

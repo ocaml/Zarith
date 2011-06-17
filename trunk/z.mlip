@@ -420,10 +420,18 @@ external size: t -> int = "ml_z_size" "noalloc"
 (** Returns the number of machine words used to represent the number. *)
 
 external extract: t -> int -> int -> t = "ml_z_extract"
-(** [extract a off len] returns a positive number corresponding to bits [off]
+(** [extract a off len] returns a nonnegative number corresponding to bits [off]
     to [off]+[len]-1 of [b].
-    Negative [b] are considered in infinite-length 2's complementation
+    Negative [a] are considered in infinite-length 2's complementation
     representation.
+ *)
+
+val signed_extract: t -> int -> int -> t
+(** [signed_extract a off len] extracts bits [off] to [off]+[len]-1 of [b],
+    as [extract] does, then sign-extends bit [len-1] of the result
+    (that is, bit [off + len - 1] of [a]).  The result is between
+    [- 2{^[len]-1}] (included) and [2{^[len]-1}] excluded, 
+    and equal to [extract a off len] modulo [2{^len}].
  *)
 
 external to_bits: t -> string = "ml_z_to_bits"

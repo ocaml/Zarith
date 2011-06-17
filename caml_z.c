@@ -823,22 +823,46 @@ CAMLprim value ml_z_format(value f, value v)
   CAMLreturn(r);
 }
 
+#ifdef ARCH_SIXTYFOUR
+#define BITS_PER_WORD 64
+#else
+#define BITS_PER_WORD 32
+#endif
+
 CAMLprim value ml_z_extract(value arg, value off, value len)
 {
-  /* XXX TODO: fast path */
-  CAMLparam1(arg);
-  intnat o, l;
+  intnat o, l, x;
   mp_size_t sz, c1, c2, csz, i;
   mp_limb_t cr;
   value r;
   Z_DECL(arg);
   Z_MARK_OP;
-  Z_MARK_SLOW;
-  Z_ARG(arg);
   o = Long_val(off);
   l = Long_val(len);
   if (o < 0) caml_invalid_argument("Z.extract: negative bit offset");
   if (l <= 0) caml_invalid_argument("Z.extract: non-positive bit length");
+#if Z_USE_NATINT
+  /* Fast path */
+  if (Is_long(arg)) {
+    x = Long_val(arg);
+    /* Shift away low "o" bits.  If "o" too big, just replicate sign bit. */
+    if (o >= BITS_PER_WORD) o = BITS_PER_WORD - 1;
+    x = x >> o;
+    /* Extract "l" low bits, if "l" is small enough */
+    if (l < BITS_PER_WORD - 1) {
+      x = x & (((intnat)1 << l) - 1);
+      return Val_long(x);
+    } else {
+      /* If x >= 0, the extraction of "l" low bits keeps x unchanged. */
+      if (x >= 0) return Val_long(x);
+      /* If x < 0, fall through slow path */
+    }
+  }
+#endif
+  Z_MARK_SLOW;
+  {
+  CAMLparam1(arg);
+  Z_ARG(arg);
   sz = (l + Z_LIMB_BITS - 1) / Z_LIMB_BITS;
   r = ml_z_alloc(sz + 1);
   c1 = o / Z_LIMB_BITS;
@@ -869,6 +893,7 @@ CAMLprim value ml_z_extract(value arg, value off, value len)
   if (l) Z_LIMB(r)[sz-1] &= ((uintnat)(intnat)-1) >> (Z_LIMB_BITS - l);
   r = ml_z_reduce(r, sz, 0);
   CAMLreturn(r);
+  }
 }
 
 /* NOTE: the sign is not stored */

@@ -597,7 +597,9 @@ let test_Z() =
   Printf.printf "extract 42 1 1 = %a\n" pr (I.extract (I.of_int 42) 1 1);
   Printf.printf "extract 42 1 5 = %a\n" pr (I.extract (I.of_int 42) 1 5);
   Printf.printf "extract 42 1 32 = %a\n" pr (I.extract (I.of_int 42) 1 32);
+  Printf.printf "extract 42 1 63 = %a\n" pr (I.extract (I.of_int 42) 1 63);
   Printf.printf "extract 42 1 64 = %a\n" pr (I.extract (I.of_int 42) 1 64);
+  Printf.printf "extract 42 1 127 = %a\n" pr (I.extract (I.of_int 42) 1 127);
   Printf.printf "extract 42 1 128 = %a\n" pr (I.extract (I.of_int 42) 1 128);
   Printf.printf "extract -42 0 1 = %a\n" pr (I.extract (I.of_int (-42)) 0 1);
   Printf.printf "extract -42 0 5 = %a\n" pr (I.extract (I.of_int (-42)) 0 5);
@@ -606,7 +608,10 @@ let test_Z() =
   Printf.printf "extract -42 1 1 = %a\n" pr (I.extract (I.of_int (-42)) 1 1);
   Printf.printf "extract -42 1 5 = %a\n" pr (I.extract (I.of_int (-42)) 1 5);
   Printf.printf "extract -42 1 32 = %a\n" pr (I.extract (I.of_int (-42)) 1 32);
+  Printf.printf "extract -42 1 63 = %a\n" pr (I.extract (I.of_int (-42)) 1 63);
   Printf.printf "extract -42 1 64 = %a\n" pr (I.extract (I.of_int (-42)) 1 64);
+  Printf.printf "extract -42 1 65 = %a\n" pr (I.extract (I.of_int (-42)) 1 65);
+  Printf.printf "extract -42 1 127 = %a\n" pr (I.extract (I.of_int (-42)) 1 127);
   Printf.printf "extract -42 1 128 = %a\n" pr (I.extract (I.of_int (-42)) 1 128);
   chk_bits I.zero;
   chk_bits p2;

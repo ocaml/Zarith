@@ -98,6 +98,22 @@ let max a b = if compare a b >= 0 then a else b
 let to_string = format "%d"
 let of_string = of_string_base 0
 
+let ediv_rem a b =
+  (* we have a = a * b + r, but [Big_int]'s remainder satisfies 0 <= r < |b|,
+     while [Z]'s remainder satisfies -|b| < r < |b| and sign(r) = sign(a)
+   *)
+   let q,r = div_rem a b in
+   if sign r >= 0 then (q,r) else
+   if sign b >= 0 then (pred q, add r b)
+   else (succ q, sub r b)
+
+let ediv a b =
+   if sign b >= 0 then fdiv a b else cdiv a b
+
+let erem a b =
+   let r = rem a b in
+   if sign r >= 0 then r else add r (abs b)
+
 let gcdext u v =
   let g,s,z = gcdext_intern u v in
   if z then g, s, div (sub g (mul u s)) v

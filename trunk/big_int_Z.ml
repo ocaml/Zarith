@@ -47,21 +47,11 @@ let square_big_int x = Z.mul x x
 
 let sqrt_big_int = Z.sqrt
 
-let quomod_big_int a b =
-  (* we have a = a * b + r, but [Big_int]'s remainder satisfies 0 <= r < |b|,
-     while [Z]'s remainder satisfies -|b| < r < |b| and sign(r) = sign(a)
-   *)
-   let q,r = Z.div_rem a b in
-   if Z.sign r >= 0 then q,r else
-   if Z.sign b >= 0 then Z.pred q, Z.add r b
-   else Z.succ q, Z.sub r b
+let quomod_big_int = Z.ediv_rem
 
-let div_big_int a b =
-   if Z.sign b >= 0 then Z.fdiv a b else Z.cdiv a b
+let div_big_int = Z.ediv
 
-let mod_big_int a b =
-   let r = Z.rem a b in
-   if Z.sign r >= 0 then r else Z.add r (Z.abs b)
+let mod_big_int = Z.erem
 
 let gcd_big_int = Z.gcd
 

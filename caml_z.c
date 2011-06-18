@@ -347,6 +347,12 @@ static inline mp_limb_t* ml_z_dup_limb(mp_limb_t* src, mp_size_t sz)
     ptr_##arg = Z_LIMB(arg);                                            \
   }
 
+/* After an allocation, a heap-allocated Z argument may have moved and
+  its ptr_arg pointer can be invalid.  Reset the ptr_arg pointer to
+  its correct value. */
+
+#define Z_REFRESH(arg) \
+  if (! Is_long(arg)) ptr_##arg = Z_LIMB(arg);
 
 /* computes the actual size of the z object r and updates its header,
    either returns r or, if the number is small enough, an int
@@ -865,6 +871,7 @@ CAMLprim value ml_z_extract(value arg, value off, value len)
   Z_ARG(arg);
   sz = (l + Z_LIMB_BITS - 1) / Z_LIMB_BITS;
   r = ml_z_alloc(sz + 1);
+  Z_REFRESH(arg);
   c1 = o / Z_LIMB_BITS;
   c2 = o % Z_LIMB_BITS;
   /* shift or copy */
@@ -1180,6 +1187,7 @@ CAMLprim value ml_z_neg(value arg)
     Z_DECL(arg);
     Z_ARG(arg);
     r = ml_z_alloc(size_arg);
+    Z_REFRESH(arg);
     ml_z_cpy_limb(Z_LIMB(r), ptr_arg, size_arg);
     r = ml_z_reduce(r, size_arg, sign_arg ^ Z_SIGN_MASK);
     Z_CHECK(r);
@@ -1206,6 +1214,7 @@ CAMLprim value ml_z_abs(value arg)
     value r;
     Z_ARG(arg);
     r = ml_z_alloc(size_arg);
+    Z_REFRESH(arg);
     ml_z_cpy_limb(Z_LIMB(r), ptr_arg, size_arg);
     r = ml_z_reduce(r, size_arg, 0);
     Z_CHECK(r);
@@ -1228,6 +1237,7 @@ static value ml_z_addsub(value arg1, value arg2, intnat sign)
     if (sign) {
       /* negation */
       r = ml_z_alloc(size_arg2);
+      Z_REFRESH(arg2);
       ml_z_cpy_limb(Z_LIMB(r), ptr_arg2, size_arg2);
       r = ml_z_reduce(r, size_arg2, sign_arg2);
     }
@@ -1237,12 +1247,16 @@ static value ml_z_addsub(value arg1, value arg2, intnat sign)
     /* addition */
     if (size_arg1 >= size_arg2) {
       r = ml_z_alloc(size_arg1 + 1);
+      Z_REFRESH(arg1);
+      Z_REFRESH(arg2);
       c = mpn_add(Z_LIMB(r), ptr_arg1, size_arg1, ptr_arg2, size_arg2);
       Z_LIMB(r)[size_arg1] = c;
       r = ml_z_reduce(r, size_arg1+1, sign_arg1);
     }
     else {
       r = ml_z_alloc(size_arg2 + 1);
+      Z_REFRESH(arg1);
+      Z_REFRESH(arg2);
       c = mpn_add(Z_LIMB(r), ptr_arg2, size_arg2, ptr_arg1, size_arg1);
       Z_LIMB(r)[size_arg2] = c;
       r = ml_z_reduce(r, size_arg2+1, sign_arg1);
@@ -1252,11 +1266,15 @@ static value ml_z_addsub(value arg1, value arg2, intnat sign)
     /* subtraction */
     if (size_arg1 > size_arg2) {
       r = ml_z_alloc(size_arg1);
+      Z_REFRESH(arg1);
+      Z_REFRESH(arg2);
       mpn_sub(Z_LIMB(r), ptr_arg1, size_arg1, ptr_arg2, size_arg2);
       r = ml_z_reduce(r, size_arg1, sign_arg1);
    }
     else if (size_arg1 < size_arg2) {
       r = ml_z_alloc(size_arg2);
+      Z_REFRESH(arg1);
+      Z_REFRESH(arg2);
       mpn_sub(Z_LIMB(r), ptr_arg2, size_arg2, ptr_arg1, size_arg1);
       r = ml_z_reduce(r, size_arg2, sign_arg2);
     }
@@ -1264,11 +1282,15 @@ static value ml_z_addsub(value arg1, value arg2, intnat sign)
       int cmp = mpn_cmp(ptr_arg1, ptr_arg2, size_arg1);
       if (cmp > 0) {
         r = ml_z_alloc(size_arg1+1);
+        Z_REFRESH(arg1);
+        Z_REFRESH(arg2);
         mpn_sub_n(Z_LIMB(r), ptr_arg1, ptr_arg2, size_arg1);
         r = ml_z_reduce(r, size_arg1, sign_arg1);
      }
       else if (cmp < 0) {
         r = ml_z_alloc(size_arg1);
+        Z_REFRESH(arg1);
+        Z_REFRESH(arg2);
         mpn_sub_n(Z_LIMB(r), ptr_arg2, ptr_arg1, size_arg1);
         r = ml_z_reduce(r, size_arg1, sign_arg2);
       }
@@ -1343,6 +1365,8 @@ CAMLprim value ml_z_mul(value arg1, value arg2)
     CAMLparam2(arg1,arg2);
     value r = ml_z_alloc(size_arg1 + size_arg2);
     mp_limb_t c;
+    Z_REFRESH(arg1);
+    Z_REFRESH(arg2);
     if (size_arg2 == 1) {
       c = mpn_mul_1(Z_LIMB(r), ptr_arg1, size_arg1, *ptr_arg2);
       Z_LIMB(r)[size_arg1] = c;
@@ -1384,6 +1408,7 @@ static value ml_z_tdiv_qr(value arg1, value arg2)
   if (size_arg1 >= size_arg2) {
     q = ml_z_alloc(size_arg1 - size_arg2 + 1);
     r = ml_z_alloc(size_arg2);
+    Z_REFRESH(arg1); Z_REFRESH(arg2);
     mpn_tdiv_qr(Z_LIMB(q), Z_LIMB(r), 0, 
                 ptr_arg1, size_arg1, ptr_arg2, size_arg2);
     q = ml_z_reduce(q, size_arg1 - size_arg2 + 1, sign_arg1 ^ sign_arg2);
@@ -1479,6 +1504,7 @@ static value ml_z_rdiv(value arg1, value arg2, intnat dir)
     mp_limb_t c = 0;
     q = ml_z_alloc(size_arg1 - size_arg2 + 2);
     r = ml_z_alloc(size_arg2);
+    Z_REFRESH(arg1); Z_REFRESH(arg2);
     mpn_tdiv_qr(Z_LIMB(q), Z_LIMB(r), 0, 
                 ptr_arg1, size_arg1, ptr_arg2, size_arg2);
     if ((sign_arg1 ^ sign_arg2) == dir) {
@@ -1558,6 +1584,7 @@ static value ml_z_succpred(value arg, intnat sign)
   value r;
   Z_ARG(arg);
   r = ml_z_alloc(size_arg + 1);
+  Z_REFRESH(arg);
   if (!size_arg) {
     Z_LIMB(r)[0] = 1;
     r = ml_z_reduce(r, 1, sign);
@@ -1622,6 +1649,7 @@ CAMLprim value ml_z_sqrt(value arg)
   if (size_arg) {
     mp_size_t sz = (size_arg + 1) / 2;
     r = ml_z_alloc(sz);
+    Z_REFRESH(arg);
     mpn_sqrtrem(Z_LIMB(r), NULL, ptr_arg, size_arg);
     r = ml_z_reduce(r, sz, 0);
   }
@@ -1646,6 +1674,7 @@ CAMLprim value ml_z_sqrt_rem(value arg)
     mp_size_t sz = (size_arg + 1) / 2, sz2;
     r = ml_z_alloc(sz);
     s = ml_z_alloc(size_arg);
+    Z_REFRESH(arg);
     sz2 = mpn_sqrtrem(Z_LIMB(r), Z_LIMB(s), ptr_arg, size_arg);
     r = ml_z_reduce(r, sz, 0);
     s = ml_z_reduce(s, sz2, 0);
@@ -1698,6 +1727,8 @@ CAMLprim value ml_z_gcd(value arg1, value arg2)
     size_arg2 -= limb2;
     tmp1 = ml_z_alloc(size_arg1 + 1);
     tmp2 = ml_z_alloc(size_arg2 + 1);
+    Z_REFRESH(arg1);
+    Z_REFRESH(arg2);
     if (bit1) {
       mpn_rshift(Z_LIMB(tmp1), ptr_arg1 + limb1, size_arg1, bit1);
       if (!Z_LIMB(tmp1)[size_arg1-1]) size_arg1--;
@@ -1720,10 +1751,14 @@ CAMLprim value ml_z_gcd(value arg1, value arg2)
         ((size_arg1 == size_arg2) && 
          (ptr_arg1[size_arg1 - 1] >= ptr_arg2[size_arg1 - 1]))) {
       r = ml_z_alloc(size_arg2 + limb + 1);
+      Z_REFRESH(arg1);
+      Z_REFRESH(arg2);
       sz = mpn_gcd(Z_LIMB(r) + limb, ptr_arg1, size_arg1, ptr_arg2, size_arg2);
     }
     else {
       r = ml_z_alloc(size_arg1 + limb + 1);
+      Z_REFRESH(arg1);
+      Z_REFRESH(arg2);
       sz = mpn_gcd(Z_LIMB(r) + limb, ptr_arg2, size_arg2, ptr_arg1, size_arg1);
     } 
     /* glue the two results */
@@ -1753,6 +1788,8 @@ CAMLprim value ml_z_gcdext_intern(value arg1, value arg2)
   /* copy args to tmp storage */
   res_arg1 = ml_z_alloc(size_arg1 + 1);
   res_arg2 = ml_z_alloc(size_arg2 + 1);
+  Z_REFRESH(arg1);
+  Z_REFRESH(arg2);
   ml_z_cpy_limb(Z_LIMB(res_arg1), ptr_arg1, size_arg1);
   ml_z_cpy_limb(Z_LIMB(res_arg2), ptr_arg2, size_arg2);
   ptr_arg1 = Z_LIMB(res_arg1);
@@ -1763,6 +1800,8 @@ CAMLprim value ml_z_gcdext_intern(value arg1, value arg2)
        (mpn_cmp(ptr_arg1, ptr_arg2, size_arg1)  >= 0))) {
     r = ml_z_alloc(size_arg1 + 1);
     s = ml_z_alloc(size_arg1 + 1);
+    Z_REFRESH(arg1);
+    Z_REFRESH(arg2);
     sz = mpn_gcdext(Z_LIMB(r), Z_LIMB(s), &sn, 
                     ptr_arg1, size_arg1, ptr_arg2, size_arg2);
     p = caml_alloc_small(3, 0);
@@ -1771,6 +1810,8 @@ CAMLprim value ml_z_gcdext_intern(value arg1, value arg2)
   else {
     r = ml_z_alloc(size_arg2 + 1);
     s = ml_z_alloc(size_arg2 + 1);
+    Z_REFRESH(arg1);
+    Z_REFRESH(arg2);
     sz = mpn_gcdext(Z_LIMB(r), Z_LIMB(s), &sn, 
                     ptr_arg2, size_arg2, ptr_arg1, size_arg1);
     p = caml_alloc_small(3, 0);
@@ -1826,6 +1867,8 @@ CAMLprim value ml_z_logand(value arg1, value arg2)
     else if (sign_arg1 && sign_arg2) {
       /* arg1 < 0, arg2 < 0 => r < 0 */
       r = ml_z_alloc(size_arg1 + 1);
+      Z_REFRESH(arg1);
+      Z_REFRESH(arg2);
       mpn_sub_1(Z_LIMB(r), ptr_arg1, size_arg1, 1);
       c = 1; /* carry when decrementing arg2 */
       for (i = 0; i < size_arg2; i++) {
@@ -1840,6 +1883,8 @@ CAMLprim value ml_z_logand(value arg1, value arg2)
     else if (sign_arg1) {
       /* arg1 < 0, arg2 > 0 => r >= 0 */
       r = ml_z_alloc(size_arg2);
+      Z_REFRESH(arg1);
+      Z_REFRESH(arg2);
       mpn_sub_1(Z_LIMB(r), ptr_arg1, size_arg2, 1);
       for (i = 0; i < size_arg2; i++) 
         Z_LIMB(r)[i] = (~Z_LIMB(r)[i]) & ptr_arg2[i];
@@ -1848,6 +1893,8 @@ CAMLprim value ml_z_logand(value arg1, value arg2)
     else if (sign_arg2) {
       /* arg1 > 0, arg2 < 0 => r >= 0 */
       r = ml_z_alloc(size_arg1);
+      Z_REFRESH(arg1);
+      Z_REFRESH(arg2);
       mpn_sub_1(Z_LIMB(r), ptr_arg2, size_arg2, 1);
       for (i = 0; i < size_arg2; i++) 
         Z_LIMB(r)[i] = ptr_arg1[i] & (~Z_LIMB(r)[i]);
@@ -1858,6 +1905,8 @@ CAMLprim value ml_z_logand(value arg1, value arg2)
     else {
       /* arg1, arg2 > 0 => r >= 0 */
       r = ml_z_alloc(size_arg2);
+      Z_REFRESH(arg1);
+      Z_REFRESH(arg2);
       for (i = 0; i < size_arg2; i++) 
         Z_LIMB(r)[i] = ptr_arg1[i] & ptr_arg2[i];
       r = ml_z_reduce(r, size_arg2, 0);
@@ -1900,6 +1949,8 @@ CAMLprim value ml_z_logor(value arg1, value arg2)
     else if (sign_arg1 && sign_arg2) {
       /* arg1 < 0, arg2 < 0 => r < 0 */
       r = ml_z_alloc(size_arg2 + 1);
+      Z_REFRESH(arg1);
+      Z_REFRESH(arg2);
       mpn_sub_1(Z_LIMB(r), ptr_arg1, size_arg2, 1);
       c = 1; /* carry when decrementing arg2 */
       for (i = 0; i < size_arg2; i++) {
@@ -1914,6 +1965,8 @@ CAMLprim value ml_z_logor(value arg1, value arg2)
     else if (sign_arg1) {
       /* arg1 < 0, arg2 > 0 => r < 0 */
       r = ml_z_alloc(size_arg1 + 1);
+      Z_REFRESH(arg1);
+      Z_REFRESH(arg2);
       mpn_sub_1(Z_LIMB(r), ptr_arg1, size_arg1, 1);
       for (i = 0; i < size_arg2; i++) 
         Z_LIMB(r)[i] = Z_LIMB(r)[i] & (~ptr_arg2[i]);
@@ -1924,6 +1977,8 @@ CAMLprim value ml_z_logor(value arg1, value arg2)
     else if (sign_arg2) {
       /* arg1 > 0, arg2 < 0 => r < 0*/
       r = ml_z_alloc(size_arg2 + 1);
+      Z_REFRESH(arg1);
+      Z_REFRESH(arg2);
       mpn_sub_1(Z_LIMB(r), ptr_arg2, size_arg2, 1);
       for (i = 0; i < size_arg2; i++) 
         Z_LIMB(r)[i] = (~ptr_arg1[i]) & Z_LIMB(r)[i];
@@ -1934,6 +1989,8 @@ CAMLprim value ml_z_logor(value arg1, value arg2)
     else {
       /* arg1, arg2 > 0 => r > 0 */
       r = ml_z_alloc(size_arg1);
+      Z_REFRESH(arg1);
+      Z_REFRESH(arg2);
       for (i = 0; i < size_arg2; i++) 
         Z_LIMB(r)[i] = ptr_arg1[i] | ptr_arg2[i];
       for (; i < size_arg1; i++) 
@@ -1978,6 +2035,8 @@ CAMLprim value ml_z_logxor(value arg1, value arg2)
     else if (sign_arg1 && sign_arg2) {
       /* arg1 < 0, arg2 < 0 => r >=0 */
       r = ml_z_alloc(size_arg1);
+      Z_REFRESH(arg1);
+      Z_REFRESH(arg2);
       mpn_sub_1(Z_LIMB(r), ptr_arg1, size_arg1, 1);
       c = 1; /* carry when decrementing arg2 */
       for (i = 0; i < size_arg2; i++) {
@@ -1990,6 +2049,8 @@ CAMLprim value ml_z_logxor(value arg1, value arg2)
     else if (sign_arg1) {
       /* arg1 < 0, arg2 > 0 => r < 0 */
       r = ml_z_alloc(size_arg1 + 1);
+      Z_REFRESH(arg1);
+      Z_REFRESH(arg2);
       mpn_sub_1(Z_LIMB(r), ptr_arg1, size_arg1, 1);
       for (i = 0; i < size_arg2; i++) 
         Z_LIMB(r)[i] = Z_LIMB(r)[i] ^ ptr_arg2[i];
@@ -2000,6 +2061,8 @@ CAMLprim value ml_z_logxor(value arg1, value arg2)
     else if (sign_arg2) {
       /* arg1 > 0, arg2 < 0 => r < 0 */
       r = ml_z_alloc(size_arg1 + 1);
+      Z_REFRESH(arg1);
+      Z_REFRESH(arg2);
       mpn_sub_1(Z_LIMB(r), ptr_arg2, size_arg2, 1);
       for (i = 0; i < size_arg2; i++) 
         Z_LIMB(r)[i] = ptr_arg1[i] ^ Z_LIMB(r)[i];
@@ -2012,6 +2075,8 @@ CAMLprim value ml_z_logxor(value arg1, value arg2)
     else {
       /* arg1, arg2 > 0 => r >= 0 */
       r = ml_z_alloc(size_arg1);
+      Z_REFRESH(arg1);
+      Z_REFRESH(arg2);
       for (i = 0; i < size_arg2; i++) 
         Z_LIMB(r)[i] = ptr_arg1[i] ^ ptr_arg2[i];
       for (; i < size_arg1; i++) 
@@ -2041,6 +2106,7 @@ CAMLprim value ml_z_lognot(value arg)
     value r;
     Z_ARG(arg);
     r = ml_z_alloc(size_arg + 1);
+    Z_REFRESH(arg);
     /* compute r = -arg - 1 */
     if (!size_arg) {
       /* arg = 0 => r = -1 */
@@ -2092,6 +2158,7 @@ CAMLprim value ml_z_shift_left(value arg, value count)
     value r;
     mp_size_t i;
     r = ml_z_alloc(size_arg + c1 + 1);
+    Z_REFRESH(arg);
     /* 0-filled limbs */
     for (i = 0; i < c1; i++) Z_LIMB(r)[i] = 0;
     if (c2) {
@@ -2144,6 +2211,7 @@ CAMLprim value ml_z_shift_right(value arg, value count)
     CAMLparam1(arg);
     mp_limb_t cr;
     r = ml_z_alloc(size_arg - c1 + 1);
+    Z_REFRESH(arg);
     if (c2)
       /* shifted bits */
       cr = mpn_rshift(Z_LIMB(r), ptr_arg + c1, size_arg - c1, c2);
@@ -2198,6 +2266,7 @@ CAMLprim value ml_z_shift_right_trunc(value arg, value count)
   {
     CAMLparam1(arg);
     r = ml_z_alloc(size_arg - c1);
+    Z_REFRESH(arg);
     if (c2)
       /* shifted bits */
       mpn_rshift(Z_LIMB(r), ptr_arg + c1, size_arg - c1, c2);

@@ -120,33 +120,55 @@ external mul: t -> t -> t = mul@ASM
 (** Multiplication. *)
 
 external div: t -> t -> t = div@ASM
-(** Integer division. The result is truncated and obeys the rule of signs.
-    Can raise a [Division_by_zero]. 
+(** Integer division. The result is truncated towards zero
+    and obeys the rule of signs.
+    Raises [Division_by_zero] if the divisor (second argument) is 0.
  *)
 
 external rem: t -> t -> t = rem@ASM
 (** Integer remainder. Can raise a [Division_by_zero].
-    The result has the sign of its first argument, and its absolute value is
-    strictly smaller than the absolute value of the second argument.
-    We have [a = add (rem a b) (mul (div a b) b)].
+    The result of [rem a b] has the sign of [a], and its absolute value is
+    strictly smaller than the absolute value of [b].
+    The result satisfies the equality [a = b * div a b + rem a b].
  *)
 
 external div_rem: t -> t -> (t * t) = "ml_z_div_rem"
-(** Computes both the integer quotient and the remainder. *)
+(** Computes both the integer quotient and the remainder.
+    [div_rem a b] is equal to [(div a b, rem a b)].
+    Raises [Division_by_zero] if [b = 0].
+ *)
 
 external cdiv: t -> t -> t = "ml_z_cdiv"
-(** Integer division with rounding towards +oo. 
+(** Integer division with rounding towards +oo (ceiling).
     Can raise a [Division_by_zero]. 
  *)
 
 external fdiv: t -> t -> t = "ml_z_fdiv"
-(** Integer division with rounding towards -oo. 
+(** Integer division with rounding towards -oo (floor).
     Can raise a [Division_by_zero]. 
+ *)
+
+val ediv_rem: t -> t -> (t * t)
+(** Euclidean division and remainder.  [ediv_rem a b] returns a pair [(q, r)]
+    such that [a = b * q + r] and [0 <= r < |b|].
+    Raises [Division_by_zero] if [b = 0].
+ *)
+
+val ediv: t -> t -> t
+(** Euclidean division. [ediv a b] is equal to [fst (ediv_rem a b)].
+    The result satisfies [0 <= a - b * ediv a b < |b|].
+    Raises [Division_by_zero] if [b = 0].
+ *)
+
+val erem: t -> t -> t
+(** Euclidean remainder.  [erem a b] is equal to [snd (ediv_rem a b)].
+    The result satisfies [0 <= erem a b < |b|] and
+    [a = b * ediv a b + erem a b].  Raises [Division_by_zero] if [b = 0].
  *)
 
 external divexact: t -> t -> t = "ml_z_divexact"
 (** [divexact a b] divides [a] by [b], only producing correct result when the
-    division is exact, i.e., when [b] divides [a].
+    division is exact, i.e., when [b] evenly divides [a].
     It should be faster than general division.
     Can raise a [Division_by_zero]. 
 *)

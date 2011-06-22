@@ -1725,8 +1725,6 @@ CAMLprim value ml_z_gcd(value arg1, value arg2)
       if (!Z_LIMB(tmp2)[size_arg2-1]) size_arg2--;
     }
     else ml_z_cpy_limb(Z_LIMB(tmp2), ptr_arg2 + limb2, size_arg2);
-    ptr_arg1 = Z_LIMB(tmp1);
-    ptr_arg2 = Z_LIMB(tmp2);
     /* compute gcd of 2^pos1 & 2^pos2 */
     pos = (pos1 <= pos2) ? pos1 : pos2;
     limb = pos / Z_LIMB_BITS;
@@ -1735,17 +1733,13 @@ CAMLprim value ml_z_gcd(value arg1, value arg2)
     /* second argument must have less bits than first  */
     if ((size_arg1 > size_arg2) ||
         ((size_arg1 == size_arg2) && 
-         (ptr_arg1[size_arg1 - 1] >= ptr_arg2[size_arg1 - 1]))) {
+         (Z_LIMB(tmp1)[size_arg1 - 1] >= Z_LIMB(tmp2)[size_arg1 - 1]))) {
       r = ml_z_alloc(size_arg2 + limb + 1);
-      Z_REFRESH(arg1);
-      Z_REFRESH(arg2);
-      sz = mpn_gcd(Z_LIMB(r) + limb, ptr_arg1, size_arg1, ptr_arg2, size_arg2);
+      sz = mpn_gcd(Z_LIMB(r) + limb, Z_LIMB(tmp1), size_arg1, Z_LIMB(tmp2), size_arg2);
     }
     else {
       r = ml_z_alloc(size_arg1 + limb + 1);
-      Z_REFRESH(arg1);
-      Z_REFRESH(arg2);
-      sz = mpn_gcd(Z_LIMB(r) + limb, ptr_arg2, size_arg2, ptr_arg1, size_arg1);
+      sz = mpn_gcd(Z_LIMB(r) + limb, Z_LIMB(tmp2), size_arg2, Z_LIMB(tmp1), size_arg1);
     } 
     /* glue the two results */
     for (i = 0; i < limb; i++) 

@@ -95,6 +95,11 @@ let minus_one = of_int (-1)
 let min a b = if compare a b <= 0 then a else b
 let max a b = if compare a b >= 0 then a else b
 
+let leq a b = compare a b <= 0
+let geq a b = compare a b >= 0
+let lt a b = compare a b < 0
+let gt a b = compare a b > 0
+
 let to_string = format "%d"
 let of_string = of_string_base 0
 

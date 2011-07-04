@@ -63,6 +63,12 @@ val of_nativeint: nativeint -> t
 val of_ints: int -> int -> t
 (** Conversion from an [int] numerator and an [int] denominator. *)
 
+val of_float: float -> t
+(** Conversion from a [float].
+    The conversion is exact, and maps NaN to [undef].
+ *)
+
+
 val of_string: string -> t
 (** Converts a string to a rational.
     Plain decimals, and [/] separated decimal ratios (with optional sign) are
@@ -128,6 +134,18 @@ val min: t -> t -> t
 
 val max: t -> t -> t
 (** Returns the largest of its arguments. *)
+
+val leq: t -> t -> bool
+(** Less than or equal. *)
+
+val geq: t -> t -> bool
+(** Greater than or equal. *)
+
+val lt: t -> t -> bool
+(** Less than (not equal). *)
+
+val gt: t -> t -> bool
+(** Greater than (not equal). *)
 
 
 (** {1 Conversions} *)

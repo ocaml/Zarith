@@ -77,6 +77,16 @@ let minus_inf = mk Z.minus_one Z.zero
 let undef = mk Z.zero Z.zero
 (* 0/0 *)
 
+let of_float d =
+  if d = infinity then inf else
+  if d = neg_infinity then minus_inf else
+  if classify_float d = FP_nan then undef else
+  let m,e = frexp d in
+  (* pu in the form  m * 2^e, where m is an integer *)
+  let m,e = Z.of_float (ldexp m 52), e-52 in
+  if e >= 0 then of_bigint (Z.shift_left m e)
+  else make m (Z.shift_left Z.one (-e))
+
 let of_string s =
   try
     let i  = String.index s '/' in
@@ -130,13 +140,17 @@ let compare x y =
   | UNDEF,UNDEF | INF,INF | MINF,MINF -> 0
   | UNDEF,_ -> -1
   | _,UNDEF -> 1
-  | MINF,_ | _,INF -> 1
-  | INF,_ | _,MINF -> -1
+  | MINF,_ | _,INF -> -1
+  | INF,_ | _,MINF -> 1
   | _ -> Z.compare (Z.mul x.num y.den) (Z.mul y.num x.den)
 
 let min a b = if compare a b <= 0 then a else b
-
 let max a b = if compare a b >= 0 then a else b
+
+let leq a b = compare a b <= 0
+let geq a b = compare a b >= 0
+let lt a b = compare a b < 0
+let gt a b = compare a b > 0
 
 let to_string n =
   match classify n with

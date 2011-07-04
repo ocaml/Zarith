@@ -337,6 +337,18 @@ external compare: t -> t -> int = "ml_z_compare" "noalloc"
 external equal: t -> t -> bool = "ml_z_equal" "noalloc"
 (** Equality test. *)
 
+val leq: t -> t -> bool
+(** Less than or equal. *)
+
+val geq: t -> t -> bool
+(** Greater than or equal. *)
+
+val lt: t -> t -> bool
+(** Less than (not equal). *)
+
+val gt: t -> t -> bool
+(** Greater than (not equal). *)
+
 external sign: t -> int = "ml_z_sign" "noalloc"
 (** Returns -1, 0, or 1 when the argument is respectively negative, null, or
     positive.

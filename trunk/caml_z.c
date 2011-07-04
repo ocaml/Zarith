@@ -2686,6 +2686,32 @@ struct custom_operations ml_z_custom_ops = {
 
 
 /*---------------------------------------------------
+  CONVERSION WITH MLGMPIDL
+  ---------------------------------------------------*/
+
+CAMLprim value ml_z_mlgmpidl_of_mpz(value a)
+{
+  CAMLparam1(a);
+  mpz_ptr mpz = (mpz_ptr)(Data_custom_val(a));
+  CAMLreturn(ml_z_from_mpz(mpz));
+}
+
+/* stores the Z.t object into an existing Mpz.t one;
+   as we never allocate Mpz.t objects, we don't need any pointer to 
+   mlgmpidl's custom block ops, and so, can link the function even if
+   mlgmpidl is not installed
+ */
+CAMLprim value ml_z_mlgmpidl_set_mpz(value r, value a)
+{
+  CAMLparam2(r,a);
+  mpz_ptr mpz = (mpz_ptr)(Data_custom_val(r));
+  ml_z_mpz_set_z(mpz,a);
+  CAMLreturn(Val_unit);
+}
+
+
+
+/*---------------------------------------------------
   INIT / EXIT
   ---------------------------------------------------*/
 

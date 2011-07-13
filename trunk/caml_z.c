@@ -699,9 +699,9 @@ CAMLprim value ml_z_to_float(value v)
        exactly in a double
        the cast to long is a work-around for gcc's bug 37544
     */
-    x += m * (long)(ptr_v[i] & 0xffffffff);
+    x += m * (intnat)(ptr_v[i] & 0xffffffff);
     m *= ml_z_2p32;
-    x += m * (long)(ptr_v[i] >> 32);
+    x += m * (intnat)((ptr_v[i] >> 32) & 0xffffffff);
     m *= ml_z_2p32;
 #else
     x += m * ptr_v[i];

@@ -291,9 +291,7 @@ case $host in
 esac
 
 if test "$arch" != 'none'; then
-    searchbin $as
-    if test $? -eq 0; then echo "no assembler found"; arch='none'
-    elif test ! -f "caml_z_${arch}.S"; then arch='none'; fi
+    if test ! -f "caml_z_${arch}.S"; then arch='none'; fi
 fi
 
 

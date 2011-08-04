@@ -17,11 +17,11 @@
 CSRC = caml_z.c
 SSRC = $(wildcard caml_z_$(ARCH).S)
 MLSRC = z.ml q.ml big_int_Z.ml
-MLISRC = z.mli q.mli
+MLISRC = z.mli q.mli big_int_Z.mli
 
 AUTOGEN = z.ml z.mli
 
-CMIOBJ=$(MLISRC:%.mli=%.cmi)
+CMIOBJ = $(MLISRC:%.mli=%.cmi)
 TOINSTALL = zarith.a zarith.cma zarith.cmxa zarith.cmxs libzarith.a $(MLISRC) $(CMIOBJ)
 
 
@@ -67,9 +67,9 @@ ifeq ($(INSTMETH),install)
 install:
 	install -d $(INSTALLDIR)
 	for i in $(TOINSTALL); do \
-		if test -f $$i; then $(INSTALL) --mode=0644 $$i $(INSTALLDIR); fi; \
+		if test -f $$i; then $(INSTALL) -m 0644 $$i $(INSTALLDIR); fi; \
 	done
-	if test -f dllzarith.so; then $(INSTALL) --mode=0755 dllzarith.so $(INSTALLDIR)/stublibs; fi
+	if test -f dllzarith.so; then $(INSTALL) -m 0755 dllzarith.so $(INSTALLDIR)/stublibs; fi
 
 uninstall:
 	for i in $(TOINSTALL); do \

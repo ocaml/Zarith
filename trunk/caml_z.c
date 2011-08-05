@@ -921,43 +921,47 @@ CAMLprim value ml_z_of_bits(value arg)
 {
   CAMLparam1(arg);
   CAMLlocal1(r);
-  mp_size_t i, sz, szw;
+  mp_size_t sz, szw;
+  mp_size_t i = 0;
   mp_limb_t x;
   unsigned char* p;
   Z_MARK_OP;
   Z_MARK_SLOW;
   sz = caml_string_length(arg);
-  szw = sz / sizeof(mp_limb_t) + 1;
+  szw = (sz + sizeof(mp_limb_t) - 1) / sizeof(mp_limb_t);
   r = ml_z_alloc(szw);
   p = (unsigned char*) String_val(arg);
   /* all limbs but last */
-  for (i = 0; i < szw - 1; i++) {
-    x = *(p++);
-    x |= ((mp_limb_t) *(p++)) << 8;
-    x |= ((mp_limb_t) *(p++)) << 16;
-    x |= ((mp_limb_t) *(p++)) << 24;
+  if (szw > 1) {
+    for (; i < szw - 1; i++) {
+      x = *(p++);
+      x |= ((mp_limb_t) *(p++)) << 8;
+      x |= ((mp_limb_t) *(p++)) << 16;
+      x |= ((mp_limb_t) *(p++)) << 24;
 #ifdef ARCH_SIXTYFOUR
-    x |= ((mp_limb_t) *(p++)) << 32;
-    x |= ((mp_limb_t) *(p++)) << 40;
-    x |= ((mp_limb_t) *(p++)) << 48;
-    x |= ((mp_limb_t) *(p++)) << 56;
+      x |= ((mp_limb_t) *(p++)) << 32;
+      x |= ((mp_limb_t) *(p++)) << 40;
+      x |= ((mp_limb_t) *(p++)) << 48;
+      x |= ((mp_limb_t) *(p++)) << 56;
+#endif
+      Z_LIMB(r)[i] = x;
+    }
+    sz -= i * sizeof(mp_limb_t);
+  }
+  /* last limb */
+  if (sz > 0) {
+    x = *(p++);
+    if (sz > 1) x |= ((mp_limb_t) *(p++)) << 8;
+    if (sz > 2) x |= ((mp_limb_t) *(p++)) << 16;
+    if (sz > 3) x |= ((mp_limb_t) *(p++)) << 24;
+#ifdef ARCH_SIXTYFOUR
+    if (sz > 4) x |= ((mp_limb_t) *(p++)) << 32;
+    if (sz > 5) x |= ((mp_limb_t) *(p++)) << 40;
+    if (sz > 6) x |= ((mp_limb_t) *(p++)) << 48;
+    if (sz > 7) x |= ((mp_limb_t) *(p++)) << 56;
 #endif
     Z_LIMB(r)[i] = x;
   }
-  /* last limb */
-  sz %= sizeof(mp_limb_t);
-  x = 0;
-  if (sz > 0) x = *(p++);
-  if (sz > 1) x |= ((mp_limb_t) *(p++)) << 8;
-  if (sz > 2) x |= ((mp_limb_t) *(p++)) << 16;
-  if (sz > 3) x |= ((mp_limb_t) *(p++)) << 24;
-#ifdef ARCH_SIXTYFOUR
-  if (sz > 4) x |= ((mp_limb_t) *(p++)) << 32;
-  if (sz > 5) x |= ((mp_limb_t) *(p++)) << 40;
-  if (sz > 6) x |= ((mp_limb_t) *(p++)) << 48;
-  if (sz > 7) x |= ((mp_limb_t) *(p++)) << 56;
-#endif
-  Z_LIMB(r)[i] = x;
   r = ml_z_reduce(r, szw, 0);
   Z_CHECK(r);
   CAMLreturn(r);
@@ -2609,30 +2613,38 @@ CAMLprim value ml_z_hash(value v)
   return Val_long(ml_z_custom_hash(v));
 }
 
-
+/* serialized format:
+   - 1-byte sign (1 for negative, 0 for positive)
+   - 4-byte size in bytes
+   - size-byte unsigned integer, in little endian order
+ */
 static void ml_z_custom_serialize(value v, 
                                   uintnat * wsize_32,
                                   uintnat * wsize_64)
 {
+  mp_size_t i,nb;
   Z_DECL(v);
-  mp_size_t sz;
   Z_CHECK(v);
   Z_ARG(v);
+  if ((mp_size_t)(uint32) size_v != size_v) failwith("Z.serialize: number is too large");
+  nb = size_v * sizeof(mp_limb_t);
   caml_serialize_int_1(sign_v ? 1 : 0);
-  if (!size_v) {
-    sz = 0;
-    caml_serialize_int_4(0);
+  caml_serialize_int_4(nb);
+  for (i = 0; i < size_v; i++) {
+    mp_limb_t x = ptr_v[i];
+    caml_serialize_int_1(x);
+    caml_serialize_int_1(x >> 8);
+    caml_serialize_int_1(x >> 16);
+    caml_serialize_int_1(x >> 24);
+#ifdef ARCH_SIXTYFOUR
+    caml_serialize_int_1(x >> 32);
+    caml_serialize_int_1(x >> 40);
+    caml_serialize_int_1(x >> 48);
+    caml_serialize_int_1(x >> 56);
+#endif
   }
-  else {
-    unsigned char* buf = (unsigned char*) malloc(size_v * sizeof(mp_limb_t));
-    sz = mpn_get_str(buf, 256, ptr_v, size_v);
-    if ((mp_size_t)(uint32) sz != sz) failwith("Z.serialize: number is to large");
-    caml_serialize_int_4(sz);
-    caml_serialize_block_1(buf, sz);
-    free(buf);
-  }
-  *wsize_32 = 4 * (1 + (sz + 3) / 4);
-  *wsize_64 = 8 * (1 + (sz + 7) / 8);
+  *wsize_32 = 4 * (1 + (nb + 3) / 4);
+  *wsize_64 = 8 * (1 + (nb + 7) / 8);  
 #if Z_PERFORM_CHECK
   /* Add space for canary */
   *wsize_32 += 4;
@@ -2646,30 +2658,51 @@ static void ml_z_custom_serialize(value v,
  */
 static uintnat ml_z_custom_deserialize(void * dst)
 {
-  mp_limb_t* d = (mp_limb_t*)dst;
+  mp_limb_t* d = ((mp_limb_t*)dst) + 1;
   int sign = caml_deserialize_uint_1();
   uint32 sz = caml_deserialize_uint_4();
-  if (!sz) {
-    *d = 0;
-#if Z_PERFORM_CHECK
-    d[1] = 0xDEADBEEF;
+  uint32 szw = (sz + sizeof(mp_limb_t) - 1) / sizeof(mp_limb_t);
+  uint32 i = 0;
+  mp_limb_t x; 
+  /* all limbs but last */
+  if (szw > 1) {
+    for (; i < szw - 1; i++) {
+      x = caml_deserialize_uint_1();
+      x |= ((mp_limb_t) caml_deserialize_uint_1()) << 8;
+      x |= ((mp_limb_t) caml_deserialize_uint_1()) << 16;
+      x |= ((mp_limb_t) caml_deserialize_uint_1()) << 24;
+#ifdef ARCH_SIXTYFOUR
+      x |= ((mp_limb_t) caml_deserialize_uint_1()) << 32;
+      x |= ((mp_limb_t) caml_deserialize_uint_1()) << 40;
+      x |= ((mp_limb_t) caml_deserialize_uint_1()) << 48;
+      x |= ((mp_limb_t) caml_deserialize_uint_1()) << 56;
 #endif
-    return 1;
+      d[i] = x;
+    }
+    sz -= i * sizeof(mp_limb_t);
   }
-  else {
-    unsigned char* buf = (unsigned char*)malloc(sz);
-    mp_size_t nb;
-    caml_deserialize_block_1(buf, sz);
-    nb = mpn_set_str(d+1, buf, sz, 256);
-    *d = nb;
-    if (sign) *d |= Z_SIGN_MASK;
-    free(buf);
-#if Z_PERFORM_CHECK
-    d[nb + 1] = 0xDEADBEEF ^ nb;
-    nb += 1;
+  /* last limb */
+  if (sz > 0) {
+    x = caml_deserialize_uint_1();
+    if (sz > 1) x |= ((mp_limb_t) caml_deserialize_uint_1()) << 8;
+    if (sz > 2) x |= ((mp_limb_t) caml_deserialize_uint_1()) << 16;
+    if (sz > 3) x |= ((mp_limb_t) caml_deserialize_uint_1()) << 24;
+#ifdef ARCH_SIXTYFOUR
+    if (sz > 4) x |= ((mp_limb_t) caml_deserialize_uint_1()) << 32;
+    if (sz > 5) x |= ((mp_limb_t) caml_deserialize_uint_1()) << 40;
+    if (sz > 6) x |= ((mp_limb_t) caml_deserialize_uint_1()) << 48;
+    if (sz > 7) x |= ((mp_limb_t) caml_deserialize_uint_1()) << 56;
 #endif
-    return sizeof(mp_limb_t) * (nb + 1);
+    d[i] = x;
+    i++;
   }
+  while (i > 0 && !d[i-1]) i--;
+  d[-1] = i | (sign ? Z_SIGN_MASK : 0);
+#if Z_PERFORM_CHECK
+  d[szw] = 0xDEADBEEF ^ szw;
+  szw++;
+#endif
+  return (szw+1) * sizeof(mp_limb_t);
 }
 
 struct custom_operations ml_z_custom_ops = {

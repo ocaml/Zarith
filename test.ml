@@ -80,7 +80,11 @@ let chk_bits x =
   String.iter (fun c -> Printf.printf " %02x" (Char.code c)) (I.to_bits x);
   Printf.printf "\n";
   assert(I.equal (I.abs x) (I.of_bits (I.to_bits x)));
-  assert((I.to_bits x) = (I.to_bits (I.neg x)))
+  assert((I.to_bits x) = (I.to_bits (I.neg x)));
+  Printf.printf "marshal %a\n =" pr x;
+  String.iter (fun c -> Printf.printf " %02x" (Char.code c)) (Marshal.to_string  x []);
+  Printf.printf "\n";
+  assert (x = Marshal.from_string (Marshal.to_string x []) 0)
 
 let chk_extract (x, o, l) =
   let expected =

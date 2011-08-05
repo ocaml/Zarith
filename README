@@ -76,7 +76,6 @@ CONTENTS:
 The files are:
 * configure         - configuration script
 * caml_z.c          - C implementation of all functions
-* caml_z_compare.c  - polymorphic compare compatible with big integers
 * caml_z_i686.S     - x86 asm implementation for a few functions
 * caml_z_x86_64.S   - x86_64 asm implementation for a few functions
 * z_pp.pl           - script to generate z.ml, z.mli

@@ -6,7 +6,7 @@
    When numbers grow too large, we switch transparently to GMP numbers
    ([mpn] numbers fully allocated on the OCaml heap).
 
-   Thsi interface is rather similar to that of [Int32] and [Int64],
+   This interface is rather similar to that of [Int32] and [Int64],
    with some additional functions provided natively by GMP
    (GCD, square root, pop-count, etc.).
 
@@ -177,7 +177,7 @@ external divexact: t -> t -> t = "ml_z_divexact"
 (** {1 Bit-level operations} *)
 
 (** For all bit-level operations, negative numbers are considered in 2's
-    complementation representation, starting with a virtual infinite number of 
+    complement representation, starting with a virtual infinite number of 
     1s.
  *)
 
@@ -272,7 +272,7 @@ external format: string -> t -> string = "ml_z_format"
     - [b]: binary
     - [o]: octal
     - [x]: lowercase hexadecimal
-    - [X]: upercase hexadecimal
+    - [X]: uppercase hexadecimal
 
     Supported flags are:
 
@@ -288,16 +288,16 @@ external format: string -> t -> string = "ml_z_format"
  *)
 
 external fits_int: t -> bool = "ml_z_fits_int" "noalloc"
-(** Whether the argument fits in a regular int. *)
+(** Whether the argument fits in a regular [int]. *)
 
 external fits_int32: t -> bool = "ml_z_fits_int32" "noalloc"
-(** Whether the argument fits in an int32. *)
+(** Whether the argument fits in an [int32]. *)
 
 external fits_int64: t -> bool = "ml_z_fits_int64" "noalloc"
-(** Whether the argument fits in an int64. *)
+(** Whether the argument fits in an [int64]. *)
 
 external fits_nativeint: t -> bool = "ml_z_fits_nativeint" "noalloc"
-(** Whether the argument fits in a nativeint. *)
+(** Whether the argument fits in a [nativeint]. *)
 
 
 (** {1 Printing} *)
@@ -319,7 +319,7 @@ val bprint: Buffer.t -> t -> unit
 val pp_print: Format.formatter -> t -> unit
 (** Prints the argument on the specified formatter. 
     Can be used as [%a] format printer in [Format.printf] and as
-    argument to [#install_printer] in the toplevel.
+    argument to [#install_printer] in the top-level.
     Also intended to be used as [%a] format printer in [Format.printf].
  *)
 
@@ -454,9 +454,9 @@ external size: t -> int = "ml_z_size" "noalloc"
 (** Returns the number of machine words used to represent the number. *)
 
 external extract: t -> int -> int -> t = "ml_z_extract"
-(** [extract a off len] returns a nonnegative number corresponding to bits [off]
-    to [off]+[len]-1 of [b].
-    Negative [a] are considered in infinite-length 2's complementation
+(** [extract a off len] returns a non-negative number corresponding to bits 
+    [off] to [off]+[len]-1 of [b].
+    Negative [a] are considered in infinite-length 2's complement
     representation.
  *)
 

@@ -28,7 +28,7 @@ TOINSTALL = zarith.a zarith.cma zarith.cmxa zarith.cmxs libzarith.a $(MLISRC) $(
 # build targets
 ###############
 
-all: $(TOINSTALL) test test.b
+all: $(TOINSTALL) test
 
 zarith.cma: $(MLSRC:%.ml=%.cmo)
 	$(OCAMLMKLIB) -o zarith $+ $(LIBS)

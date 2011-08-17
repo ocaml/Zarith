@@ -1377,8 +1377,11 @@ CAMLprim value ml_z_mul(value arg1, value arg2)
       mpn_mul(Z_LIMB(r), ptr_arg1, size_arg1, ptr_arg2, size_arg2);
     else if (size_arg1 < size_arg2)
       mpn_mul(Z_LIMB(r), ptr_arg2, size_arg2, ptr_arg1, size_arg1);
+/* older GMP don't have mpn_sqr, so we make the optimisation optional */
+#ifdef mpn_sqr
     else if (ptr_arg1 == ptr_arg2)
       mpn_sqr(Z_LIMB(r), ptr_arg1, size_arg1);
+#endif
     else
       mpn_mul_n(Z_LIMB(r), ptr_arg1, ptr_arg2, size_arg1);
     r = ml_z_reduce(r, size_arg1 + size_arg2, sign_arg1^sign_arg2);
@@ -1387,7 +1390,7 @@ CAMLprim value ml_z_mul(value arg1, value arg2)
   }
 }
 
-/* helper function for division: returns trucated quotient and remainder */
+/* helper function for division: returns truncated quotient and remainder */
 static value ml_z_tdiv_qr(value arg1, value arg2)
 {
   CAMLparam2(arg1, arg2);
@@ -2706,7 +2709,12 @@ static uintnat ml_z_custom_deserialize(void * dst)
 }
 
 struct custom_operations ml_z_custom_ops = {
-  "Antoine.Mine/Z/v1",
+  /* Identifiers starting with _ are normally reserved for the OCaml runtime
+     system, but we got authorization form Gallium to use "_z".
+     It is very compact and stays in the spirit of identifiers used for
+     int32 & co ("_i" & co.).
+  */
+  "_z",
   custom_finalize_default,
   ml_z_custom_compare,
   ml_z_custom_hash,

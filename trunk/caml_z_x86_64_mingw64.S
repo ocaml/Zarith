@@ -327,6 +327,7 @@ SYMB(ml_as_z_##proc):\
         mov     %rcx, %rax
         mov     %rdx, %rcx
         sar     %rcx
+        js      .Lshift_right
         cmp     $63, %rcx
         jae     .Lshift_right2
         sar     %cl, %rax

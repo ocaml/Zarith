@@ -335,8 +335,6 @@ SYMB(ml_as_z_##proc):
         test    $1, %eax
         jz      .Lshift_left
         mov     8(%esp), %ecx
-        test    $1, %ecx
-        jz      .Lshift_left
         sar     %ecx
         cmp     $31, %ecx
         jae     .Lshift_left
@@ -361,9 +359,8 @@ SYMB(ml_as_z_##proc):
         test    $1, %eax
         jz      .Lshift_right
         mov     8(%esp), %ecx
-        test    $1, %ecx
-        jz      .Lshift_right
         sar     %ecx
+        js      .Lshift_right
         cmp     $31, %ecx
         jae     .Lshift_right2
         sar     %cl, %eax

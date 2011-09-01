@@ -31,16 +31,16 @@ TOINSTALL = zarith.a zarith.cma zarith.cmxa zarith.cmxs libzarith.a $(MLISRC) $(
 all: $(TOINSTALL) test
 
 zarith.cma: $(MLSRC:%.ml=%.cmo)
-	$(OCAMLMKLIB) -o zarith $+ $(LIBS)
+	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)
 
 zarith.cmxa zarith.a: $(MLSRC:%.ml=%.cmx)
-	$(OCAMLMKLIB) -o zarith $+ $(LIBS)
+	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)
 
 zarith.cmxs: zarith.cmxa libzarith.a
 	$(OCAMLOPT) -shared -o $@ -I . zarith.cmxa
 
 libzarith.a dllzarith.so: $(SSRC:%.S=%.o) $(CSRC:%.c=%.o) 
-	$(OCAMLMKLIB) -o zarith $+ $(LIBS)
+	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)
 
 test: zarith.cmxa test.cmx
 	$(OCAMLOPT) $(OCAMLOPTFLAGS) $(OCAMLINC) -cclib "-L." $+ -o $@
@@ -109,7 +109,7 @@ $(AUTOGEN): z.mlp z.mlip $(SSRC) z_pp.pl
 	$(OCAMLOPT) $(OCAMLOPTFLAGS) $(OCAMLINC) -c $<
 
 %.o: %.c
-	$(OCAMLC) -verbose -ccopt "$(CFLAGS)" -c $<
+	$(OCAMLC) -ccopt "$(CFLAGS)" -c $<
 
 clean:
 	/bin/rm -rf *.o *.a *.so *.cmi *.cmo *.cmx *.cmxa *.cmxs *.cma *.dll *~ \#* depend test $(AUTOGEN) tmp.c depend

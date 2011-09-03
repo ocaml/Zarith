@@ -92,7 +92,7 @@ SYMB(ml_as_z_##proc):
 
         /* neg */
         PROLOG(neg)
-        test    $1, %rdi
+        test    $1, %edi
         jz      .Lneg
         mov     %rdi, %rax
         not     %rax
@@ -107,7 +107,7 @@ SYMB(ml_as_z_##proc):
         
         /* abs */
         PROLOG(abs)
-        test    $1, %rdi
+        test    $1, %edi
         jz      .Labs
         mov     %rdi, %rax
         test    %rdi, %rdi
@@ -125,7 +125,7 @@ SYMB(ml_as_z_##proc):
         
         /* succ */
         PROLOG(succ)
-        test    $1, %rdi
+        test    $1, %edi
         jz      .Lsucc
         mov     %rdi, %rax
         add     $2, %rax
@@ -139,7 +139,7 @@ SYMB(ml_as_z_##proc):
         
         /* pred */
         PROLOG(pred)
-        test    $1, %rdi
+        test    $1, %edi
         jz      .Lpred
         mov     %rdi, %rax
         sub     $2, %rax
@@ -159,9 +159,9 @@ SYMB(ml_as_z_##proc):
         
         /* add */
         PROLOG(add)
-        test    $1, %rdi
+        test    $1, %edi
         jz      .Ladd
-        test    $1, %rsi
+        test    $1, %esi
         jz      .Ladd        
         lea     -1(%rdi), %rax
         add     %rsi, %rax
@@ -175,9 +175,9 @@ SYMB(ml_as_z_##proc):
         
         /* sub */
         PROLOG(sub)
-        test    $1, %rdi
+        test    $1, %edi
         jz      .Lsub
-        test    $1, %rsi
+        test    $1, %esi
         jz      .Lsub
         mov     %rdi, %rax
         sub     %rsi, %rax
@@ -192,9 +192,9 @@ SYMB(ml_as_z_##proc):
   
         /* mul */
         PROLOG(mul)
-        test    $1, %rdi
+        test    $1, %edi
         jz      .Lmul
-        test    $1, %rsi
+        test    $1, %esi
         jz      .Lmul
         mov     %rsi, %rcx
         lea     -1(%rdi), %rax
@@ -211,9 +211,9 @@ SYMB(ml_as_z_##proc):
   
         /* div */
         PROLOG(div)
-        test    $1, %rdi
+        test    $1, %edi
         jz      .Ldiv
-        test    $1, %rsi
+        test    $1, %esi
         jz      .Ldiv
         mov     %rsi, %rcx
         mov     %rdi, %rax
@@ -242,9 +242,9 @@ SYMB(ml_as_z_##proc):
         
         /* rem */
         PROLOG(rem)
-        test    $1, %rdi
+        test    $1, %edi
         jz      .Lrem
-        test    $1, %rsi
+        test    $1, %esi
         jz      .Lrem
         mov     %rsi, %rcx
         mov     %rdi, %rax
@@ -261,7 +261,7 @@ SYMB(ml_as_z_##proc):
         ret
 .Lremneg:
         /* division by -1 */
-        mov     $1, %rax
+        mov     $1, %eax
         OP
         ret
 .Lrem:
@@ -275,7 +275,7 @@ SYMB(ml_as_z_##proc):
 
         /* not */
         PROLOG(lognot)
-        test    $1, %rdi
+        test    $1, %edi
         jz      .Llognot
         lea     -1(%rdi), %rax
         not     %rax
@@ -290,7 +290,7 @@ SYMB(ml_as_z_##proc):
         PROLOG(logand)
         mov     %rdi, %rax
         and     %rsi, %rax
-        test    $1, %rax
+        test    $1, %al
         jz      .Llogand
         OP
         ret
@@ -301,9 +301,9 @@ SYMB(ml_as_z_##proc):
         
          /* or */
         PROLOG(logor)
-        test    $1, %rdi
+        test    $1, %edi
         jz      .Llogor
-        test    $1, %rsi
+        test    $1, %esi
         jz      .Llogor
         mov     %rdi, %rax
         or      %rsi, %rax
@@ -316,9 +316,9 @@ SYMB(ml_as_z_##proc):
         
          /* xor */
         PROLOG(logxor)
-        test    $1, %rdi
+        test    $1, %edi
         jz      .Llogxor
-        test    $1, %rsi
+        test    $1, %esi
         jz      .Llogxor
         mov     %rdi, %rax
         xor     %rsi, %rax
@@ -332,7 +332,7 @@ SYMB(ml_as_z_##proc):
         
          /* shift_left */
         PROLOG(shift_left)
-        test    $1, %rdi
+        test    $1, %edi
         jz      .Lshift_left
         mov     %rsi, %rcx
         sar     %rcx
@@ -355,27 +355,17 @@ SYMB(ml_as_z_##proc):
 
         /* shift_right */
         PROLOG(shift_right)
-        test    $1, %rdi
+        test    $1, %edi
         jz      .Lshift_right
         mov     %rsi, %rcx
+	mov     $63, %eax
         sar     %rcx
         js      .Lshift_right
-        cmp     $63, %rcx
-        jae     .Lshift_right2
+        cmp     %rax, %rcx /* compare second argument to 63 */
+        cmovae  %eax, %ecx /* if above or equal, then use 63 */
         mov     %rdi, %rax
         sar     %cl, %rax
         or      $1, %rax
-        OP
-        ret
-.Lshift_right2:
-        /* shift by 63 or more */
-        test    %rdi, %rdi
-        js      .Lshift_right3
-        mov     $1, %rax
-        OP
-        ret
-.Lshift_right3:
-        mov     $-1, %rax
         OP
         ret
 .Lshift_right:

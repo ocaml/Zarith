@@ -190,10 +190,9 @@ SYMB(ml_as_z_##proc):
         test    $1, %al
         jz      .Lmul
         mov     8(%esp), %ecx
-        test    $1, %cl
-        jz      .Lmul
+        sar     %ecx  /* sets CF to least significant bit */
+        jnc     .Lmul
         dec     %eax
-        sar     %ecx
         imul    %ecx, %eax
         jo      .Lmul
         inc     %eax
@@ -207,16 +206,14 @@ SYMB(ml_as_z_##proc):
         /* div */
         PROLOG(div)
         mov     4(%esp), %eax
-        test    $1, %al
-        jz      .Ldiv
+        sar     %eax
+        jnc     .Ldiv   /* not a 31-bit integer */
         mov     8(%esp), %ecx
-        test    $1, %cl
-        jz      .Ldiv
         sar     %ecx
+        jnc     .Ldiv   /* not a 31-bit integer */
         jz      .Ldiv   /* division by zero */
         cmp     $-1, %ecx
         je      .Ldivneg
-        sar     %eax
         cdq
         idiv    %ecx
         sal     %eax
@@ -238,16 +235,14 @@ SYMB(ml_as_z_##proc):
         /* rem */
         PROLOG(rem)
         mov     4(%esp), %eax
-        test    $1, %al
-        jz      .Lrem
+        sar     %eax
+        jnc     .Lrem   /* not a 31-bit integer */
         mov     8(%esp), %ecx
-        test    $1, %cl
-        jz      .Lrem
         sar     %ecx
+        jnc     .Lrem   /* not a 31-bit integer */
         jz      .Lrem   /* division by zero */
         cmp     $-1, %ecx
         je      .Lremneg
-        sar     %eax
         cdq
         idiv    %ecx
         sal     %edx

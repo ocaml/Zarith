@@ -201,7 +201,7 @@ SYMB(ml_as_z_##proc):
         ret
 .Lmul:
         C_JMP(mul)
-        EPILOG(sub)
+        EPILOG(mul)
 
         
         /* div */

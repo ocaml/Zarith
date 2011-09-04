@@ -194,11 +194,10 @@ SYMB(ml_as_z_##proc):
         PROLOG(mul)
         test    $1, %edi
         jz      .Lmul
-        test    $1, %esi
-        jz      .Lmul
         mov     %rsi, %rcx
-        lea     -1(%rdi), %rax
         sar     %rcx
+        jnc     .Lmul
+        lea     -1(%rdi), %rax
         imul    %rcx, %rax
         jo      .Lmul
         inc     %rax
@@ -211,21 +210,18 @@ SYMB(ml_as_z_##proc):
   
         /* div */
         PROLOG(div)
-        test    $1, %edi
-        jz      .Ldiv
-        test    $1, %esi
-        jz      .Ldiv
-        mov     %rsi, %rcx
         mov     %rdi, %rax
+        sar     %rax
+        jnc     .Ldiv
+        mov     %rsi, %rcx
         sar     %rcx
+        jnc     .Ldiv	
         jz      .Ldiv   /* division by zero */
         cmp     $-1, %rcx
         je      .Ldivneg
-        sar     %rax
         cqo
         idiv    %rcx
-        sal     %rax
-        inc     %rax
+        lea     1(%rax, %rax), %rax
         OP
         ret
 .Ldivneg:
@@ -242,21 +238,18 @@ SYMB(ml_as_z_##proc):
         
         /* rem */
         PROLOG(rem)
-        test    $1, %edi
-        jz      .Lrem
-        test    $1, %esi
-        jz      .Lrem
-        mov     %rsi, %rcx
         mov     %rdi, %rax
+        sar     %rax
+        jnc     .Lrem
+        mov     %rsi, %rcx
         sar     %rcx
+        jnc     .Lrem
         jz      .Lrem   /* division by zero */
         cmp     $-1, %rcx
         je      .Lremneg
-        sar     %rax
         cqo
         idiv    %rcx
-        sal     %rdx
-        lea     1(%rdx), %rax
+        lea     1(%rdx, %rdx), %rax
         OP
         ret
 .Lremneg:

@@ -85,7 +85,7 @@ SYMB(ml_as_z_##proc):
         /* neg */
         PROLOG(neg)
         mov     4(%esp), %eax
-        test    $1, %eax
+        test    $1, %al
         jz      .Lneg
         not     %eax
         add     $3, %eax
@@ -100,7 +100,7 @@ SYMB(ml_as_z_##proc):
         /* abs */
         PROLOG(abs)
         mov     4(%esp), %eax
-        test    $1, %eax
+        test    $1, %al
         jz      .Labs
         test    %eax, %eax
         jns     .Labs2
@@ -118,7 +118,7 @@ SYMB(ml_as_z_##proc):
         /* succ */
         PROLOG(succ)
         mov     4(%esp), %eax
-        test    $1, %eax
+        test    $1, %al
         jz      .Lsucc
         add     $2, %eax
         jo      .Lsucc
@@ -132,7 +132,7 @@ SYMB(ml_as_z_##proc):
         /* pred */
         PROLOG(pred)
         mov     4(%esp), %eax
-        test    $1, %eax
+        test    $1, %al
         jz      .Lpred
         sub     $2, %eax
         jo      .Lpred
@@ -151,10 +151,10 @@ SYMB(ml_as_z_##proc):
         /* add */
         PROLOG(add)
         mov     4(%esp), %eax
-        test    $1, %eax
+        test    $1, %al
         jz      .Ladd
         mov     8(%esp), %ecx
-        test    $1, %ecx
+        test    $1, %cl
         jz      .Ladd
         dec     %eax
         add     %ecx, %eax
@@ -169,10 +169,10 @@ SYMB(ml_as_z_##proc):
         /* sub */
         PROLOG(sub)
         mov     4(%esp), %eax
-        test    $1, %eax
+        test    $1, %al
         jz      .Lsub
         mov     8(%esp), %ecx
-        test    $1, %ecx
+        test    $1, %cl
         jz      .Lsub
         sub     %ecx, %eax
         jo      .Lsub
@@ -187,10 +187,10 @@ SYMB(ml_as_z_##proc):
         /* mul */
         PROLOG(mul)
         mov     4(%esp), %eax
-        test    $1, %eax
+        test    $1, %al
         jz      .Lmul
         mov     8(%esp), %ecx
-        test    $1, %ecx
+        test    $1, %cl
         jz      .Lmul
         dec     %eax
         sar     %ecx
@@ -207,10 +207,10 @@ SYMB(ml_as_z_##proc):
         /* div */
         PROLOG(div)
         mov     4(%esp), %eax
-        test    $1, %eax
+        test    $1, %al
         jz      .Ldiv
         mov     8(%esp), %ecx
-        test    $1, %ecx
+        test    $1, %cl
         jz      .Ldiv
         sar     %ecx
         jz      .Ldiv   /* division by zero */
@@ -238,10 +238,10 @@ SYMB(ml_as_z_##proc):
         /* rem */
         PROLOG(rem)
         mov     4(%esp), %eax
-        test    $1, %eax
+        test    $1, %al
         jz      .Lrem
         mov     8(%esp), %ecx
-        test    $1, %ecx
+        test    $1, %cl
         jz      .Lrem
         sar     %ecx
         jz      .Lrem   /* division by zero */
@@ -271,7 +271,7 @@ SYMB(ml_as_z_##proc):
         /* not */
         PROLOG(lognot)
         mov     4(%esp), %eax
-        test    $1, %eax
+        test    $1, %al
         jz      .Llognot
         dec     %eax
         not     %eax
@@ -284,10 +284,10 @@ SYMB(ml_as_z_##proc):
         /* or */
         PROLOG(logor)
         mov     4(%esp), %eax
-        test    $1, %eax
+        test    $1, %al
         jz      .Llogor
         mov     8(%esp), %ecx
-        test    $1, %ecx
+        test    $1, %cl
         jz      .Llogor
         or      %ecx, %eax
         OP
@@ -299,10 +299,10 @@ SYMB(ml_as_z_##proc):
         /* and */
         PROLOG(logand)
         mov     4(%esp), %eax
-        test    $1, %eax
+        test    $1, %al
         jz      .Llogand
         mov     8(%esp), %ecx
-        test    $1, %ecx
+        test    $1, %cl
         jz      .Llogand
         and     %ecx, %eax
         OP
@@ -315,10 +315,10 @@ SYMB(ml_as_z_##proc):
         /* xor */
         PROLOG(logxor)
         mov     4(%esp), %eax
-        test    $1, %eax
+        test    $1, %al
         jz      .Llogxor
         mov     8(%esp), %ecx
-        test    $1, %ecx
+        test    $1, %cl
         jz      .Llogxor
         xor     %ecx, %eax
         inc     %eax
@@ -332,7 +332,7 @@ SYMB(ml_as_z_##proc):
         /* shift_left */
         PROLOG(shift_left)
         mov     4(%esp), %eax
-        test    $1, %eax
+        test    $1, %al
         jz      .Lshift_left
         mov     8(%esp), %ecx
         sar     %ecx
@@ -356,7 +356,7 @@ SYMB(ml_as_z_##proc):
         /* shift_right */
         PROLOG(shift_right)
         mov     4(%esp), %eax
-        test    $1, %eax
+        test    $1, %al
         jz      .Lshift_right
         mov     8(%esp), %ecx
         sar     %ecx

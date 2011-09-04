@@ -216,8 +216,7 @@ SYMB(ml_as_z_##proc):
         je      .Ldivneg
         cdq
         idiv    %ecx
-        sal     %eax
-        inc     %eax
+	lea	1(%eax, %eax), %eax
         OP
         ret
 .Ldivneg:
@@ -245,8 +244,7 @@ SYMB(ml_as_z_##proc):
         je      .Lremneg
         cdq
         idiv    %ecx
-        sal     %edx
-        lea     1(%edx), %eax
+	lea     1(%edx, %edx), %eax
         OP
         ret
 .Lremneg:

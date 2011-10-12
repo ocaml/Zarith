@@ -205,25 +205,19 @@ Lmul:
         
         /* div */
         PROLOG(div)
-        mov     4(%esp), %eax
-        sar     %eax
-        jnc     Ldiv   /* not a 31-bit integer */
         mov     8(%esp), %ecx
         sar     %ecx
         jnc     Ldiv   /* not a 31-bit integer */
         jz      Ldiv   /* division by zero */
         cmp     $-1, %ecx
-        je      Ldivneg
+	     /* division by -1, the only one that can overflow */
+        je      SYMB(ml_as_z_neg)
+        mov     4(%esp), %eax
+        sar     %eax
+        jnc     Ldiv   /* not a 31-bit integer */
         cdq
         idiv    %ecx
 	lea	1(%eax, %eax), %eax
-        OP
-        ret
-Ldivneg:
-        /* division by -1, the only one that can overflow */
-        not     %eax
-        add     $3, %eax
-        jo      Ldiv
         OP
         ret
 Ldiv:

@@ -210,25 +210,19 @@ Lmul:
   
         /* div */
         PROLOG(div)
-        mov     %rdi, %rax
-        sar     %rax
-        jnc     Ldiv
         mov     %rsi, %rcx
+        cmp     $-1, %rsi
+                   /* division by -1, the only one that can overflow */
+        je      SYMB(ml_as_z_neg)
         sar     %rcx
         jnc     Ldiv	
         jz      Ldiv   /* division by zero */
-        cmp     $-1, %rcx
-        je      Ldivneg
+        mov     %rdi, %rax
+        sar     %rax
+        jnc     Ldiv
         cqo
         idiv    %rcx
         lea     1(%rax, %rax), %rax
-        OP
-        ret
-Ldivneg:
-        /* division by -1, the only one that can overflow */
-        not     %rax
-        add     $3, %rax
-        jo      Ldiv
         OP
         ret
 Ldiv:

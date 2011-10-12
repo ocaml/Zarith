@@ -84,6 +84,7 @@ SYMB(ml_as_z_##proc):
 
         /* neg */
         PROLOG(neg)
+Lnegenter:
         mov     4(%esp), %eax
         test    $1, %al
         jz      Lneg
@@ -211,7 +212,7 @@ Lmul:
         jz      Ldiv   /* division by zero */
         cmp     $-1, %ecx
 	     /* division by -1, the only one that can overflow */
-        je      SYMB(ml_as_z_neg)
+        je      Lnegenter
         mov     4(%esp), %eax
         sar     %eax
         jnc     Ldiv   /* not a 31-bit integer */

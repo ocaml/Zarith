@@ -92,6 +92,7 @@ SYMB(ml_as_z_##proc):
 
         /* neg */
         PROLOG(neg)
+Lnegenter:	
         test    $1, %edi
         jz      Lneg
         mov     %rdi, %rax
@@ -213,7 +214,7 @@ Lmul:
         mov     %rsi, %rcx
         cmp     $-1, %rsi
                    /* division by -1, the only one that can overflow */
-        je      SYMB(ml_as_z_neg)
+        je      Lnegenter
         sar     %rcx
         jnc     Ldiv	
         jz      Ldiv   /* division by zero */

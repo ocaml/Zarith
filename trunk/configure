@@ -44,6 +44,7 @@ ccdef=''
 mlflags="$OCAMLFLAGS"
 mloptflags="$OCAMLOPTFLAGS"
 mlinc="$OCAMLINC"
+objsuffix="o"
 
 # sanitize
 LC_ALL=C
@@ -120,6 +121,7 @@ echo_n()
 
 searchbin()
 {
+    if test "x$1" = "x"; then return 0; fi
     echo_n "binary $1: "
     IFS=':'
     for i in $PATH
@@ -181,12 +183,21 @@ checkcc()
     return $r
 }
 
+checkcmxalib()
+{
+    echo_n "library $1: "
+    $ocamlopt $mloptflags $1 -o tmp.out >/dev/null 2>/dev/null || r=0
+    if test ! -x tmp.out; then r=0; fi
+    rm -f tmp.out
+    if test $r -eq 0; then echo "not found"; else echo "found"; fi
+    return $r    
+}
+
 
 # check required programs
 
 searchbinreq $ocaml
 searchbinreq $ocamlc
-searchbinreq $ocamlopt
 searchbinreq $ocamldep
 searchbinreq $ocamlmklib
 searchbinreq $ocamldoc
@@ -195,12 +206,20 @@ searchbinreq $ar
 searchbinreq perl
 
 
+# optional native-code generation
+
+hasocamlopt='no'
+
+searchbin $ocamlopt
+if test $? -eq 1; then hasocamlopt='yes'; fi
+
+
 # check C compiler
 
 checkcc
 if test $? -eq 0; then
-    # try again with no options
-    ccopt=''
+    # try again with (almost) no options
+    ccopt='-O'
     checkcc
     if test $? -eq 0; then echo "cannot compile and link program"; exit 2; fi
 fi
@@ -216,6 +235,17 @@ if test "$ocamllibdir" = "auto"; then ocamllibdir=`ocamlc -where`; fi
 ccinc="-I$ocamllibdir $ccinc"
 checkinc "caml/mlvalues.h"
 if test $? -eq 0; then echo "cannot include caml/mlvalues.h"; exit 2; fi
+
+
+# optional dynamic linking
+
+hasdynlink='no'
+
+if test $hasocamlopt = yes
+then
+    checkcmxalib dynlink.cmxa
+    if test $? -eq 1; then hasdynlink='yes'; fi
+fi
 
 
 # installation method
@@ -360,6 +390,9 @@ AR=$ar
 INSTALL=install
 OCAMLFIND=ocamlfind
 INSTMETH=$instmeth
+OBJSUFFIX=$objsuffix
+HASOCAMLOPT=$hasocamlopt
+HASDYNLINK=$hasdynlink
 
 include project.mak
 EOF
@@ -371,6 +404,8 @@ cat <<EOF
 
 detected configuration:
 
+  native-code:          $hasocamlopt
+  dynamic linking:      $hasdynlink
   asm path:             $arch
   defines:              $ccdef
   libraries:            $cclib

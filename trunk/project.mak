@@ -22,13 +22,25 @@ MLISRC = z.mli q.mli big_int_Z.mli
 AUTOGEN = z.ml z.mli
 
 CMIOBJ = $(MLISRC:%.mli=%.cmi)
-TOINSTALL = zarith.a zarith.cma zarith.cmxa zarith.cmxs libzarith.a $(MLISRC) $(CMIOBJ)
+TOINSTALL := zarith.cma libzarith.a $(MLISRC) $(CMIOBJ)
+TESTS := test.b
+
+ifeq ($(HASOCAMLOPT),yes)
+TOINSTALL := $(TOINSTALL) zarith.a zarith.cmxa
+TESTS := $(TESTS) test bitest
+endif
+
+ifeq ($(HASDYNLINK),yes)
+TOINSTALL := $(TOINSTALL) zarith.cmxs
+endif
 
 
 # build targets
 ###############
 
-all: $(TOINSTALL) test
+all: $(TOINSTALL)
+
+tests: $(TESTS)
 
 zarith.cma: $(MLSRC:%.ml=%.cmo)
 	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)
@@ -39,7 +51,7 @@ zarith.cmxa zarith.a: $(MLSRC:%.ml=%.cmx)
 zarith.cmxs: zarith.cmxa libzarith.a
 	$(OCAMLOPT) -shared -o $@ -I . zarith.cmxa
 
-libzarith.a dllzarith.so: $(SSRC:%.S=%.o) $(CSRC:%.c=%.o) 
+libzarith.a dllzarith.so: $(SSRC:%.S=%.$(OBJSUFFIX)) $(CSRC:%.c=%.$(OBJSUFFIX)) 
 	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)
 
 test: zarith.cmxa test.cmx
@@ -108,11 +120,11 @@ $(AUTOGEN): z.mlp z.mlip $(SSRC) z_pp.pl
 %.cmx: %.ml
 	$(OCAMLOPT) $(OCAMLOPTFLAGS) $(OCAMLINC) -c $<
 
-%.o: %.c
+%.$(OBJSUFFIX): %.c
 	$(OCAMLC) -ccopt "$(CFLAGS)" -c $<
 
 clean:
-	/bin/rm -rf *.o *.a *.so *.cmi *.cmo *.cmx *.cmxa *.cmxs *.cma *.dll *~ \#* depend test $(AUTOGEN) tmp.c depend
+	/bin/rm -rf *.$(OBJSUFFIX) *.a *.so *.cmi *.cmo *.cmx *.cmxa *.cmxs *.cma *.dll *~ \#* depend test $(AUTOGEN) tmp.c depend
 	/bin/rm -rf test test.b rtest bitest html
 
 depend: $(AUTOGEN)

@@ -285,10 +285,10 @@ fi
 
 arch='none'
 case $host in
-    x86_64-*linux-gnu)
+    x86_64-*linux-gnu|x86_64-kfreebsd-gnu)
         ccdef="-DZ_ELF $ccdef"
         arch='x86_64';;
-    i686-*linux-gnu)
+    i486-*linux-gnu|i686-*linux-gnu|i486-kfreebsd-gnu)
         ccdef="-DZ_ELF $ccdef"
         arch='i686';;
     i686-*cygwin)

@@ -49,7 +49,7 @@ INSTALLATION:
 
    make
 
-This builds native and bytecode versions of the library and test programs.
+This builds native and bytecode versions of the library.
 
 3) The libraries are installed by typing:
 
@@ -66,11 +66,16 @@ is named "zarith".
 The "configure" script has a few options. Use the "-help" option to get a
 list and short description of each option.
 
-4) (optional) HTML API documentation is built by the additional command
+4) (optional) 
+HTML API documentation is built (using ocamldoc) by the additional command
 
   make doc
 
-(but it is not installed).
+Test programs are built by the additional command
+
+  make tests
+
+(but these are  not installed).
 
 
 
@@ -87,6 +92,7 @@ AUTHORS:
 
 Antoine Miné, ENS Paris.
 Xavier Leroy, INRIA Paris-Rocquencourt.
+Pascal Cuoq, CEA LIST.
 
 
 

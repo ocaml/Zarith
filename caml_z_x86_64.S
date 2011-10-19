@@ -101,7 +101,7 @@ SYMB(ml_as_z_##proc):
         /* neg */
         PROLOG(neg)
 L(negenter):	
-        test    $1, %edi
+        test    $1, %dil
         jz      L(neg)
         mov     %rdi, %rax
         not     %rax
@@ -116,7 +116,7 @@ L(neg):
         
         /* abs */
         PROLOG(abs)
-        test    $1, %edi
+        test    $1, %dil
         jz      L(abs)
         mov     %rdi, %rax
         test    %rdi, %rdi
@@ -134,7 +134,7 @@ L(abs):
         
         /* succ */
         PROLOG(succ)
-        test    $1, %edi
+        test    $1, %dil
         jz      L(succ)
         mov     %rdi, %rax
         add     $2, %rax
@@ -148,7 +148,7 @@ L(succ):
         
         /* pred */
         PROLOG(pred)
-        test    $1, %edi
+        test    $1, %dil
         jz      L(pred)
         mov     %rdi, %rax
         sub     $2, %rax
@@ -168,9 +168,9 @@ L(pred):
         
         /* add */
         PROLOG(add)
-        test    $1, %edi
+        test    $1, %dil
         jz      L(add)
-        test    $1, %esi
+        test    $1, %sil
         jz      L(add)        
         lea     -1(%rdi), %rax
         add     %rsi, %rax
@@ -184,9 +184,9 @@ L(add):
         
         /* sub */
         PROLOG(sub)
-        test    $1, %edi
+        test    $1, %dil
         jz      L(sub)
-        test    $1, %esi
+        test    $1, %sil
         jz      L(sub)
         mov     %rdi, %rax
         sub     %rsi, %rax
@@ -201,7 +201,7 @@ L(sub):
   
         /* mul */
         PROLOG(mul)
-        test    $1, %edi
+        test    $1, %dil
         jz      L(mul)
         mov     %rsi, %rcx
         sar     %rcx
@@ -271,7 +271,7 @@ L(rem):
 
         /* not */
         PROLOG(lognot)
-        test    $1, %edi
+        test    $1, %dil
         jz      L(lognot)
         lea     -1(%rdi), %rax
         not     %rax
@@ -297,9 +297,9 @@ L(logand):
         
          /* or */
         PROLOG(logor)
-        test    $1, %edi
+        test    $1, %dil
         jz      L(logor)
-        test    $1, %esi
+        test    $1, %sil
         jz      L(logor)
         mov     %rdi, %rax
         or      %rsi, %rax
@@ -312,9 +312,9 @@ L(logor):
         
          /* xor */
         PROLOG(logxor)
-        test    $1, %edi
+        test    $1, %dil
         jz      L(logxor)
-        test    $1, %esi
+        test    $1, %sil
         jz      L(logxor)
         mov     %rdi, %rax
         xor     %rsi, %rax
@@ -328,7 +328,7 @@ L(logxor):
         
          /* shift_left */
         PROLOG(shift_left)
-        test    $1, %edi
+        test    $1, %dil
         jz      L(shift_left)
         mov     %rsi, %rcx
         sar     %rcx
@@ -351,7 +351,7 @@ L(shift_left):
 
         /* shift_right */
         PROLOG(shift_right)
-        test    $1, %edi
+        test    $1, %dil
         jz      L(shift_right)
         mov     %rsi, %rcx
 	mov     $63, %eax

@@ -286,10 +286,10 @@ fi
 arch='none'
 case $host in
     x86_64-*linux-gnu|x86_64-kfreebsd-gnu)
-        ccdef="-DZ_ELF $ccdef"
+        ccdef="-DZ_ELF -DZ_DOT_LABEL_PREFIX $ccdef"
         arch='x86_64';;
     i486-*linux-gnu|i686-*linux-gnu|i486-kfreebsd-gnu)
-        ccdef="-DZ_ELF $ccdef"
+        ccdef="-DZ_ELF -DZ_DOT_LABEL_PREFIX $ccdef"
         arch='i686';;
     i686-*cygwin)
         if test "x$wordsize" = "x64"; then
@@ -301,7 +301,7 @@ case $host in
         fi
 	;;
     i686-*darwin* | x86_64-*darwin*)
-        ccdef="-DZ_UNDERSCORE_PREFIX -DZ_MACOS $ccdef"
+        ccdef="-DZ_UNDERSCORE_PREFIX -DZ_DOT_LABEL_PREFIX -DZ_MACOS $ccdef"
         if test "x$wordsize" = "x64"; then
             ccopt="-arch x86_64 $ccopt"
             asopt="-arch x86_64 $asopt"

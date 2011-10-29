@@ -31,7 +31,6 @@
 #define SYMB(x)  x
 #endif
 
-
         /* optional dot prefix for local labels */
 #ifdef Z_DOT_LABEL_PREFIX
 #define L(x) .L##x
@@ -330,9 +329,9 @@ L(logxor):
         PROLOG(shift_left)
         test    $1, %dil
         jz      L(shift_left)
-        mov     %rsi, %rcx
-        sar     %rcx
-        cmp     $63, %rcx
+        mov     %esi, %ecx
+        sar     %ecx
+        cmp     $127, %rsi /* 63 unboxed */
         jae     L(shift_left)
         lea     -1(%rdi), %rax
         mov     %rax, %r8

@@ -301,7 +301,7 @@ case $host in
         fi
 	;;
     i686-*darwin* | x86_64-*darwin*)
-        ccdef="-DZ_UNDERSCORE_PREFIX -DZ_DOT_LABEL_PREFIX -DZ_MACOS $ccdef"
+        ccdef="-DZ_UNDERSCORE_PREFIX -DZ_MACOS $ccdef"
         if test "x$wordsize" = "x64"; then
             ccopt="-arch x86_64 $ccopt"
             asopt="-arch x86_64 $asopt"

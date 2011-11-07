@@ -490,7 +490,11 @@ CAMLprim value ml_z_of_float(value v)
 #endif
   Z_MARK_SLOW;
   if (isinf(x) || isnan(x)) ml_z_raise_overflow();
+#ifdef ARCH_ALIGN_DOUBLE
+  memcpy(&y, v, 8);
+#else
   y = *((int64*)v);
+#endif
   exp = ((y >> 52) & 0x7ff) - 1023; /* exponent */
   if (exp < 0) return(Val_long(0));
   m = (y & 0x000fffffffffffffLL) | 0x0010000000000000LL; /* mantissa */

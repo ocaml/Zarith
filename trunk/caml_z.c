@@ -490,7 +490,7 @@ CAMLprim value ml_z_of_float(value v)
 #endif
   Z_MARK_SLOW;
   if (isinf(x) || isnan(x)) ml_z_raise_overflow();
-#ifdef ARCH_ALIGN_DOUBLE
+#ifdef ARCH_ALIGN_INT64
   memcpy(&y, v, 8);
 #else
   y = *((int64*)v);

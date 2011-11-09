@@ -320,15 +320,14 @@ val pp_print: Format.formatter -> t -> unit
 (** Prints the argument on the specified formatter. 
     Can be used as [%a] format printer in [Format.printf] and as
     argument to [#install_printer] in the top-level.
-    Also intended to be used as [%a] format printer in [Format.printf].
  *)
 
 
 (** {1 Ordering} *)
 
 external compare: t -> t -> int = "ml_z_compare" "noalloc"
-(** Comparison.
-    Returns 0, -1 or 1.
+(** Comparison.  [compare x y] returns 0 if [x] equals [y],
+    -1 if [x] is smaller than [y], and 1 if [x] is greater than [y].
 
     Note that Pervasive.compare can be used to compare reliably two integers
     only on OCaml 3.12.1 and later versions.
@@ -344,10 +343,10 @@ val geq: t -> t -> bool
 (** Greater than or equal. *)
 
 val lt: t -> t -> bool
-(** Less than (not equal). *)
+(** Less than (and not equal). *)
 
 val gt: t -> t -> bool
-(** Greater than (not equal). *)
+(** Greater than (and not equal). *)
 
 external sign: t -> int = "ml_z_sign" "noalloc"
 (** Returns -1, 0, or 1 when the argument is respectively negative, null, or
@@ -364,7 +363,7 @@ val hash: t -> int
 (** Hashes a number.
     This functions gives the same result as OCaml's polymorphic hashing
     function.
-    The result is consistent with the equality: if [a] = [b], then [hash a] =
+    The result is consistent with equality: if [a] = [b], then [hash a] =
     [hash b].
  *)
 
@@ -419,7 +418,7 @@ external nextprime: t -> t = "ml_z_nextprime"
 (** {1 Powers} *)
 
 external pow: t -> int -> t = "ml_z_pow"
-(** [pow base exp] computes [base]^[exp].
+(** [pow base exp] raises [base] to the [exp] power.
     [exp] must be non-negative.
     Note that only exponents fitting in a machine integer are supported, as
     larger exponents would surely make the result's size overflow the 
@@ -442,10 +441,10 @@ external root: t -> int -> t = "ml_z_root"
  *)
 
 external perfect_power: t -> bool = "ml_z_perfect_power"
-(** True if the argument has the form a^b, with b>1 *)
+(** True if the argument has the form [a^b], with [b>1] *)
 
 external perfect_square: t -> bool = "ml_z_perfect_square"
-(** True if the argument has the form a^2. *)
+(** True if the argument has the form [a^2]. *)
 
 
 (** {1 Representation} *)

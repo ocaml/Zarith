@@ -82,8 +82,8 @@ let of_float d =
   if d = neg_infinity then minus_inf else
   if classify_float d = FP_nan then undef else
   let m,e = frexp d in
-  (* pu in the form  m * 2^e, where m is an integer *)
-  let m,e = Z.of_float (ldexp m 52), e-52 in
+  (* put into the form m * 2^e, where m is an integer *)
+  let m,e = Z.of_float (ldexp m 53), e-53 in
   if e >= 0 then of_bigint (Z.shift_left m e)
   else make m (Z.shift_left Z.one (-e))
 

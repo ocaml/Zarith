@@ -354,18 +354,27 @@ if test "$gmp" != 'OK'; then echo "cannot find GMP nor MPIR"; exit 2; fi
 
 # OCaml version
 
-case `ocamlc -version` in
-    3.10* | 3.11* | 3.12.0*)
-        ;;
-    3.12.* | 3.1*)
-        echo "extended comparison found!"
-        ccdef="-DZ_OCAML_COMPARE_EXT $ccdef"
+ocamlver=`ocamlc -version`
+
+# Extended comparisons available since 3.12.1
+case "$ocamlver" in
+    [12].* | 3.0* | 3.10* | 3.11* | 3.12.0*)
         ;;
     *)
+        echo "OCaml extended comparison supported"
+        ccdef="-DZ_OCAML_COMPARE_EXT $ccdef"
         ;;
 esac
 
-
+# New hash functions available since 4.00.0
+case "$ocamlver" in
+    [123].*)
+        ;;
+    *)
+        echo "OCaml new hash functions available"
+        ccdef="-DZ_OCAML_HASH $ccdef"
+        ;;
+esac
 
 # dump Makefile
 

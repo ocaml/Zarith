@@ -161,3 +161,4 @@ external (asr): t -> int -> t = shift_right@ASM
 external (~$): int -> t = "%identity" 
 external ( ** ): t -> int -> t = "ml_z_pow"
 
+let version = @VERSION

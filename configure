@@ -45,6 +45,7 @@ mlflags="$OCAMLFLAGS"
 mloptflags="$OCAMLOPTFLAGS"
 mlinc="$OCAMLINC"
 objsuffix="o"
+ocamlfind="auto"
 
 # sanitize
 LC_ALL=C
@@ -89,6 +90,9 @@ while : ; do
             shift;;
         -ocamllibdir|---ocamllibdir)
             ocamllibdir="$2"
+            shift;;
+        -no-ocamlfind)
+            ocamlfind="no"
             shift;;
         -host|--host)
             host="$2"
@@ -251,7 +255,7 @@ fi
 # installation method
 
 searchbin ocamlfind
-if test $? -eq 1; then 
+if test $? -eq 1 -a $ocamlfind != "no"; then 
     instmeth='findlib'
     if test "$installdir" = "auto"
     then installdir=`ocamlfind printconf destdir`; fi

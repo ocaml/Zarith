@@ -60,9 +60,12 @@ or, if you install to a system location but are not an administrator
    sudo make install
 
 If Findlib is detected, it is used to install files. 
-Otherwise, the files are simply copied to the location given by `ocamlc -where`.
+Otherwise, the files are copied to a zarith subdirectory of the directory 
+given by `ocamlc -where`.
 The libraries are named "zarith.cmxa" and "zarith.cma", and the Findlib module
-is named "zarith".
+is named "zarith". 
+Compiling and linking with the library requires passing the "-I +zarith" 
+option to ocamlc / ocamlopt.
 The "configure" script has a few options. Use the "-help" option to get a
 list and short description of each option.
 

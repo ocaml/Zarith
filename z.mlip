@@ -549,3 +549,8 @@ external (~$): int -> t = "%identity"
 
 external ( ** ): t -> int -> t = "ml_z_pow"
 (** Power [pow]. *)
+
+(** {1 Miscellaneous} *)
+
+val version: string
+(** Library version (this file refers to version [@VERSION]). *)

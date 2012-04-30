@@ -22,7 +22,7 @@ MLISRC = z.mli q.mli big_int_Z.mli
 AUTOGEN = z.ml z.mli
 
 CMIOBJ = $(MLISRC:%.mli=%.cmi)
-TOINSTALL := zarith.cma libzarith.a $(MLISRC) $(CMIOBJ)
+TOINSTALL := zarith.cma libzarith.a zarith.h $(MLISRC) $(CMIOBJ)
 TESTS := test.b
 
 ifeq ($(HASOCAMLOPT),yes)
@@ -78,16 +78,18 @@ doc: $(MLISRC)
 ifeq ($(INSTMETH),install)
 install:
 	install -d $(INSTALLDIR)
+	install -d $(INSTALLDIR)/zarith
 	for i in $(TOINSTALL); do \
-		if test -f $$i; then $(INSTALL) -m 0644 $$i $(INSTALLDIR); fi; \
+		if test -f $$i; then $(INSTALL) -m 0644 $$i $(INSTALLDIR)/zarith; fi; \
 	done
-	if test -f dllzarith.so; then $(INSTALL) -m 0755 dllzarith.so $(INSTALLDIR)/stublibs; fi
+	if test -f dllzarith.so; then install -d $(INSTALLDIR)/stublibs; $(INSTALL) -m 0755 dllzarith.so $(INSTALLDIR)/stublibs; fi
 
 uninstall:
 	for i in $(TOINSTALL); do \
 		rm -f $(INSTALLDIR)/$$i; \
 	done
-	if test -f $(INSTALLDIR)/stublibs/dllzarith.so; then rm -f $(INSTALLDIR)/stublibs/dllzarith.so; fi
+	rm -rf $(INSTALLDIR)/zarith
+	rm -f $(INSTALLDIR)/stublibs/dllzarith.so
 endif
 
 ifeq ($(INSTMETH),findlib)

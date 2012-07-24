@@ -263,11 +263,11 @@ let div x y =
 
 let  mul_2exp x n =
   if Z.sign x.den = 0 then x
-  else mk (Z.shift_left x.num n) x.den
+  else make (Z.shift_left x.num n) x.den
 
 let  div_2exp x n =
   if Z.sign x.num = 0 then x
-  else mk x.num (Z.shift_left x.den n)
+  else make x.num (Z.shift_left x.den n)
 
 
 (* printing *)

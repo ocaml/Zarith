@@ -1342,13 +1342,9 @@ CAMLprim value ml_z_mul(value arg1, value arg2)
     /* fast path */
     intnat a1 = Long_val(arg1);
     intnat a2 = Long_val(arg2);
-    intnat v;
     if (!a1 || !a2) return Val_long(0);
-    v = a1 * a2;
     /* small argument case */
-    if (Z_FITS_HINT(arg1) && Z_FITS_HINT(arg2)) return Val_long(v);
-    /* small result case */
-    if (Z_FITS_INT(v) && a1==v/a2) return Val_long(v);
+    if (Z_FITS_HINT(arg1) && Z_FITS_HINT(arg2)) return Val_long(a1 * a2);
   }
 #endif
   /* mpn_ version */

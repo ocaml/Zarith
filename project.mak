@@ -10,6 +10,23 @@
 # ENS (École normale supérieure, Paris, France),
 # INRIA Rocquencourt (Institut national de recherche en informatique, France).
 
+ifeq "$(shell $(OCAMLC) -config |grep ccomp_type)" "ccomp_type: msvc"
+OBJSUFFIX    := obj
+LIBSUFFIX    := lib
+DLLSUFFIX    := dll
+EXE          := .exe
+else
+OBJSUFFIX    := o
+LIBSUFFIX    := a
+ifeq "$(shell $(OCAMLC) -config |grep system)" "system: mingw"
+DLLSUFFIX    := dll
+EXE          := .exe
+else
+DLLSUFFIX    := so
+EXE          :=
+endif
+endif
+
 
 # project files
 ###############
@@ -22,12 +39,12 @@ MLISRC = z.mli q.mli big_int_Z.mli
 AUTOGEN = z.ml z.mli
 
 CMIOBJ = $(MLISRC:%.mli=%.cmi)
-TOINSTALL := zarith.cma libzarith.a zarith.h $(MLISRC) $(CMIOBJ)
-TESTS := test.b
+TOINSTALL := zarith.cma libzarith.$(LIBSUFFIX) $(MLISRC) $(CMIOBJ)
+TESTS := testb$(EXE)
 
 ifeq ($(HASOCAMLOPT),yes)
-TOINSTALL := $(TOINSTALL) zarith.a zarith.cmxa
-TESTS := $(TESTS) test bitest
+TOINSTALL := $(TOINSTALL) zarith.$(LIBSUFFIX) zarith.cmxa
+TESTS := $(TESTS) test$(EXE) bitest$(EXE)
 endif
 
 ifeq ($(HASDYNLINK),yes)
@@ -45,25 +62,25 @@ tests: $(TESTS)
 zarith.cma: $(MLSRC:%.ml=%.cmo)
 	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)
 
-zarith.cmxa zarith.a: $(MLSRC:%.ml=%.cmx)
+zarith.cmxa zarith.$(LIBSUFFIX): $(MLSRC:%.ml=%.cmx)
 	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)
 
-zarith.cmxs: zarith.cmxa libzarith.a
+zarith.cmxs: zarith.cmxa libzarith.$(LIBSUFFIX)
 	$(OCAMLOPT) -shared -o $@ -I . zarith.cmxa
 
-libzarith.a dllzarith.so: $(SSRC:%.S=%.$(OBJSUFFIX)) $(CSRC:%.c=%.$(OBJSUFFIX)) 
+libzarith.$(LIBSUFFIX) dllzarith.$(DLLSUFFIX): $(SSRC:%.S=%.$(OBJSUFFIX)) $(CSRC:%.c=%.$(OBJSUFFIX)) 
 	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)
 
-test: zarith.cmxa test.cmx
+test$(EXE): zarith.cmxa test.cmx
 	$(OCAMLOPT) $(OCAMLOPTFLAGS) $(OCAMLINC) -cclib "-L." $+ -o $@
 
-test.b: zarith.cma test.cmo
+testb$(EXE): zarith.cma test.cmo
 	$(OCAMLC) $(OCAMLFLAGS) $(OCAMLINC) -cclib "-L." $+ -o $@
 
-rtest: zarith.cmxa rtest.cmx
+rtest$(EXE): zarith.cmxa rtest.cmx
 	$(OCAMLOPT) $(OCAMLOPTFLAGS) $(OCAMLINC) gmp.cmxa bigarray.cmxa -cclib "-L." $+ -o $@
 
-bitest: zarith.cmxa  bitest.cmx
+bitest$(EXE): zarith.cmxa  bitest.cmx
 	$(OCAMLOPT) $(OCAMLOPTFLAGS) $(OCAMLINC) nums.cmxa -cclib "-L." $+ -o $@
 
 doc: $(MLISRC)
@@ -78,26 +95,24 @@ doc: $(MLISRC)
 ifeq ($(INSTMETH),install)
 install:
 	install -d $(INSTALLDIR)
-	install -d $(INSTALLDIR)/zarith
 	for i in $(TOINSTALL); do \
-		if test -f $$i; then $(INSTALL) -m 0644 $$i $(INSTALLDIR)/zarith; fi; \
+		if test -f $$i; then $(INSTALL) -m 0644 $$i $(INSTALLDIR); fi; \
 	done
-	if test -f dllzarith.so; then install -d $(INSTALLDIR)/stublibs; $(INSTALL) -m 0755 dllzarith.so $(INSTALLDIR)/stublibs; fi
+	if test -f dllzarith.$(DLLSUFFIX); then $(INSTALL) -m 0755 dllzarith.$(DLLSUFFIX) $(INSTALLDIR)/stublibs; fi
 
 uninstall:
 	for i in $(TOINSTALL); do \
 		rm -f $(INSTALLDIR)/$$i; \
 	done
-	rm -rf $(INSTALLDIR)/zarith
-	rm -f $(INSTALLDIR)/stublibs/dllzarith.so
+	if test -f $(INSTALLDIR)/stublibs/dllzarith.$(DLLSUFFIX); then rm -f $(INSTALLDIR)/stublibs/dllzarith.$(DLLSUFFIX); fi
 endif
 
 ifeq ($(INSTMETH),findlib)
 install:
-	$(OCAMLFIND) install -destdir $(INSTALLDIR) zarith META $(TOINSTALL) dllzarith.so
+	$(OCAMLFIND) install -destdir "$(INSTALLDIR)" zarith META $(TOINSTALL) dllzarith.dll
 
 uninstall:
-	$(OCAMLFIND) remove -destdir $(INSTALLDIR) zarith
+	$(OCAMLFIND) remove -destdir "$(INSTALLDIR)" zarith
 endif
 
 
@@ -126,8 +141,8 @@ $(AUTOGEN): z.mlp z.mlip $(SSRC) z_pp.pl
 	$(OCAMLC) -ccopt "$(CFLAGS)" -c $<
 
 clean:
-	/bin/rm -rf *.$(OBJSUFFIX) *.a *.so *.cmi *.cmo *.cmx *.cmxa *.cmxs *.cma *.dll *~ \#* depend test $(AUTOGEN) tmp.c depend
-	/bin/rm -rf test test.b rtest bitest html
+	/bin/rm -rf *.$(OBJSUFFIX) *.$(LIBSUFFIX) *.$(DLLSUFFIX) *.cmi *.cmo *.cmx *.cmxa *.cmxs *.cma  *~ \#* depend test $(AUTOGEN) tmp.c depend
+	/bin/rm -rf test$(EXE) testb$(EXE) rtest$(EXE) bitest$(EXE) html
 
 depend: $(AUTOGEN)
 	$(OCAMLDEP) -native $(OCAMLINC) *.ml *.mli > depend

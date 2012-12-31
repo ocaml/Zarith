@@ -263,7 +263,7 @@ else
     searchbin install
     if test $? -eq 1; then instmeth='install'
     else echo "no installation method found"; exit 2; fi
-    if test "$installdir" = "auto"; then installdir="$ocamllibdir"; fi
+    if test "$installdir" = "auto"; then installdir="$ocamllibdir/zarith"; fi
 fi
 
 

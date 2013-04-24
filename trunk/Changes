@@ -1,3 +1,6 @@
+Working version:
+- Added fast asm path for ARMv7 processors.
+
 Release 1.1 (2012-03-24):
 - Various improvements in the asm fast path for i686 and x86_64
 - PR#1034: support for static linking of GMP/MPIR

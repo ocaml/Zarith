@@ -318,6 +318,9 @@ case $host in
             checkcc
         fi
         ;;
+    armv7*-gnueabi)
+        arch='arm'
+        ;;
     none)
         ;;
     *) 

@@ -1,5 +1,8 @@
-Working version:
+Release 1.2 (2013-05-19):
 - Added fast asm path for ARMv7 processors.
+- PR#1192: incorrect behavior of div_2exp
+- Issue with aggressive C compiler optimization in the fast path for multiply
+- Better support for Windows/Mingw32
 
 Release 1.1 (2012-03-24):
 - Various improvements in the asm fast path for i686 and x86_64

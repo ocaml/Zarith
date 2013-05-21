@@ -39,7 +39,7 @@ MLISRC = z.mli q.mli big_int_Z.mli
 AUTOGEN = z.ml z.mli
 
 CMIOBJ = $(MLISRC:%.mli=%.cmi)
-TOINSTALL := zarith.cma libzarith.$(LIBSUFFIX) $(MLISRC) $(CMIOBJ)
+TOINSTALL := zarith.h zarith.cma libzarith.$(LIBSUFFIX) $(MLISRC) $(CMIOBJ)
 TESTS := testb$(EXE)
 
 ifeq ($(HASOCAMLOPT),yes)
@@ -94,22 +94,22 @@ doc: $(MLISRC)
 
 ifeq ($(INSTMETH),install)
 install:
-	install -d $(INSTALLDIR)
+	install -d $(INSTALLDIR) $(INSTALLDIR)/zarith $(INSTALLDIR)/stublibs
 	for i in $(TOINSTALL); do \
-		if test -f $$i; then $(INSTALL) -m 0644 $$i $(INSTALLDIR); fi; \
+		if test -f $$i; then $(INSTALL) -m 0644 $$i $(INSTALLDIR)/zarith/$$i; fi; \
 	done
-	if test -f dllzarith.$(DLLSUFFIX); then $(INSTALL) -m 0755 dllzarith.$(DLLSUFFIX) $(INSTALLDIR)/stublibs; fi
+	if test -f dllzarith.$(DLLSUFFIX); then $(INSTALL) -m 0755 dllzarith.$(DLLSUFFIX) $(INSTALLDIR)/stublibs/dllzarith.$(DLLSUFFIX); fi
 
 uninstall:
 	for i in $(TOINSTALL); do \
-		rm -f $(INSTALLDIR)/$$i; \
+		rm -f $(INSTALLDIR)/zarith/$$i; \
 	done
 	if test -f $(INSTALLDIR)/stublibs/dllzarith.$(DLLSUFFIX); then rm -f $(INSTALLDIR)/stublibs/dllzarith.$(DLLSUFFIX); fi
 endif
 
 ifeq ($(INSTMETH),findlib)
 install:
-	$(OCAMLFIND) install -destdir "$(INSTALLDIR)" zarith META $(TOINSTALL) dllzarith.dll
+	$(OCAMLFIND) install -destdir "$(INSTALLDIR)" zarith META $(TOINSTALL) dllzarith.$(DLLSUFFIX)
 
 uninstall:
 	$(OCAMLFIND) remove -destdir "$(INSTALLDIR)" zarith

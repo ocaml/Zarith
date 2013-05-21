@@ -1,3 +1,5 @@
+- Install fixes
+
 Release 1.2 (2013-05-19):
 - Added fast asm path for ARMv7 processors.
 - PR#1192: incorrect behavior of div_2exp

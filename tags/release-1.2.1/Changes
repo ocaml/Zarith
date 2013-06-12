@@ -1,0 +1,21 @@
+Release 1.2.1 (2013-06-12):
+- Install fixes
+
+Release 1.2 (2013-05-19):
+- Added fast asm path for ARMv7 processors.
+- PR#1192: incorrect behavior of div_2exp
+- Issue with aggressive C compiler optimization in the fast path for multiply
+- Better support for Windows/Mingw32
+
+Release 1.1 (2012-03-24):
+- Various improvements in the asm fast path for i686 and x86_64
+- PR#1034: support for static linking of GMP/MPIR
+- PR#1046: autodetection of ocamlopt and dynlink
+- PR#1048: autodetection of more platforms that we support
+- PR#1051: support architectures with strict alignment constraints for 
+    64-bit integers (e.g. Sparc)
+- Fixed 1-bit precision loss when converting doubles to rationals
+- Improved support for the forthcoming release 4.00 of OCaml
+
+Release 1.0 (2011-08-18):
+- First public release

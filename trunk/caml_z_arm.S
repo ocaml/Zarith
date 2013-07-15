@@ -88,7 +88,7 @@ L(abs):
         PROLOG(succ)
         tst     r0, #1
         beq     L(succ)
-        add     r1, r0, #2
+        adds    r1, r0, #2
         bvs     L(succ)
         mov     r0, r1
         OP
@@ -102,7 +102,7 @@ L(succ):
         PROLOG(pred)
         tst     r0, #1
         beq     L(pred)
-        sub     r1, r0, #2
+        subs    r1, r0, #2
         bvs     L(pred)
         mov     r0, r1
         OP

@@ -36,7 +36,7 @@ SSRC = $(wildcard caml_z_$(ARCH).S)
 MLSRC = z.ml q.ml big_int_Z.ml
 MLISRC = z.mli q.mli big_int_Z.mli
 
-AUTOGEN = z.ml z.mli
+AUTOGEN = z.ml z.mli features.h
 
 CMIOBJ = $(MLISRC:%.mli=%.cmi)
 TOINSTALL := zarith.h zarith.cma libzarith.$(LIBSUFFIX) $(MLISRC) $(CMIOBJ)
@@ -148,5 +148,7 @@ depend: $(AUTOGEN)
 	$(OCAMLDEP) -native $(OCAMLINC) *.ml *.mli > depend
 
 include depend
+
+$(CSRC:%.c=%.$(OBJSUFFIX)): features.h zarith.h
 
 .PHONY: clean

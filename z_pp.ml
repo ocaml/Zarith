@@ -72,6 +72,14 @@ let treat_file =
 	close_in input
 ;;
 
+let generate_config filename =
+  let oc = open_out filename in
+  StringSet.iter
+    (fun f -> Printf.fprintf oc "#define Z_ASM_%s\n" f)
+    !funcnames;
+  close_out oc
+;;
+
 let _ = treat_file "ml"
 let _ = treat_file "mli"
-
+let _ = generate_config "features.h"

@@ -33,6 +33,9 @@
 #include <mpir.h>
 #endif
 
+#include "features.h"
+#include "zarith.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -1165,7 +1168,7 @@ CAMLprim value ml_z_neg(value arg)
 {
   Z_MARK_OP;
   Z_CHECK(arg);
-#if Z_FAST_PATH
+#if Z_FAST_PATH && !defined(Z_ASM_neg)
   if (Is_long(arg)) {
     /* fast path */
     if (arg > Val_long(Z_MIN_INT)) return 2 - arg;
@@ -1191,7 +1194,7 @@ CAMLprim value ml_z_abs(value arg)
 {
   Z_MARK_OP;
   Z_CHECK(arg);
-#if Z_FAST_PATH
+#if Z_FAST_PATH && !defined(Z_ASM_abs)
   if (Is_long(arg)) {
     /* fast path */
     if (arg >= Val_long(0)) return arg;
@@ -1297,7 +1300,7 @@ CAMLprim value ml_z_add(value arg1, value arg2)
 {
   Z_MARK_OP;
   Z_CHECK(arg1); Z_CHECK(arg2);
-#if Z_FAST_PATH
+#if Z_FAST_PATH && !defined(Z_ASM_add)
   if (Is_long(arg1) && Is_long(arg2)) {
     /* fast path */
     intnat a1 = Long_val(arg1);
@@ -1315,7 +1318,7 @@ CAMLprim value ml_z_sub(value arg1, value arg2)
 {
   Z_MARK_OP;
   Z_CHECK(arg1); Z_CHECK(arg2);
-#if Z_FAST_PATH
+#if Z_FAST_PATH && !defined(Z_ASM_sub)
   if (Is_long(arg1) && Is_long(arg2)) {
     /* fast path */
     intnat a1 = Long_val(arg1);
@@ -1334,7 +1337,7 @@ CAMLprim value ml_z_mul(value arg1, value arg2)
   Z_DECL(arg1); Z_DECL(arg2);
   Z_MARK_OP;
   Z_CHECK(arg1); Z_CHECK(arg2);
-#if Z_FAST_PATH
+#if Z_FAST_PATH && !defined(Z_ASM_mul)
   if (Is_long(arg1) && Is_long(arg2)) {
     /* fast path */
     intnat a1 = Long_val(arg1);
@@ -1449,7 +1452,7 @@ CAMLprim value ml_z_div(value arg1, value arg2)
 {
   Z_MARK_OP;
   Z_CHECK(arg1); Z_CHECK(arg2);
-#if Z_FAST_PATH
+#if Z_FAST_PATH && !defined(Z_ASM_div)
   if (Is_long(arg1) && Is_long(arg2)) {
     /* fast path */
     intnat a1 = Long_val(arg1);
@@ -1469,7 +1472,7 @@ CAMLprim value ml_z_rem(value arg1, value arg2)
 {
   Z_MARK_OP;
   Z_CHECK(arg1); Z_CHECK(arg2);
-#if Z_FAST_PATH
+#if Z_FAST_PATH && !defined(Z_ASM_rem)
   if (Is_long(arg1) && Is_long(arg2)) {
     /* fast path */
     intnat a1 = Long_val(arg1);
@@ -1601,7 +1604,7 @@ CAMLprim value ml_z_succ(value arg)
 {
   Z_MARK_OP;
   Z_CHECK(arg);
-#if Z_FAST_PATH
+#if Z_FAST_PATH && !defined(Z_ASM_succ)
   if (Is_long(arg)) {
     /* fast path */
     if (arg < Val_long(Z_MAX_INT)) return arg + 2;
@@ -1616,7 +1619,7 @@ CAMLprim value ml_z_pred(value arg)
 {
   Z_MARK_OP;
   Z_CHECK(arg);
-#if Z_FAST_PATH
+#if Z_FAST_PATH && !defined(Z_ASM_pred)
   if (Is_long(arg)) {
     /* fast path */
      if (arg > Val_long(Z_MIN_INT)) return arg - 2;
@@ -1819,7 +1822,7 @@ CAMLprim value ml_z_logand(value arg1, value arg2)
 {
   Z_MARK_OP;
   Z_CHECK(arg1); Z_CHECK(arg2);
-#if Z_FAST_PATH
+#if Z_FAST_PATH && !defined(Z_ASM_logand)
   if (Is_long(arg1) && Is_long(arg2)) {
     /* fast path */
     return arg1 & arg2;
@@ -1901,7 +1904,7 @@ CAMLprim value ml_z_logor(value arg1, value arg2)
 {
   Z_MARK_OP;
   Z_CHECK(arg1); Z_CHECK(arg2);
-#if Z_FAST_PATH
+#if Z_FAST_PATH && !defined(Z_ASM_logor)
   if (Is_long(arg1) && Is_long(arg2)) {
     /* fast path */
     return arg1 | arg2;
@@ -1987,7 +1990,7 @@ CAMLprim value ml_z_logxor(value arg1, value arg2)
 {
   Z_MARK_OP;
   Z_CHECK(arg1); Z_CHECK(arg2);
-#if Z_FAST_PATH
+#if Z_FAST_PATH && !defined(Z_ASM_logxor)
   if (Is_long(arg1) && Is_long(arg2)) {
     /* fast path */
     return (arg1 ^ arg2) | 1;
@@ -2073,7 +2076,7 @@ CAMLprim value ml_z_lognot(value arg)
 {
   Z_MARK_OP;
   Z_CHECK(arg);
-#if Z_FAST_PATH
+#if Z_FAST_PATH && !defined(Z_ASM_lognot)
   if (Is_long(arg)) {
     /* fast path */
     return (~arg) | 1;
@@ -2122,7 +2125,7 @@ CAMLprim value ml_z_shift_left(value arg, value count)
   if (!c) return arg;
   c1 = c / Z_LIMB_BITS;
   c2 = c % Z_LIMB_BITS;
-#if Z_FAST_PATH
+#if Z_FAST_PATH && !defined(Z_ASM_shift_left)
   if (Is_long(arg) && !c1) {
     /* fast path */
     value a = arg - 1;
@@ -2171,7 +2174,7 @@ CAMLprim value ml_z_shift_right(value arg, value count)
   if (!c) return arg;
   c1 = c / Z_LIMB_BITS;
   c2 = c % Z_LIMB_BITS;
-#if Z_FAST_PATH
+#if Z_FAST_PATH && !defined(Z_ASM_shift_right)
   if (Is_long(arg)) {
     /* fast path */
     if (c1) {

@@ -53,9 +53,6 @@ extern "C" {
 
 #ifdef _MSC_VER
 #include <float.h>
-#define isnan _isnan
-static const double inf_helper = 1.0;
-#define isinf(x) ((x == (1.0 / (inf_helper - 1.0))) || (x == -(1.0 / (inf_helper - 1.0))))
 #endif
 
 /*---------------------------------------------------
@@ -492,7 +489,6 @@ CAMLprim value ml_z_of_float(value v)
   if (x >= Z_MIN_INT_FL && x <= Z_MAX_INT_FL) return Val_long(x);
 #endif
   Z_MARK_SLOW;
-  if (isinf(x) || isnan(x)) ml_z_raise_overflow();
 #ifdef ARCH_ALIGN_INT64
   memcpy(&y, (void *) v, 8);
 #else
@@ -500,6 +496,7 @@ CAMLprim value ml_z_of_float(value v)
 #endif
   exp = ((y >> 52) & 0x7ff) - 1023; /* exponent */
   if (exp < 0) return(Val_long(0));
+  if (exp == 1024) ml_z_raise_overflow();  /* NaN or infinity */
   m = (y & 0x000fffffffffffffLL) | 0x0010000000000000LL; /* mantissa */
   if (exp <= 52) {
     m >>= 52-exp;

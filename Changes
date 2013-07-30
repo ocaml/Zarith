@@ -1,5 +1,6 @@
 Trunk:
 - Fixed inefficiencies in asm fast path for ARM.
+- Revised detection of NaNs and infinities in Z.of_float
 
 Release 1.2.1 (2013-06-12):
 - Install fixes

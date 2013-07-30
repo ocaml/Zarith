@@ -248,7 +248,7 @@ void ml_z_check(const char* fn, int line, const char* arg, value v)
              arg, fn, line);
       exit(1);
     }
-    if ((mp_size_t) Z_LIMB(v)[sz - 2] != (0xDEADBEEF ^ (sz - 2))) {
+    if ((mp_size_t) Z_LIMB(v)[sz - 2] != (mp_size_t)(0xDEADBEEF ^ (sz - 2))) {
       printf("ml_z_check: corrupted block for %s at %s:%i.\n", 
              arg, fn, line);
       exit(1);
@@ -494,7 +494,7 @@ CAMLprim value ml_z_of_float(value v)
   Z_MARK_SLOW;
   if (isinf(x) || isnan(x)) ml_z_raise_overflow();
 #ifdef ARCH_ALIGN_INT64
-  memcpy(&y, v, 8);
+  memcpy(&y, (void *) v, 8);
 #else
   y = *((int64*)v);
 #endif

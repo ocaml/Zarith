@@ -336,9 +336,9 @@ static inline mp_limb_t* ml_z_dup_limb(mp_limb_t* src, mp_size_t sz)
 #define Z_ARG(arg)                                                      \
   if (Is_long(arg)) {                                                   \
     intnat n = Long_val(arg);                                           \
-    if (n < 0) { loc_##arg = -n; sign_##arg = Z_SIGN_MASK; size_##arg = 1; } \
-    else if (n > 0) { loc_##arg = n; sign_##arg = 0; size_##arg = 1; }  \
-    else { loc_##arg = 0; sign_##arg = 0; size_##arg = 0; }             \
+    loc_##arg = n < 0 ? -n : n;                                         \
+    sign_##arg = n & Z_SIGN_MASK;                                       \
+    size_##arg = n != 0;                                                \
     ptr_##arg = &loc_##arg;                                             \
   }                                                                     \
   else {                                                                \

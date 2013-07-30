@@ -1,3 +1,6 @@
+Trunk:
+- Fixed inefficiencies in asm fast path for ARM.
+
 Release 1.2.1 (2013-06-12):
 - Install fixes
 

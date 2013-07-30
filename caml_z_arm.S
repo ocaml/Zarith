@@ -154,18 +154,14 @@ L(sub):
 	and     r2, r0, r1
         tst     r2, #1
         beq     L(mul)
-        push    {r0, r1}
         sub     r2, r0, #1
         mov     r3, r1, asr #1
-        smull   r0, r1, r2, r3
-        cmp     r1, r0, asr #31
-        bne     L(mul2)
-        add     sp, sp, #8
-        add     r0, r0, #1
+        smull   r3, r12, r2, r3  /* r3 = low half of product, r12 = high half */
+        cmp     r12, r3, asr #31 /* high half must equal sign-ext of low half */
+        bne     L(mul)           /* otherwise, overflow occurred */
+        add     r0, r3, #1
         OP
         bx	lr
-L(mul2):
-	pop     {r0, r1}
 L(mul):
         C_JMP(mul)
         EPILOG(mul)
@@ -231,15 +227,14 @@ L(logxor):
         PROLOG(shift_left)
 	tst     r0, #1
         beq     L(shift_left)
-        cmp     r1, #63        /* 32 in 2n+1 encoding */
+        cmp     r1, #63        /* 31 in 2n+1 encoding */
         bhs     L(shift_left)
         mov     r3, r1, asr #1
 	sub     r2, r0, #1
-        mov     r2, r2, lsl r3
-        mov     r3, r2, asr r3
-        cmp     r2, r3
+        mov     r12, r2, lsl r3
+        cmp     r2, r12, asr r3
         bne     L(shift_left)  /* overflow occurred */
-        orr     r0, r2, #1
+        orr     r0, r12, #1
         OP
         bx	lr
 L(shift_left):

@@ -282,9 +282,8 @@ SYMB(ml_as_z_##proc):\
         jz      .Llogxor
         test    $1, %rdx
         jz      .Llogxor
-        mov     %rcx, %rax
+        lea     -1(%rcx), %rax
         xor     %rdx, %rax
-        inc     %rax
         OP
         ret
 .Llogxor:

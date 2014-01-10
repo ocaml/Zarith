@@ -315,9 +315,8 @@ L(logor):
         jz      L(logxor)
         test    $1, %sil
         jz      L(logxor)
-        mov     %rdi, %rax
+        lea     -1(%rdi), %rax
         xor     %rsi, %rax
-        inc     %rax
         OP
         ret
 L(logxor):

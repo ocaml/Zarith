@@ -60,7 +60,7 @@ val one: t
 val minus_one: t
 (** The number -1. *)
 
-val of_int: int -> t
+external of_int: int -> t = "ml_z_of_int"
 (** Converts from a base integer. *)
 
 external of_int32: int32 -> t = "ml_z_of_int32"
@@ -499,7 +499,7 @@ external of_bits: string -> t = "ml_z_of_bits"
 external (~-): t -> t = neg@ASM
 (** Negation [neg]. *)
 
-external (~+): t -> t = "%identity"
+val (~+): t -> t
 (** Identity. *)
 
 external (+): t -> t -> t = add@ASM
@@ -544,7 +544,7 @@ external (lsl): t -> int -> t = shift_left@ASM
 external (asr): t -> int -> t = shift_right@ASM
 (** Bit-wise shift to the right [shift_right]. *)
 
-external (~$): int -> t = "%identity" 
+external (~$): int -> t = "ml_z_of_int"
 (** Conversion from [int] [of_int]. *)
 
 external ( ** ): t -> int -> t = "ml_z_pow"

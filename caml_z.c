@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <stdint.h>
 
 #ifdef HAS_GMP
 #include <gmp.h>
@@ -430,7 +431,7 @@ CAMLprim value ml_z_of_nativeint(value v)
 
 CAMLprim value ml_z_of_int32(value v)
 {
-  int32 x;
+  int32_t x;
   value r;
   Z_MARK_OP;
   x = Int32_val(v);
@@ -452,7 +453,7 @@ CAMLprim value ml_z_of_int32(value v)
 
 CAMLprim value ml_z_of_int64(value v)
 {
-  int64 x;
+  int64_t x;
   value r;
   Z_MARK_OP;
   x = Int64_val(v);
@@ -484,7 +485,7 @@ CAMLprim value ml_z_of_float(value v)
 {
   double x;
   int exp;
-  int64 y, m;
+  int64_t y, m;
   value r;
   Z_MARK_OP;
   x = Double_val(v);
@@ -495,7 +496,7 @@ CAMLprim value ml_z_of_float(value v)
 #ifdef ARCH_ALIGN_INT64
   memcpy(&y, (void *) v, 8);
 #else
-  y = *((int64*)v);
+  y = *((int64_t*)v);
 #endif
   exp = ((y >> 52) & 0x7ff) - 1023; /* exponent */
   if (exp < 0) return(Val_long(0));
@@ -663,7 +664,7 @@ CAMLprim value ml_z_to_int32(value v)
 
 CAMLprim value ml_z_to_int64(value v)
 {
-  int64 x = 0;
+  int64_t x = 0;
   Z_DECL(v);
   Z_MARK_OP;
   Z_CHECK(v);  
@@ -674,16 +675,16 @@ CAMLprim value ml_z_to_int64(value v)
   case 0: x = 0; break;
   case 1: x = ptr_v[0]; break;
 #ifndef ARCH_SIXTYFOUR
-  case 2: x = ptr_v[0] | ((uint64)ptr_v[1] << 32); break;
+  case 2: x = ptr_v[0] | ((uint64_t)ptr_v[1] << 32); break;
 #endif
   default: ml_z_raise_overflow(); break;
   }
   if (sign_v) {
-    if ((uint64)x > Z_HI_INT64) ml_z_raise_overflow();
+    if ((uint64_t)x > Z_HI_INT64) ml_z_raise_overflow();
     x = -x;
   }
   else {
-    if ((uint64)x >= Z_HI_INT64) ml_z_raise_overflow();
+    if ((uint64_t)x >= Z_HI_INT64) ml_z_raise_overflow();
   }
   return caml_copy_int64(x);
 }
@@ -1128,7 +1129,7 @@ CAMLprim value ml_z_fits_int32(value v)
 
 CAMLprim value ml_z_fits_int64(value v)
 {
-  int64 x;
+  int64_t x;
   Z_DECL(v);
   Z_MARK_OP;
   Z_CHECK(v);  
@@ -1139,15 +1140,15 @@ CAMLprim value ml_z_fits_int64(value v)
   case 0: return Val_true;
   case 1: x = ptr_v[0]; break;
 #ifndef ARCH_SIXTYFOUR
-  case 2: x = ptr_v[0] | ((uint64)ptr_v[1] << 32); break;
+  case 2: x = ptr_v[0] | ((uint64_t)ptr_v[1] << 32); break;
 #endif
   default: return Val_false;
   }
   if (sign_v) {
-    if ((uint64)x > Z_HI_INT64) return Val_false;
+    if ((uint64_t)x > Z_HI_INT64) return Val_false;
   }
   else {
-    if ((uint64)x >= Z_HI_INT64) return Val_false;
+    if ((uint64_t)x >= Z_HI_INT64) return Val_false;
   }
   return Val_true;
 }
@@ -2600,11 +2601,11 @@ static intnat ml_z_custom_hash(value v)
 {
   Z_DECL(v);
   mp_size_t i;
-  uint32 acc = 0;
+  uint32_t acc = 0;
   Z_CHECK(v);
   Z_ARG(v);
   for (i = 0; i < size_v; i++) {
-    acc = caml_hash_mix_uint32(acc, (uint32)(ptr_v[i]));
+    acc = caml_hash_mix_uint32(acc, (uint32_t)(ptr_v[i]));
 #ifdef ARCH_SIXTYFOUR
     acc = caml_hash_mix_uint32(acc, ptr_v[i] >> 32);
 #endif
@@ -2636,7 +2637,7 @@ static void ml_z_custom_serialize(value v,
   Z_DECL(v);
   Z_CHECK(v);
   Z_ARG(v);
-  if ((mp_size_t)(uint32) size_v != size_v) 
+  if ((mp_size_t)(uint32_t) size_v != size_v) 
     caml_failwith("Z.serialize: number is too large");
   nb = size_v * sizeof(mp_limb_t);
   caml_serialize_int_1(sign_v ? 1 : 0);
@@ -2671,9 +2672,9 @@ static uintnat ml_z_custom_deserialize(void * dst)
 {
   mp_limb_t* d = ((mp_limb_t*)dst) + 1;
   int sign = caml_deserialize_uint_1();
-  uint32 sz = caml_deserialize_uint_4();
-  uint32 szw = (sz + sizeof(mp_limb_t) - 1) / sizeof(mp_limb_t);
-  uint32 i = 0;
+  uint32_t sz = caml_deserialize_uint_4();
+  uint32_t szw = (sz + sizeof(mp_limb_t) - 1) / sizeof(mp_limb_t);
+  uint32_t i = 0;
   mp_limb_t x; 
   /* all limbs but last */
   if (szw > 1) {

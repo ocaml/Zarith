@@ -3,6 +3,9 @@ Trunk:
 - Revised detection of NaNs and infinities in Z.of_float
 - Suppress the redundant fast paths written in C if a corresponding
   fast path exists in asm.
+- Use <stdint.h> to ensure compatibility with OCaml 4.02.
+- More prudent implementation of Z.of_int, avoids GC problem
+  with OCaml < 4.02 (PR#6501 in the OCaml bug tracker).
 
 Release 1.2.1 (2013-06-12):
 - Install fixes

@@ -6,6 +6,8 @@ Release 1.3 (2014-09-03):
 - Use <stdint.h> to ensure compatibility with OCaml 4.02.
 - More prudent implementation of Z.of_int, avoids GC problem
   with OCaml < 4.02 (PR#6501 in the OCaml bug tracker).
+- PR#1429: of_string accepts 'a' in base 10.
+- Macro change to avoid compiler warnings on unused variables.
 
 Release 1.2.1 (2013-06-12):
 - Install fixes

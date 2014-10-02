@@ -335,7 +335,11 @@ static inline mp_limb_t* ml_z_dup_limb(mp_limb_t* src, mp_size_t sz)
 #define Z_DECL(arg)                                                     \
   mp_limb_t loc_##arg, *ptr_##arg;                                      \
   mp_size_t size_##arg;                                                 \
-  intnat sign_##arg
+  intnat sign_##arg;                                                    \
+  (void)loc_##arg;                                                      \
+  (void)ptr_##arg;                                                      \
+  (void)size_##arg;                                                     \
+  (void)sign_##arg;
 
 #define Z_ARG(arg)                                                      \
   if (Is_long(arg)) {                                                   \
@@ -571,7 +575,7 @@ CAMLprim value ml_z_of_string_base(value b, value v)
       else if (dd[i] >= 'a' && dd[i] <= 'f') dd[i] -= 'a' - 10;
       else if (dd[i] >= 'A' && dd[i] <= 'F') dd[i] -= 'A' - 10;
       else caml_invalid_argument("Z.of_string_base: invalid number");
-      if (dd[i] > base) 
+      if (dd[i] >= base) 
         caml_invalid_argument("Z.of_string_base: invalid number");
     }
     r = ml_z_alloc(1 + sz / (2 * sizeof(mp_limb_t)));

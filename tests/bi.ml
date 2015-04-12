@@ -2,9 +2,6 @@
    compares Big_int_Z, a Big_int compatible interface for Z, to OCaml's
    reference Big_int library
 
-   some functions in 3.12 but missing in 3.11 are not tested
-
-
    This file is part of the Zarith library 
    http://forge.ocamlcore.org/projects/zarith .
    It is distributed under LGPL 2 licensing, with static linking exception.
@@ -20,16 +17,7 @@
 *)
 
 
-module B = (* reference library *)
-struct
-  include Big_int
-    
-  (* missing in OCaml 3.11 *)
-  let shift_left_big_int a b =
-    mult_big_int a (power_int_positive_int 2 b)
-
-end
-
+module B = Big_int (* reference library *)
 
 module T = Big_int_Z  (* tested library *)
 
@@ -73,7 +61,7 @@ let g_list =
   (list_make 128 (fun _ -> B.big_int_of_string (random_string())))
 
 let sh_list = list_make 256 (fun x -> x)
-
+let pow_list = [1;2;3;4;5;6;7;8;9;10;20;55]
 
 (* conversion to Z *)
 
@@ -127,6 +115,17 @@ let test_shift msg gf tf =
         ) g_t_list
     ) sh_list
 
+let test_pow msg gf tf =
+  Printf.printf "testing %s on %i numbers\n%!" msg (List.length g_t_list);
+  List.iter
+    (fun s ->
+      List.iter
+        (fun (g,t) ->
+          let g' = gf g s and t' = tf t s in
+          if B.string_of_big_int g' <> T.string_of_big_int t' then failwith (Printf.sprintf "%s failure: arg1=%s arg2=%i Bresult=%s Tresult=%s" msg (B.string_of_big_int g) s (B.string_of_big_int g') (T.string_of_big_int t'))
+        ) g_t_list
+    ) pow_list
+
 let filt_none _ = true
 let filt_pos x = B.sign_big_int x >= 0
 let filt_nonzero2 (_,d) = B.sign_big_int d <> 0
@@ -159,20 +158,14 @@ let _ = test_bin "quomod_big_int #2" filt_nonzero2 (fsnd2 B.quomod_big_int) (fsn
 let _ = test_bin "mod_big_int" filt_nonzero2 B.mod_big_int T.mod_big_int
 let _ = test_bin "gcd_big_int" filt_nonzero22 B.gcd_big_int T.gcd_big_int
 
-(*
-missing in OCaml 3.11
 let _ = test_bin "and_big_int" filt_pos2 B.and_big_int T.and_big_int
 let _ = test_bin "or_big_int" filt_pos2 B.or_big_int T.or_big_int
 let _ = test_bin "xor_big_int" filt_pos2 B.xor_big_int T.xor_big_int
-*)
 
 let _ = test_shift "shift_left_big_int" B.shift_left_big_int T.shift_left_big_int
-(*
-missing in OCaml 3.11
 let _ = test_shift "shift_right_big_int" B.shift_right_big_int T.shift_right_big_int
 let _ = test_shift "shift_right_towards_zero_big_int" B.shift_right_towards_zero_big_int T.shift_right_towards_zero_big_int
-*)
 
-let _ = test_shift "power_big_int_positive_int" B.power_big_int_positive_int T.power_big_int_positive_int
+let _ = test_pow "power_big_int_positive_int" B.power_big_int_positive_int T.power_big_int_positive_int
 
 let _ = Printf.printf "All tests passed!\n"

@@ -40,11 +40,9 @@ AUTOGEN = z.ml z.mli features.h
 
 CMIOBJ = $(MLISRC:%.mli=%.cmi)
 TOINSTALL := zarith.h zarith.cma libzarith.$(LIBSUFFIX) $(MLISRC) $(CMIOBJ)
-TESTS := testb$(EXE)
 
 ifeq ($(HASOCAMLOPT),yes)
 TOINSTALL := $(TOINSTALL) zarith.$(LIBSUFFIX) zarith.cmxa
-TESTS := $(TESTS) test$(EXE) bitest$(EXE)
 endif
 
 ifeq ($(HASDYNLINK),yes)
@@ -57,7 +55,8 @@ endif
 
 all: $(TOINSTALL)
 
-tests: $(TESTS)
+tests:
+	make -C tests test
 
 zarith.cma: $(MLSRC:%.ml=%.cmo)
 	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)
@@ -70,18 +69,6 @@ zarith.cmxs: zarith.cmxa libzarith.$(LIBSUFFIX)
 
 libzarith.$(LIBSUFFIX) dllzarith.$(DLLSUFFIX): $(SSRC:%.S=%.$(OBJSUFFIX)) $(CSRC:%.c=%.$(OBJSUFFIX)) 
 	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)
-
-test$(EXE): zarith.cmxa test.cmx
-	$(OCAMLOPT) $(OCAMLOPTFLAGS) $(OCAMLINC) -cclib "-L." $+ -o $@
-
-testb$(EXE): zarith.cma test.cmo
-	$(OCAMLC) $(OCAMLFLAGS) $(OCAMLINC) -cclib "-L." $+ -o $@
-
-rtest$(EXE): zarith.cmxa rtest.cmx
-	$(OCAMLOPT) $(OCAMLOPTFLAGS) $(OCAMLINC) gmp.cmxa bigarray.cmxa -cclib "-L." $+ -o $@
-
-bitest$(EXE): zarith.cmxa  bitest.cmx
-	$(OCAMLOPT) $(OCAMLOPTFLAGS) $(OCAMLINC) nums.cmxa -cclib "-L." $+ -o $@
 
 doc: $(MLISRC)
 	mkdir -p html
@@ -142,7 +129,7 @@ $(AUTOGEN): z.mlp z.mlip $(SSRC) z_pp.pl
 
 clean:
 	/bin/rm -rf *.$(OBJSUFFIX) *.$(LIBSUFFIX) *.$(DLLSUFFIX) *.cmi *.cmo *.cmx *.cmxa *.cmxs *.cma  *~ \#* depend test $(AUTOGEN) tmp.c depend
-	/bin/rm -rf test$(EXE) testb$(EXE) rtest$(EXE) bitest$(EXE) html
+	make -C tests clean
 
 depend: $(AUTOGEN)
 	$(OCAMLDEP) -native $(OCAMLINC) *.ml *.mli > depend
@@ -152,3 +139,4 @@ include depend
 $(CSRC:%.c=%.$(OBJSUFFIX)): features.h zarith.h
 
 .PHONY: clean
+.PHONY: tests

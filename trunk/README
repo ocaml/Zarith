@@ -1,4 +1,4 @@
-OVERVIEW:
+>OVERVIEW:
 
 This library implements arithmetic and logical operations over
 arbitrary-precision integers.  
@@ -120,9 +120,8 @@ The source files are:
 * z.ml[i]p          - templates used to generate z.ml[i]p
 * big_int_z.ml[i]   - wrapper to provide a Big_int compatible API to Z
 * q.ml[i]           - rational library, pure OCaml on top of Z
-* test.ml           - simple test
-* bitest.ml         - consistency test between Z and Big_int
 * projet.mak        - builds Z, Q and the tests
+* tests/            - simple regression tests and benchmarks
 
 Note: z_pp.pl simply scans the asm file (if any) to see which functions have
 an asm implementation. It then fixes the external statements in .mlp and 

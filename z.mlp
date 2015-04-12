@@ -47,6 +47,7 @@ external lognot: t -> t = lognot@ASM
 external shift_left: t -> int -> t = shift_left@ASM
 external shift_right: t -> int -> t = shift_right@ASM
 external shift_right_trunc: t -> int -> t = shift_right_trunc@ASM
+external of_int: int -> t = "ml_z_of_int" "noalloc"
 external of_int32: int32 -> t = "ml_z_of_int32"
 external of_int64: int64 -> t = "ml_z_of_int64"
 external of_nativeint: nativeint -> t = "ml_z_of_nativeint"
@@ -85,8 +86,6 @@ external nextprime: t -> t = "ml_z_nextprime"
 external hash: t -> int = "ml_z_hash"
 external to_bits: t -> string = "ml_z_to_bits"
 external of_bits: string -> t = "ml_z_of_bits"
-
-external of_int: int -> t = "ml_z_of_int"
 
 let zero = of_int 0
 let one = of_int 1

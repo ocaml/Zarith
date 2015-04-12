@@ -157,7 +157,7 @@ external (lxor): t -> t -> t = logxor@ASM
 external (~!): t -> t = lognot@ASM
 external (lsl): t -> int -> t = shift_left@ASM
 external (asr): t -> int -> t = shift_right@ASM
-external (~$): int -> t = "ml_z_of_int"
+external (~$): int -> t = "ml_z_of_int" "noalloc"
 external ( ** ): t -> int -> t = "ml_z_pow"
 
 let version = @VERSION

@@ -98,34 +98,34 @@ external of_string_base: int -> string -> t = "ml_z_of_string_base"
 
 (** {1 Basic arithmetic operations} *)
 
-external succ: t -> t = succ@ASM
+val succ: t -> t
 (** Returns its argument plus one. *)
 
-external pred: t -> t = pred@ASM
+val pred: t -> t
 (** Returns its argument minus one. *)
 
-external abs: t -> t = abs@ASM
+val abs: t -> t
 (** Absolute value. *)
 
-external neg: t -> t = neg@ASM
+val neg: t -> t
 (** Unary negation. *)
 
-external add: t -> t -> t = add@ASM
+val add: t -> t -> t
 (** Addition. *)
 
-external sub: t -> t -> t = sub@ASM
+val sub: t -> t -> t
 (** Subtraction. *)
 
-external mul: t -> t -> t = mul@ASM
+val mul: t -> t -> t
 (** Multiplication. *)
 
-external div: t -> t -> t = div@ASM
+val div: t -> t -> t
 (** Integer division. The result is truncated towards zero
     and obeys the rule of signs.
     Raises [Division_by_zero] if the divisor (second argument) is 0.
  *)
 
-external rem: t -> t -> t = rem@ASM
+val rem: t -> t -> t
 (** Integer remainder. Can raise a [Division_by_zero].
     The result of [rem a b] has the sign of [a], and its absolute value is
     strictly smaller than the absolute value of [b].
@@ -181,34 +181,34 @@ external divexact: t -> t -> t = "ml_z_divexact"
     1s.
  *)
 
-external logand: t -> t -> t = logand@ASM
+val logand: t -> t -> t
 (** Bitwise logical and. *)
     
-external logor: t -> t -> t = logor@ASM
+val logor: t -> t -> t
 (** Bitwise logical or. *)
     
-external logxor: t -> t -> t = logxor@ASM
+val logxor: t -> t -> t
 (** Bitwise logical exclusive or. *)
 
-external lognot: t -> t = lognot@ASM
+val lognot: t -> t
 (** Bitwise logical negation. 
     The identity [lognot a]=[-a-1] always hold.
  *)
 
-external shift_left: t -> int -> t = shift_left@ASM
+val shift_left: t -> int -> t
 (** Shifts to the left. 
     Equivalent to a multiplication by a power of 2.
     The second argument must be non-negative.
  *)
 
-external shift_right: t -> int -> t = shift_right@ASM
+val shift_right: t -> int -> t
 (** Shifts to the right. 
     This is an arithmetic shift, 
     equivalent to a division by a power of 2 with rounding towards -oo.
     The second argument must be non-negative.
  *)
 
-external shift_right_trunc: t -> int -> t = shift_right_trunc@ASM
+val shift_right_trunc: t -> int -> t
 (** Shifts to the right, rounding towards 0.
     This is equivalent to a division by a power of 2, with truncation.
     The second argument must be non-negative.
@@ -233,7 +233,7 @@ external hamdist: t -> t -> int = "ml_z_hamdist"
     converted value, an [Overflow] exception is raised.
  *)
 
-external to_int: t -> int = "ml_z_to_int"
+val to_int: t -> int
 (** Converts to a base integer. May raise an [Overflow]. *)
 
 external to_int32: t -> int32 = "ml_z_to_int32"
@@ -496,22 +496,22 @@ external of_bits: string -> t = "ml_z_of_bits"
    [Z.(~$2 + ~$5 * ~$10)].
  *)
 
-external (~-): t -> t = neg@ASM
+val (~-): t -> t
 (** Negation [neg]. *)
 
 val (~+): t -> t
 (** Identity. *)
 
-external (+): t -> t -> t = add@ASM
+val (+): t -> t -> t
 (** Addition [add]. *)
 
-external (-): t -> t -> t = sub@ASM
+val (-): t -> t -> t
 (** Subtraction [sub]. *)
 
-external ( * ): t -> t -> t = mul@ASM
+val ( * ): t -> t -> t
 (** Multiplication [mul]. *)
 
-external (/): t -> t -> t = div@ASM
+val (/): t -> t -> t
 (** Truncated division [div]. *)
 
 external (/>): t -> t -> t = "ml_z_cdiv"
@@ -523,28 +523,28 @@ external (/<): t -> t -> t = "ml_z_fdiv"
 external (/|): t -> t -> t = "ml_z_divexact"
 (** Exact division [div_exact]. *)
 
-external (mod): t -> t -> t = rem@ASM
+val (mod): t -> t -> t
 (** Remainder [rem]. *)
 
-external (land): t -> t -> t = logand@ASM
+val (land): t -> t -> t
 (** Bit-wise logical and [logand]. *)
 
-external (lor): t -> t -> t = logor@ASM
+val (lor): t -> t -> t
 (** Bit-wise logical inclusive or [logor]. *)
 
-external (lxor): t -> t -> t = logxor@ASM
+val (lxor): t -> t -> t
 (** Bit-wise logical exclusive or [logxor]. *)
 
-external (~!): t -> t = lognot@ASM
+val (~!): t -> t
 (** Bit-wise logical negation [lognot]. *)
 
-external (lsl): t -> int -> t = shift_left@ASM
+val (lsl): t -> int -> t
 (** Bit-wise shift to the left [shift_left]. *)
 
-external (asr): t -> int -> t = shift_right@ASM
+val (asr): t -> int -> t
 (** Bit-wise shift to the right [shift_right]. *)
 
-external (~$): int -> t = "ml_z_of_int"
+external (~$): int -> t = "ml_z_of_int" "noalloc"
 (** Conversion from [int] [of_int]. *)
 
 external ( ** ): t -> int -> t = "ml_z_pow"

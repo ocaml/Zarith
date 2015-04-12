@@ -34,7 +34,6 @@
 #include <mpir.h>
 #endif
 
-#include "features.h"
 #include "zarith.h"
 
 #ifdef __cplusplus
@@ -69,6 +68,7 @@ extern "C" {
  */
 #define Z_FAST_PATH  1
 #define Z_USE_NATINT 1
+#define Z_FAST_PATH_IN_OCAML 1
 
 /* Sanity checks. */
 #define Z_PERFORM_CHECK 0
@@ -1173,7 +1173,7 @@ CAMLprim value ml_z_neg(value arg)
 {
   Z_MARK_OP;
   Z_CHECK(arg);
-#if Z_FAST_PATH && !defined(Z_ASM_neg)
+#if Z_FAST_PATH && !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg)) {
     /* fast path */
     if (arg > Val_long(Z_MIN_INT)) return 2 - arg;
@@ -1199,7 +1199,7 @@ CAMLprim value ml_z_abs(value arg)
 {
   Z_MARK_OP;
   Z_CHECK(arg);
-#if Z_FAST_PATH && !defined(Z_ASM_abs)
+#if Z_FAST_PATH && !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg)) {
     /* fast path */
     if (arg >= Val_long(0)) return arg;
@@ -1305,7 +1305,7 @@ CAMLprim value ml_z_add(value arg1, value arg2)
 {
   Z_MARK_OP;
   Z_CHECK(arg1); Z_CHECK(arg2);
-#if Z_FAST_PATH && !defined(Z_ASM_add)
+#if Z_FAST_PATH && !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg1) && Is_long(arg2)) {
     /* fast path */
     intnat a1 = Long_val(arg1);
@@ -1323,7 +1323,7 @@ CAMLprim value ml_z_sub(value arg1, value arg2)
 {
   Z_MARK_OP;
   Z_CHECK(arg1); Z_CHECK(arg2);
-#if Z_FAST_PATH && !defined(Z_ASM_sub)
+#if Z_FAST_PATH && !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg1) && Is_long(arg2)) {
     /* fast path */
     intnat a1 = Long_val(arg1);
@@ -1337,19 +1337,82 @@ CAMLprim value ml_z_sub(value arg1, value arg2)
   return ml_z_addsub(arg1, arg2, Z_SIGN_MASK);
 }
 
+CAMLprim value ml_z_mul_overflows(value vx, value vy)
+{
+  /* Asm implementations for some platforms */
+#if defined(__GNUC__) && defined(__x86_64__)
+  intnat z;
+  unsigned char o;
+  asm("imulq %1, %3; seto %0"
+      : "=q" (o), "=r" (z)
+      : "1" (vx - 1), "r" (vy >> 1)
+      : "cc");
+  return Val_int(o);
+#elif defined(__GNUC__) && defined(__i386__)
+  intnat z;
+  unsigned char o;
+  asm("imull %1, %3; seto %0"
+      : "=q" (o), "=r" (z)
+      : "1" (vx - 1), "rm" (vy >> 1)
+      : "cc");
+  return Val_int(o);
+#elif defined(__GNUC__) && defined(__arm__)
+  intnat zlo, zhi;
+  asm("smull %0, %1, %2, %3"
+      : "=r" (zlo), "=r" (zhi)
+      : "r" (vx - 1), "r" (vy >> 1));
+  return Val_bool(zhi != (zlo >> 31));
+#elif defined(__GNUC__) && defined(__ppc__)
+  intnat z, o;
+  asm("mullo %1, %2, %3; mfxer %0; rlwinm %0, %0, 3, 30, 30"
+      : "=r" (o), "=r" (z)
+      : "r" (vx - 1), "r" (vy >> 1)
+      : "cc");
+  return o | 1;
+#else
+  /* Portable C code */
+  intnat x = Long_val(vx);
+  intnat y = Long_val(vy);
+  /* Quick approximate check for small values of x and y.
+     Also catches the cases x = 0, x = 1, y = 0, y = 1. */
+  if (Z_FITS_HINT(x)) {
+    if (Z_FITS_HINT(y)) return Val_false;
+    if ((uintnat) x <= 1) return Val_false;
+  }
+  if ((uintnat) y <= 1) return Val_false;
+#if 1
+  /* Give up at this point; we'll go through the general case in ml_z_mul */
+  return Val_true;
+#else
+  /* The product x*y is representable as an unboxed integer if
+     it is in [Z_MIN_INT, Z_MAX_INT].
+     x >= 0 y >= 0:  x*y >= 0 and x*y <= Z_MAX_INT <-> y <= Z_MAX_INT / x
+     x < 0  y >= 0:  x*y <= 0 and x*y >= Z_MIN_INT <-> x >= Z_MIN_INT / y
+     x >= 0 y < 0 :  x*y <= 0 and x*y >= Z_MIN_INT <-> y >= Z_MIN_INT / x
+     x < 0  y < 0 :  x*y >= 0 and x*y <= Z_MAX_INT <-> x >= Z_MAX_INT / y */
+  if (x >= 0)
+    if (y >= 0)
+      return Val_bool(y > Z_MAX_INT / x);
+    else
+      return Val_bool(y < Z_MIN_INT / x);
+  else
+    if (y >= 0)
+      return Val_bool(x < Z_MIN_INT / y);
+    else
+      return Val_bool(x < Z_MAX_INT / y);
+#endif
+#endif
+}
+
 CAMLprim value ml_z_mul(value arg1, value arg2)
 {
   Z_DECL(arg1); Z_DECL(arg2);
   Z_MARK_OP;
   Z_CHECK(arg1); Z_CHECK(arg2);
-#if Z_FAST_PATH && !defined(Z_ASM_mul)
-  if (Is_long(arg1) && Is_long(arg2)) {
-    /* fast path */
-    intnat a1 = Long_val(arg1);
-    intnat a2 = Long_val(arg2);
-    if (!a1 || !a2) return Val_long(0);
-    /* small argument case */
-    if (Z_FITS_HINT(arg1) && Z_FITS_HINT(arg2)) return Val_long(a1 * a2);
+#if Z_FAST_PATH && !Z_FAST_PATH_IN_OCAML
+  if (Is_long(arg1) && Is_long(arg2) &&
+      ml_z_mul_overflows(arg1, arg2) == Val_false) {
+    return Val_long(a1 * a2);
   }
 #endif
   /* mpn_ version */
@@ -1457,7 +1520,7 @@ CAMLprim value ml_z_div(value arg1, value arg2)
 {
   Z_MARK_OP;
   Z_CHECK(arg1); Z_CHECK(arg2);
-#if Z_FAST_PATH && !defined(Z_ASM_div)
+#if Z_FAST_PATH && !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg1) && Is_long(arg2)) {
     /* fast path */
     intnat a1 = Long_val(arg1);
@@ -1477,7 +1540,7 @@ CAMLprim value ml_z_rem(value arg1, value arg2)
 {
   Z_MARK_OP;
   Z_CHECK(arg1); Z_CHECK(arg2);
-#if Z_FAST_PATH && !defined(Z_ASM_rem)
+#if Z_FAST_PATH && !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg1) && Is_long(arg2)) {
     /* fast path */
     intnat a1 = Long_val(arg1);
@@ -1609,7 +1672,7 @@ CAMLprim value ml_z_succ(value arg)
 {
   Z_MARK_OP;
   Z_CHECK(arg);
-#if Z_FAST_PATH && !defined(Z_ASM_succ)
+#if Z_FAST_PATH && !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg)) {
     /* fast path */
     if (arg < Val_long(Z_MAX_INT)) return arg + 2;
@@ -1624,7 +1687,7 @@ CAMLprim value ml_z_pred(value arg)
 {
   Z_MARK_OP;
   Z_CHECK(arg);
-#if Z_FAST_PATH && !defined(Z_ASM_pred)
+#if Z_FAST_PATH && !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg)) {
     /* fast path */
      if (arg > Val_long(Z_MIN_INT)) return arg - 2;
@@ -1827,7 +1890,7 @@ CAMLprim value ml_z_logand(value arg1, value arg2)
 {
   Z_MARK_OP;
   Z_CHECK(arg1); Z_CHECK(arg2);
-#if Z_FAST_PATH && !defined(Z_ASM_logand)
+#if Z_FAST_PATH && !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg1) && Is_long(arg2)) {
     /* fast path */
     return arg1 & arg2;
@@ -1909,7 +1972,7 @@ CAMLprim value ml_z_logor(value arg1, value arg2)
 {
   Z_MARK_OP;
   Z_CHECK(arg1); Z_CHECK(arg2);
-#if Z_FAST_PATH && !defined(Z_ASM_logor)
+#if Z_FAST_PATH && !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg1) && Is_long(arg2)) {
     /* fast path */
     return arg1 | arg2;
@@ -1995,7 +2058,7 @@ CAMLprim value ml_z_logxor(value arg1, value arg2)
 {
   Z_MARK_OP;
   Z_CHECK(arg1); Z_CHECK(arg2);
-#if Z_FAST_PATH && !defined(Z_ASM_logxor)
+#if Z_FAST_PATH && !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg1) && Is_long(arg2)) {
     /* fast path */
     return (arg1 ^ arg2) | 1;
@@ -2081,7 +2144,7 @@ CAMLprim value ml_z_lognot(value arg)
 {
   Z_MARK_OP;
   Z_CHECK(arg);
-#if Z_FAST_PATH && !defined(Z_ASM_lognot)
+#if Z_FAST_PATH && !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg)) {
     /* fast path */
     return (~arg) | 1;
@@ -2130,7 +2193,7 @@ CAMLprim value ml_z_shift_left(value arg, value count)
   if (!c) return arg;
   c1 = c / Z_LIMB_BITS;
   c2 = c % Z_LIMB_BITS;
-#if Z_FAST_PATH && !defined(Z_ASM_shift_left)
+#if Z_FAST_PATH && !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg) && !c1) {
     /* fast path */
     value a = arg - 1;
@@ -2179,7 +2242,7 @@ CAMLprim value ml_z_shift_right(value arg, value count)
   if (!c) return arg;
   c1 = c / Z_LIMB_BITS;
   c2 = c % Z_LIMB_BITS;
-#if Z_FAST_PATH && !defined(Z_ASM_shift_right)
+#if Z_FAST_PATH && !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg)) {
     /* fast path */
     if (c1) {
@@ -2240,7 +2303,7 @@ CAMLprim value ml_z_shift_right_trunc(value arg, value count)
   if (!c) return arg;
   c1 = c / Z_LIMB_BITS;
   c2 = c % Z_LIMB_BITS;
-#if Z_FAST_PATH
+#if Z_FAST_PATH && !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg)) {
     /* fast path */
     if (c1) return Val_long(0);

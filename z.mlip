@@ -544,7 +544,7 @@ external (lsl): t -> int -> t = shift_left@ASM
 external (asr): t -> int -> t = shift_right@ASM
 (** Bit-wise shift to the right [shift_right]. *)
 
-external (~$): int -> t = "ml_z_of_int"
+external (~$): int -> t = "ml_z_of_int" "noalloc"
 (** Conversion from [int] [of_int]. *)
 
 external ( ** ): t -> int -> t = "ml_z_pow"

@@ -1,10 +1,12 @@
+WORDSIZE=`echo 'print_int Sys.word_size' | ocaml -stdin`
+
 test:: zq.exe
 	@echo "Testing zq (native)..."
-	@if ./zq.exe | cmp -s zq.output - ; then echo "zq: passed"; else echo "zq: FAILED"; exit 2; fi
+	@if ./zq.exe | cmp -s zq.output$(WORDSIZE) - ; then echo "zq: passed"; else echo "zq: FAILED"; exit 2; fi
 
 test:: zq.byt
 	@echo "Testing zq (bytecode)..."
-	@if ocamlrun -I .. ./zq.byt | cmp -s zq.output - ; then echo "zq: passed"; else echo "zq: FAILED"; exit 2; fi
+	@if ocamlrun -I .. ./zq.byt | cmp -s zq.output$(WORDSIZE) - ; then echo "zq: passed"; else echo "zq: FAILED"; exit 2; fi
 
 test:: bi.exe
 	@echo "Testing bi..."

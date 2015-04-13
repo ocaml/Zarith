@@ -1362,9 +1362,9 @@ CAMLprim value ml_z_mul_overflows(value vx, value vy)
       : "=r" (zlo), "=r" (zhi)
       : "r" (vx - 1), "r" (vy >> 1));
   return Val_bool(zhi != (zlo >> 31));
-#elif defined(__GNUC__) && defined(__ppc__)
+#elif defined(__GNUC__) && defined(__PPC__)
   intnat z, o;
-  asm("mullo %1, %2, %3; mfxer %0; rlwinm %0, %0, 3, 30, 30"
+  asm("mullwo %1, %2, %3; mfxer %0; rlwinm %0, %0, 3, 30, 30"
       : "=r" (o), "=r" (z)
       : "r" (vx - 1), "r" (vy >> 1)
       : "cc");

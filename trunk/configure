@@ -332,7 +332,7 @@ if test "$arch" != 'none'; then
 fi
 
 
-# check GMP, MPRI
+# check GMP, MPIR
 
 if test "$gmp" = 'gmp' -o "$gmp" = 'auto'; then
     checkinc gmp.h

@@ -359,7 +359,7 @@ val min: t -> t -> t
 val max: t -> t -> t
 (** Returns the maximum of its arguments. *)
 
-val hash: t -> int
+external hash: t -> int = "ml_z_hash" "noalloc"
 (** Hashes a number.
     This functions gives the same result as OCaml's polymorphic hashing
     function.

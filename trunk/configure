@@ -22,14 +22,6 @@ host='auto'
 gmp='auto'
 perf='no'
 
-# should we make the following auto-detected or configurable?
-if test -n "$CC"; then
-  cc="$CC"
-  ccopt="$CFLAGS"
-else
-  cc='gcc'
-  ccopt="-O3 -Wall -Wextra $CFLAGS"
-fi
 ar='ar'
 ocaml='ocaml'
 ocamlc='ocamlc'
@@ -69,7 +61,7 @@ where options include:
   -perf                enable performance statistics
 
 Environment variables that affect configuration:
-  CC                   C compiler to use (default: gcc)
+  CC                   C compiler to use (default: try gcc, then cc)
   CFLAGS               extra flags to pass to the C compiler
   CPPFLAGS             extra includes, e.g. -I/path/to/gmp/include
   LDFLAGS              extra link flags, e.g. -L/path/to/gmp/lib
@@ -205,10 +197,21 @@ searchbinreq $ocamlc
 searchbinreq $ocamldep
 searchbinreq $ocamlmklib
 searchbinreq $ocamldoc
-searchbinreq $cc
 searchbinreq $ar
 searchbinreq perl
 
+if test -n "$CC"; then
+  searchbinreq "$CC"
+  cc="$CC"
+  ccopt="$CFLAGS"
+elif ! searchbin 'gcc'; then
+  cc='gcc'
+  ccopt="-O3 -Wall -Wextra $CFLAGS"
+else
+  searchbinreq 'cc'
+  cc='cc'
+  ccopt="-O3 -Wall -Wextra $CFLAGS"
+fi
 
 # optional native-code generation
 

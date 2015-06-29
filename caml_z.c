@@ -212,6 +212,7 @@ extern struct custom_operations ml_z_custom_ops;
 
 static double ml_z_2p32; /* 2 ^ 32 in double */
 
+#if  Z_PERFORM_CHECK
 /* for debugging: dump a mp_limb_t array */
 static void ml_z_dump(const char* msg, mp_limb_t* p, mp_size_t sz)
 {
@@ -226,7 +227,9 @@ static void ml_z_dump(const char* msg, mp_limb_t* p, mp_size_t sz)
   printf("\n");
   fflush(stdout);
 }
+#endif
 
+#if Z_PERFORM_CHECK
 /* for debugging: check invariant */
 void ml_z_check(const char* fn, int line, const char* arg, value v)
 {
@@ -275,7 +278,8 @@ void ml_z_check(const char* fn, int line, const char* arg, value v)
     exit(1);
   }
 }
-
+#endif
+  
 /* for debugging */
 #if Z_PERFORM_CHECK
 #define Z_CHECK(v) ml_z_check(__FUNCTION__, __LINE__, #v, v)

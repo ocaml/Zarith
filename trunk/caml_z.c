@@ -330,6 +330,13 @@ static inline mp_limb_t* ml_z_dup_limb(mp_limb_t* src, mp_size_t sz)
   return r;
 }
 
+
+#ifdef _MSC_VER
+#define MAYBE_UNUSED
+#else
+#define MAYBE_UNUSED (void)
+#endif
+
 /* given a z object, define:
    - ptr_arg: a pointer to the first mp_limb_t
    - size_arg: the number of mp-limb_t
@@ -340,10 +347,10 @@ static inline mp_limb_t* ml_z_dup_limb(mp_limb_t* src, mp_size_t sz)
   mp_limb_t loc_##arg, *ptr_##arg;                                      \
   mp_size_t size_##arg;                                                 \
   intnat sign_##arg;                                                    \
-  (void)loc_##arg;                                                      \
-  (void)ptr_##arg;                                                      \
-  (void)size_##arg;                                                     \
-  (void)sign_##arg;
+  MAYBE_UNUSED loc_##arg;                                                      \
+  MAYBE_UNUSED ptr_##arg;                                                      \
+  MAYBE_UNUSED size_##arg;                                                     \
+  MAYBE_UNUSED sign_##arg;
 
 #define Z_ARG(arg)                                                      \
   if (Is_long(arg)) {                                                   \

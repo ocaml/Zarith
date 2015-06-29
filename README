@@ -34,7 +34,7 @@ REQUIREMENTS:
 - OCaml, preferably version 3.12.1 or later.  
 (Earlier versions are usable but generic comparisons will misbehave.)
 - Either the GMP library or the MPIR library, including development files.
-- The GNU C compiler (gcc) and assembler.
+- A gcc-compatible C compiler and assembler (other compilers may work).
 - The Perl programming language.
 - (optional) The Findlib package manager.
 

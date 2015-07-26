@@ -1,3 +1,7 @@
+Development trunk:
+- Added Z.numbits, Z.log2 and Z.log2up.
+- PR#1462: issues with Z.to_float and large numbers.
+
 Release 1.3 (2014-09-03):
 - Fixed inefficiencies in asm fast path for ARM.
 - Revised detection of NaNs and infinities in Z.of_float

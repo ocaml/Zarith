@@ -2282,6 +2282,65 @@ CAMLprim value ml_z_shift_right_trunc(value arg, value count)
   }
 }
 
+/* Helper function for numbits: number of leading 0 bits in x */
+
+#ifdef _LONG_LONG_LIMB
+#define BUILTIN_CLZ __builtin_clzll
+#else
+#define BUILTIN_CLZ __builtin_clzl
+#endif
+
+/* Use GCC or Clang built-in if available.  The argument must be != 0. */
+#if defined(__clang__) || __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
+#define ml_z_clz BUILTIN_CLZ
+#else
+/* Portable C implementation - Hacker's Delight fig 5.12 */
+int ml_z_clz(mp_limb_t x)
+{
+  int n;
+  mp_limb_t y;
+#ifdef ARCH_SIXTYFOUR
+  n = 64;
+  y = x >> 32;  if (y != 0) { n = n - 32; x = y; }
+#else
+  n = 32;
+#endif
+  y = x >> 16;  if (y != 0) { n = n - 16; x = y; }
+  y = x >>  8;  if (y != 0) { n = n -  8; x = y; }
+  y = x >>  4;  if (y != 0) { n = n -  4; x = y; }
+  y = x >>  2;  if (y != 0) { n = n -  2; x = y; }
+  y = x >>  1;  if (y != 0) return n - 2;
+  return n - x;
+}
+#endif
+
+CAMLprim value ml_z_numbits(value arg)
+{
+  Z_DECL(arg);
+  intnat r;
+  int n;
+  Z_MARK_OP;
+  Z_CHECK(arg);
+#if Z_FAST_PATH
+  if (Is_long(arg)) {
+    /* fast path */
+    r = Long_val(arg);
+    if (r == 0) {
+      return Val_int(0);
+    } else {
+      n = ml_z_clz(r > 0 ? r : -r);
+      return Val_long(sizeof(intnat) * 8 - n);
+    }
+  }
+#endif
+  /* mpn_ version */  
+  Z_MARK_SLOW;
+  Z_ARG(arg);
+  if (size_arg == 0) return Val_int(0);
+  n = ml_z_clz(ptr_arg[size_arg - 1]);
+  return Val_long(size_arg * (sizeof(mp_limb_t) * 8) - n);
+}
+
 /* helper function for popcount & hamdist: number of bits at 1 in x */
 /* maybe we should use the mpn_ function even for small arguments, in case
    the CPU has a fast popcount opcode?

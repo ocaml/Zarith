@@ -214,6 +214,13 @@ external shift_right_trunc: t -> int -> t = shift_right_trunc@ASM
     The second argument must be non-negative.
  *)
 
+external numbits: t -> int = "ml_z_numbits" "noalloc"
+(** Returns the number of significant bits in the given number.
+    If [x] is zero, [numbits x] returns 0.  Otherwise,
+    [numbits x] returns a positive integer [n] such that
+    [2^{n-1} <= |x| < 2^n].  Note that [numbits] is defined
+    for negative arguments, and that [numbits (-x) = numbits x]. *)
+
 external popcount: t -> int = "ml_z_popcount"
 (** Counts the number of bits set. 
     Raises [Overflow] for negative arguments, as those have an infinite
@@ -446,6 +453,17 @@ external perfect_power: t -> bool = "ml_z_perfect_power"
 external perfect_square: t -> bool = "ml_z_perfect_square"
 (** True if the argument has the form [a^2]. *)
 
+val log2: t -> int
+(** Returns the base-2 logarithm of its argument, rounded down to
+    an integer.  If [x] is positive, [log2 x] returns the largest [n]
+    such that [2^n <= x].  If [x] is negative or zero, [log2 x] raise
+    the [Invalid_argument] exception. *)
+
+val log2up: t -> int
+(** Returns the base-2 logarithm of its argument, rounded up to
+    an integer.  If [x] is positive, [log2up x] returns the smallest [n]
+    such that [x <= 2^n].  If [x] is negative or zero, [log2up x] raise
+    the [Invalid_argument] exception. *)
 
 (** {1 Representation} *)
 

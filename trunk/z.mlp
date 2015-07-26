@@ -66,6 +66,7 @@ external gcd: t -> t -> t = "ml_z_gcd"
 external gcdext_intern: t -> t -> (t * t * bool) = "ml_z_gcdext_intern"
 external sqrt: t -> t = "ml_z_sqrt"
 external sqrt_rem: t -> (t * t) = "ml_z_sqrt_rem"
+external numbits: t -> int = "ml_z_numbits" "noalloc"
 external popcount: t -> int = "ml_z_popcount"
 external hamdist: t -> t -> int = "ml_z_hamdist"
 external size: t -> int = "ml_z_size" "noalloc"
@@ -134,6 +135,11 @@ let signed_extract x o l =
   if equal sgn (of_int 0)
   then extract x o l
   else lognot (extract (lognot x) o l)
+
+let log2 x =
+  if sign x > 0 then (numbits x) - 1 else invalid_arg "Z.log2"
+let log2up x =
+  if sign x > 0 then numbits (pred x) else invalid_arg "Z.log2up"
 
 let print x = print_string (to_string x)
 let output chan x = output_string chan (to_string x)

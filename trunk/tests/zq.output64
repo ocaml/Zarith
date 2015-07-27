@@ -1034,6 +1034,16 @@ to_bits -9223372036854775808
  = 00 00 00 00 00 00 00 80
 marshal -9223372036854775808
  = 84 95 a6 be 00 00 00 11 00 00 00 01 00 00 00 05 00 00 00 04 12 5f 7a 00 01 00 00 00 08 00 00 00 00 00 00 00 80
+testbit 0 (passed)
+testbit 1 (passed)
+testbit -42 (passed)
+testbit 31415926535897932384626433832795028841971693993751058209749445923078164062862089986 (passed)
+testbit -2277361236363886404304896 (passed)
+numbits / trailing_zeros 0 (passed)
+numbits / trailing_zeros 1 (passed)
+numbits / trailing_zeros -42 (passed)
+numbits / trailing_zeros 1511006158790834639735881728 (passed)
+numbits / trailing_zeros -2277361236363886404304896 (passed)
 - 0 = 0
 - 1 = -1
 - -1 = 1

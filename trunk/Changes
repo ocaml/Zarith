@@ -1,4 +1,6 @@
 Development trunk:
+- Added Z.trailing_zeros.
+- Added Z.testbit, Z.is_even, Z.is_odd.
 - Added Z.numbits, Z.log2 and Z.log2up.
 - PR#1462: issues with Z.to_float and large numbers.
 

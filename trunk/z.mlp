@@ -67,6 +67,7 @@ external gcdext_intern: t -> t -> (t * t * bool) = "ml_z_gcdext_intern"
 external sqrt: t -> t = "ml_z_sqrt"
 external sqrt_rem: t -> (t * t) = "ml_z_sqrt_rem"
 external numbits: t -> int = "ml_z_numbits" "noalloc"
+external trailing_zeros: t -> int = "ml_z_trailing_zeros" "noalloc"
 external popcount: t -> int = "ml_z_popcount"
 external hamdist: t -> t -> int = "ml_z_hamdist"
 external size: t -> int = "ml_z_size" "noalloc"
@@ -128,13 +129,21 @@ let lcm u v =
   let g = gcd u v in
   abs (mul (divexact u g) v)
 
+external testbit_internal: t -> int -> bool = "ml_z_testbit" "noalloc"
+let testbit x n =
+  if n >= 0 then testbit_internal x n else invalid_arg "Z.testbit"
+(* The test [n >= 0] is done in Caml rather than in the C stub code
+   so that the latter raises no exceptions and can be declared "noalloc". *)
+
+let is_even x = testbit_internal x 0
+let is_odd x  = not (testbit_internal x 0)
+
 let signed_extract x o l =
   if o < 0 then invalid_arg "Z.signed_extract: negative bit offset";
   if l < 1 then invalid_arg "Z.signed_extract: non-positive bit length";
-  let sgn = extract x (o + l - 1) 1 in
-  if equal sgn (of_int 0)
-  then extract x o l
-  else lognot (extract (lognot x) o l)
+  if testbit x (o + l - 1)
+  then lognot (extract (lognot x) o l)
+  else extract x o l
 
 let log2 x =
   if sign x > 0 then (numbits x) - 1 else invalid_arg "Z.log2"

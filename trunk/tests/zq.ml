@@ -109,6 +109,35 @@ let chk_signed_extract (x, o, l) =
   then Printf.printf "(passed)\n"
   else Printf.printf "(FAILED, expected %a)\n" pr expected
 
+let chk_numbits_tz x =
+  Printf.printf "numbits / trailing_zeros %a " pr x;
+  let n = I.numbits x and z = I.trailing_zeros x in
+  if
+    if I.equal x I.zero then
+      n = 0 && z = max_int
+    else
+      n > 0 && z >= 0 && z < n
+      && I.leq (I.shift_left I.one (n-1)) (I.abs x)
+      && I.lt (I.abs x) (I.shift_left I.one n)
+      && (z = 0 || I.equal (I.extract x 0 z) I.zero)
+      && I.testbit x z
+  then Printf.printf "(passed)\n"
+  else Printf.printf "(FAILED)\n"
+
+let chk_testbit x =
+  Printf.printf "testbit %a " pr x;
+  let n = I.numbits x in
+  let ok = ref true in
+  for i = 0 to n + 64 do
+    let actual = I.testbit x i 
+    and expected = I.extract x i 1 in
+    if not (I.equal expected (if actual then I.one else I.zero))
+    then begin Printf.printf "(error on %d) " i; ok := false end
+  done;
+  if !ok 
+  then Printf.printf "(passed)\n"
+  else Printf.printf "(FAILED)\n"
+
 let test_Z() =
   Printf.printf "0\n = %a\n" pr I.zero;
   Printf.printf "1\n = %a\n" pr I.one;
@@ -651,6 +680,18 @@ let test_Z() =
   chk_bits mini64;
   chk_bits maxni;
   chk_bits minni;
+
+  List.iter chk_testbit [
+    I.zero; I.one; I.of_int (-42); 
+    I.of_string "31415926535897932384626433832795028841971693993751058209749445923078164062862089986";
+    I.neg (I.shift_left (I.of_int 123456) 64);
+  ];
+
+  List.iter chk_numbits_tz [
+    I.zero; I.one; I.of_int (-42); 
+    I.shift_left (I.of_int 9999) 77;
+    I.neg (I.shift_left (I.of_int 123456) 64);
+  ];
   ()
 
 

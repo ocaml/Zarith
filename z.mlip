@@ -221,6 +221,20 @@ external numbits: t -> int = "ml_z_numbits" "noalloc"
     [2^{n-1} <= |x| < 2^n].  Note that [numbits] is defined
     for negative arguments, and that [numbits (-x) = numbits x]. *)
 
+external trailing_zeros: t -> int = "ml_z_trailing_zeros" "noalloc"
+(** Returns the number of trailing 0 bits in the given number.
+    If [x] is zero, [trailing_zeros x] returns [max_int].
+    Otherwise, [trailing_zeros x] returns a nonnegative integer [n]
+    which is the largest [n] such that [2^n] divides [x] evenly.
+    Note that [trailing_zeros] is defined for negative arguments,
+    and that [trailing_zeros (-x) = trailing_zeros x]. *)
+
+val testbit: t -> int -> bool
+(** [testbit x n] return the value of bit number [n] in [x]:
+    [true] if the bit is 1, [false] if the bit is 0.
+    Bits are numbered from 0.  Raise [Invalid_argument] if [n]
+    is negative. *)
+
 external popcount: t -> int = "ml_z_popcount"
 (** Counts the number of bits set. 
     Raises [Overflow] for negative arguments, as those have an infinite
@@ -232,7 +246,6 @@ external hamdist: t -> t -> int = "ml_z_hamdist"
     Raises [Overflow] if the arguments have different signs
     (in which case the distance is infinite).
  *)
-
 
 (** {1 Conversions} *)
 
@@ -365,6 +378,12 @@ val min: t -> t -> t
 
 val max: t -> t -> t
 (** Returns the maximum of its arguments. *)
+
+val is_even: t -> bool
+(** Returns true if the argument is even (divisible by 2), false if odd. *)
+
+val is_odd: t -> bool
+(** Returns true if the argument is odd, false if even. *)
 
 external hash: t -> int = "ml_z_hash" "noalloc"
 (** Hashes a number.

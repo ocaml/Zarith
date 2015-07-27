@@ -2338,7 +2338,67 @@ CAMLprim value ml_z_numbits(value arg)
   Z_ARG(arg);
   if (size_arg == 0) return Val_int(0);
   n = ml_z_clz(ptr_arg[size_arg - 1]);
-  return Val_long(size_arg * (sizeof(mp_limb_t) * 8) - n);
+  return Val_long(size_arg * Z_LIMB_BITS - n);
+}
+
+/* Helper function for trailing_zeros: number of trailing 0 bits in x */
+
+#ifdef _LONG_LONG_LIMB
+#define BUILTIN_CTZ __builtin_ctzll
+#else
+#define BUILTIN_CTZ __builtin_ctzl
+#endif
+
+/* Use GCC or Clang built-in if available.  The argument must be != 0. */
+#if defined(__clang__) || __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
+#define ml_z_ctz BUILTIN_CTZ
+#else
+/* Portable C implementation - Hacker's Delight fig 5.21 */
+int ml_z_ctz(mp_limb_t x)
+{
+  int n;
+  mp_limb_t y;
+  CAMLassert (x != 0);
+#ifdef ARCH_SIXTYFOUR
+  n = 63;
+  y = x << 32;  if (y != 0) { n = n - 32; x = y; }
+#else
+  n = 31;
+#endif
+  y = x << 16;  if (y != 0) { n = n - 16; x = y; }
+  y = x <<  8;  if (y != 0) { n = n -  8; x = y; }
+  y = x <<  4;  if (y != 0) { n = n -  4; x = y; }
+  y = x <<  2;  if (y != 0) { n = n -  2; x = y; }
+  y = x <<  1;  if (y != 0) { n = n - 1; }
+  return n;
+}
+#endif
+
+CAMLprim value ml_z_trailing_zeros(value arg)
+{
+  Z_DECL(arg);
+  intnat r;
+  mp_size_t i;
+  Z_MARK_OP;
+  Z_CHECK(arg);
+#if Z_FAST_PATH
+  if (Is_long(arg)) {
+    /* fast path */
+    r = Long_val(arg);
+    if (r == 0) {
+      return Val_long (Max_long);
+    } else {
+      /* No need to take absolute value of r, as ctz(-x) = ctz(x) */
+      return Val_long (ml_z_ctz(r));
+    }
+  }
+#endif
+  /* mpn_ version */  
+  Z_MARK_SLOW;
+  Z_ARG(arg);
+  if (size_arg == 0) return Val_long (Max_long);
+  for (i = 0; ptr_arg[i] == 0; i++) /* skip */;
+  return Val_long(i * Z_LIMB_BITS + ml_z_ctz(ptr_arg[i]));
 }
 
 /* helper function for popcount & hamdist: number of bits at 1 in x */
@@ -2431,6 +2491,43 @@ CAMLprim value ml_z_hamdist(value arg1, value arg2)
   return Val_long(r);
 }
 
+CAMLprim value ml_z_testbit(value arg, value index)
+{
+  Z_DECL(arg);
+  uintnat b_idx;
+  mp_size_t l_idx, i;
+  mp_limb_t limb;
+  Z_MARK_OP;
+  Z_CHECK(arg);
+  b_idx = Long_val(index); /* Caml code checked index >= 0 */
+#if Z_FAST_PATH
+  if (Is_long(arg)) {
+    if (b_idx >= Z_LIMB_BITS) b_idx = Z_LIMB_BITS - 1;
+    return Val_int((Long_val(arg) >> b_idx) & 1);
+  }
+#endif
+  Z_MARK_SLOW;
+  Z_ARG(arg);
+  l_idx = b_idx / Z_LIMB_BITS;
+  if (l_idx >= size_arg) return Val_bool(sign_arg);
+  limb = ptr_arg[l_idx];
+  if (sign_arg != 0) {
+    /* If arg is negative, its 2-complement representation is
+       bitnot(abs(arg) - 1).
+       If any of the limbs of abs(arg) below l_idx is nonzero, 
+       the carry from the decrement dies before reaching l_idx,
+       and we just test bitnot(limb).
+       If all the limbs below l_idx are zero, the carry from the
+       decrement propagates to l_idx,
+       and we test bitnot(limb - 1) = - limb. */
+    for (i = 0; i < l_idx; i++) {
+      if (ptr_arg[i] != 0) { limb = ~limb; goto extract; }
+    }
+    limb = -limb;
+  }
+ extract:
+  return Val_int((limb >> (b_idx % Z_LIMB_BITS)) & 1);
+}
 
 /*---------------------------------------------------
   FUNCTIONS BASED ON mpz_t

@@ -1,4 +1,5 @@
 Development trunk:
+- Added Z.powm_sec (constant-time modular exponentiation)
 - Reimplemented Z.to_float, now produces correctly rounded FP numbers
 - Added Z.trailing_zeros.
 - Added Z.testbit, Z.is_even, Z.is_odd.

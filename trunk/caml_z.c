@@ -704,39 +704,6 @@ CAMLprim value ml_z_to_int64(value v)
   return caml_copy_int64(x);
 }
 
-CAMLprim value ml_z_to_float(value v)
-{
-  double x, m;
-  mp_size_t i;
-  Z_DECL(v);
-  Z_MARK_OP;
-  Z_CHECK(v);
-  if (Is_long(v)) return caml_copy_double(Long_val(v));
-  Z_MARK_SLOW;
-  Z_ARG(v);
-  m = sign_v ? -1. : 1.;
-  x = 0.;
-  for (i = 0; i < size_v; i++) {
-#ifdef ARCH_SIXTYFOUR
-    /* split into two 32-bit numbers, as 64-bit integers may not fit 
-       exactly in a double
-       the cast to long is a work-around for gcc's bug 37544
-    */
-    uintnat x0 = ptr_v[i] & 0xffffffff;
-    uintnat x1 = (ptr_v[i] >> 32) & 0xffffffff;
-    if (x0) x += m * x0;
-    m *= ml_z_2p32;
-    if (x1) x += m * x1;
-    m *= ml_z_2p32;
-#else
-    uintnat x0 = ptr_v[i];
-    if (x0) x += m * x0;
-    m *= ml_z_2p32;
-#endif
-  }
-  return caml_copy_double(x);
-}
-
 /* XXX: characters that do not belong to the format are ignored, this departs
    from the classic printf behavior (it copies them in the output)
  */

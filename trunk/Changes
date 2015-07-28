@@ -1,4 +1,5 @@
 Development trunk:
+- Reimplemented Z.to_float, now produces correctly rounded FP numbers
 - Added Z.trailing_zeros.
 - Added Z.testbit, Z.is_even, Z.is_odd.
 - Added Z.numbits, Z.log2 and Z.log2up.

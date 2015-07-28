@@ -419,6 +419,15 @@ external powm: t -> t -> t -> t = "ml_z_powm"
     a [Division_by_zero] is raised.
  *)
 
+external powm_sec: t -> t -> t -> t = "ml_z_powm_sec"
+(** [powm_sec base exp mod] computes [base]^[exp] modulo [mod].
+    Unlike [Z.powm], this function is designed to take the same time
+    and have the same cache access patterns for any two same-size
+    arguments.  Used in cryptographic applications, it provides better
+    resistance to side-channel attacks than [Z.powm].
+    The exponent [exp] must be positive, and the modulus [mod]
+    must be odd.  Otherwise, [Invalid_arg] is raised. *)
+
 external invert: t -> t -> t = "ml_z_invert"
 (** [invert base mod] returns the inverse of [base] modulo [mod].
     Raises a [Division_by_zero] if [base] is not invertible modulo [mod].

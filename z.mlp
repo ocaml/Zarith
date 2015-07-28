@@ -56,7 +56,6 @@ external to_int: t -> int = "ml_z_to_int"
 external to_int32: t -> int32 = "ml_z_to_int32"
 external to_int64: t -> int64 = "ml_z_to_int64"
 external to_nativeint: t -> nativeint = "ml_z_to_nativeint"
-external to_float: t -> float = "ml_z_to_float"
 external format: string -> t -> string = "ml_z_format"
 external of_string_base: int -> string -> t = "ml_z_of_string_base"
 external compare: t -> t -> int = "ml_z_compare" "noalloc"
@@ -149,6 +148,44 @@ let log2 x =
   if sign x > 0 then (numbits x) - 1 else invalid_arg "Z.log2"
 let log2up x =
   if sign x > 0 then numbits (pred x) else invalid_arg "Z.log2up"
+
+(* Consider a real number [r] such that
+   - the integral part of [r] is the bigint [x]
+   - 2^54 <= |x| < 2^63
+   - the fractional part of [r] is 0 if [exact = true], 
+     nonzero if [exact = false].
+   Then, the following function returns [r] correctly rounded
+   according to the current rounding mode of the processor.
+   This is an instance of the "round to odd" technique formalized in
+   "When double rounding is odd" by S. Boldo and G. Melquiond.
+   The claim above is lemma Fappli_IEEE_extra.round_odd_fix
+   from the CompCert Coq development. *)
+
+let round_to_float x exact =
+  let m = to_int64 x in
+  (* Unless the fractional part is exactly 0, round m to an odd integer *)
+  let m = if exact then m else Int64.logor m 1L in
+  (* Then convert m to float, with the current rounding mode. *)
+  Int64.to_float m
+
+let to_float x =
+  if Obj.is_int (Obj.repr x) then
+    (* Fast path *)
+    float_of_int (Obj.magic x : int)
+  else begin
+    let n = numbits x in
+    if n <= 63 then
+      Int64.to_float (to_int64 x)
+    else begin
+      let n = n - 55 in
+      (* Extract top 55 bits of x *)
+      let top = shift_right x n in
+      (* Check if the other bits are all zero *)
+      let exact = equal x (shift_left top n) in
+      (* Round to float and apply exponent *)
+      ldexp (round_to_float top exact) n
+    end
+  end
 
 let print x = print_string (to_string x)
 let output chan x = output_string chan (to_string x)

@@ -265,16 +265,12 @@ external to_int64: t -> int64 = "ml_z_to_int64"
 external to_nativeint: t -> nativeint = "ml_z_to_nativeint"
 (** Converts to a native integer. May raise an [Overflow]. *)
 
-external to_float: t -> float = "ml_z_to_float"
+val to_float: t -> float
 (** Converts to a floating-point value.
-    This function is designed explicitly for the case where the FPU 
-    rounds towards +oo, in which case the resulting float always
-    over-approximates the argument.
-    It is not guaranteed to be the least over-approximation though.
-    In the (default) case where the FPU does not round towards +oo, it is
-    only guaranteed that the result approximates the argument (but it may
-    not be the nearest float).
- *)
+    This function rounds the given integer according to the current
+    rounding mode of the processor.  In default mode, it returns
+    the floating-point number nearest to the given integer,
+    breaking ties by rounding to even. *)
 
 val to_string: t -> string
 (** Gives a human-readable, decimal string representation of the argument. *)

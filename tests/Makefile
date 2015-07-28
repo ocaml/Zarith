@@ -16,6 +16,10 @@ test:: pi.exe
 	@echo "Testing pi..."
 	@if ./pi.exe 500 | cmp -s pi.output - ; then echo "pi: passed"; else echo "pi: FAILED"; exit 2; fi
 
+test:: tofloat.exe
+	@echo "Testing tofloat..."
+	@./tofloat.exe
+
 bench:: fib.exe
 	@for k in int natint Z bigint num; do echo "Benchmarking fib $$k"; time ./fib.exe $$k 45 > /dev/null; done
 
@@ -30,10 +34,16 @@ bench:: tak.exe
 bench:: pi.exe
 	@echo "Benchmarking pi"; time ./pi.exe 10000 > /dev/null
 
+tofloat.exe: tofloat.ml setround.o ../zarith.cmxa
+	ocamlopt -I .. -ccopt "-L.." zarith.cmxa nums.cmxa -o tofloat.exe \
+           setround.o tofloat.ml
+
 %.exe: %.ml ../zarith.cmxa
 	ocamlopt -I .. -ccopt "-L.." zarith.cmxa nums.cmxa -o $*.exe $*.ml
 %.byt: %.ml ../zarith.cma
 	ocamlc -I .. -ccopt "-L.." zarith.cma nums.cma -o $*.byt $*.ml
+%.o: %.c
+	ocamlc -c $*.c
 
 clean:
 	rm -f *.cm[iox] *.o *.exe *.byt

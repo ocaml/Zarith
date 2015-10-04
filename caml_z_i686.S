@@ -4,26 +4,26 @@
    - System 5 ABI and assembly syntax
    - GNU as
 
- 
-   This file is part of the Zarith library 
+
+   This file is part of the Zarith library
    http://forge.ocamlcore.org/projects/zarith .
    It is distributed under LGPL 2 licensing, with static linking exception.
    See the LICENSE file included in the distribution.
-   
+
    Copyright (c) 2010-2011 Antoine Miné, Abstraction project.
    Abstraction is part of the LIENS (Laboratoire d'Informatique de l'ENS),
    a joint laboratory by:
    CNRS (Centre national de la recherche scientifique, France),
    ENS (École normale supérieure, Paris, France),
    INRIA Rocquencourt (Institut national de recherche en informatique, France).
-        
+
  */
 
 
         /* helper functions */
         /* **************** */
 
-        
+
         /* optional underscope prefix for symbols */
 #ifdef Z_UNDERSCORE_PREFIX
 #define SYMB(x) _##x
@@ -31,14 +31,14 @@
 #define SYMB(x)  x
 #endif
 
-	
+
         /* optional dot prefix for local labels */
 #ifdef Z_DOT_LABEL_PREFIX
 #define L(x) .L##x
 #else
 #define L(x)  L##x
 #endif
-	
+
         /* function prolog & epilog */
 
 #if defined(Z_ELF) || defined(Z_COFF)
@@ -77,7 +77,7 @@ SYMB(ml_as_z_##proc):
 
 
         /* operation counter */
-        
+
 #ifdef Z_PERF_COUNTER
 #define OP \
         incl    SYMB(ml_z_ops_as)
@@ -86,7 +86,7 @@ SYMB(ml_as_z_##proc):
 #endif
 
 
-        
+
         /* unary arithmetics */
         /* ***************** */
 
@@ -123,7 +123,7 @@ L(abs):
         C_JMP(abs)
         EPILOG(abs)
 
-        
+
         /* succ */
         PROLOG(succ)
         mov     4(%esp), %eax
@@ -152,8 +152,8 @@ L(pred):
         EPILOG(pred)
 
 
-        
-        
+
+
         /* binary arithmetics */
         /* ****************** */
 
@@ -174,7 +174,7 @@ L(add):
         C_JMP(add)
         EPILOG(add)
 
- 
+
         /* sub */
         PROLOG(sub)
         mov     4(%esp), %eax
@@ -192,7 +192,7 @@ L(sub):
         C_JMP(sub)
         EPILOG(sub)
 
-        
+
         /* mul */
         PROLOG(mul)
         mov     4(%esp), %eax
@@ -211,7 +211,7 @@ L(mul):
         C_JMP(mul)
         EPILOG(mul)
 
-        
+
         /* div */
         PROLOG(div)
         mov     8(%esp), %ecx
@@ -219,21 +219,43 @@ L(mul):
         jnc     L(div)   /* not a 31-bit integer */
         jz      L(div)   /* division by zero */
         cmp     $-1, %ecx
-	     /* division by -1, the only one that can overflow */
+             /* division by -1, the only one that can overflow */
         je      L(negenter)
         mov     4(%esp), %eax
         sar     %eax
         jnc     L(div)   /* not a 31-bit integer */
         cdq
         idiv    %ecx
-	lea	1(%eax, %eax), %eax
+        lea	1(%eax, %eax), %eax
         OP
         ret
 L(div):
         C_JMP(div)
         EPILOG(div)
 
-        
+
+        /* divexact */
+        PROLOG(divexact)
+        mov     8(%esp), %ecx
+        sar     %ecx
+        jnc     L(divexact)   /* not a 31-bit integer */
+        jz      L(divexact)   /* division by zero */
+        cmp     $-1, %ecx
+             /* division by -1, the only one that can overflow */
+        je      L(negenter)
+        mov     4(%esp), %eax
+        sar     %eax
+        jnc     L(divexact)   /* not a 31-bit integer */
+        cdq
+        idiv    %ecx
+        lea	1(%eax, %eax), %eax
+        OP
+        ret
+L(divexact):
+        C_JMP(divexact)
+        EPILOG(divexact)
+
+
         /* rem */
         PROLOG(rem)
         mov     4(%esp), %eax
@@ -247,7 +269,7 @@ L(div):
         je      L(remneg)
         cdq
         idiv    %ecx
-	lea     1(%edx, %edx), %eax
+        lea     1(%edx, %edx), %eax
         OP
         ret
 L(remneg):
@@ -259,11 +281,11 @@ L(rem):
         C_JMP(rem)
         EPILOG(rem)
 
-        
+
         /* bit operations */
         /* ************** */
 
-        
+
         /* not */
         PROLOG(lognot)
         mov     4(%esp), %eax
@@ -307,7 +329,7 @@ L(logand):
         C_JMP(logand)
         EPILOG(logand)
 
-        
+
         /* xor */
         PROLOG(logxor)
         mov     4(%esp), %eax

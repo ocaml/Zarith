@@ -2501,6 +2501,8 @@ CAMLprim value ml_z_testbit(value arg, value index)
   FUNCTIONS BASED ON mpz_t
   ---------------------------------------------------*/
 
+/* If OCaml becomes multicore, add __thread declaration or the
+   equivalent under Windows */
 static mpz_t tempres = {{0,0,NULL}};
 static mpz_t temp0 = {{0,0,NULL}};
 
@@ -2519,22 +2521,18 @@ static mpz_t temp0 = {{0,0,NULL}};
   }                                                 \
   while (0)
 
-/* sets rop to the value in op
+#define MPZ_DECL(arg) mpz_t m##arg;
+
+/* Require MPZ_DECL(arg), Z_DECL(arg), Z_ARG(arg) put before.
+   Sets m##arg to the value in arg
    Limbs are not copied, just pointed to, safe because
    1. Caml GC not active before the allocation of the result:
       there is no call back neither release of the
       thread lock)
    2. GMP being thread-safe, it never modifies its non-destination
       arguments
-
-   CANNOT BE A FUNCTION (otherwise pointer to local variables exits
-   the function)
 */
-#define MPZ_DECL_POINTING_TO_Z(arg)                                     \
-  Z_DECL(arg);                                                          \
-  Z_CHECK(arg);                                                         \
-  Z_ARG(arg);                                                           \
-  mpz_t m##arg;                                                         \
+#define MPZ_ARG(arg)                                                    \
   m##arg->_mp_d = ptr_##arg;                                            \
   m##arg->_mp_size = (sign_##arg >= 0) ? size_##arg : -size_##arg;      \
   m##arg->_mp_alloc = size_##arg
@@ -2549,7 +2547,10 @@ value ml_z_from_mpz(mpz_t op)
   return ml_z_reduce(r, sz, (mpz_sgn(op) >= 0) ? 0 : Z_SIGN_MASK);
 }
 
+#if __GNU_MP_VERSION >= 5
 extern void __gmpn_divexact (mp_ptr, mp_srcptr, mp_size_t, mp_srcptr, mp_size_t);
+#endif
+
 CAMLprim value ml_z_divexact(value arg1, value arg2)
 {
   Z_DECL(arg1); Z_DECL(arg2);
@@ -2566,20 +2567,34 @@ CAMLprim value ml_z_divexact(value arg1, value arg2)
     if (Z_FITS_INT(q)) return Val_long(q);
   }
 #endif
-  /* mpn_ version */
   Z_MARK_SLOW;
   Z_ARG(arg1);
   Z_ARG(arg2);
   if (!size_arg2) ml_z_raise_divide_by_zero();
   if (size_arg1 >= size_arg2) {
+#if __GNU_MP_VERSION >= 5
+    /* mpn_ version */
     CAMLparam2(arg1,arg2);
-    value q = ml_z_alloc(size_arg1 - size_arg2 + 1);
+    CAMLlocal1(q);
+    q = ml_z_alloc(size_arg1 - size_arg2 + 1);
     Z_REFRESH(arg1); Z_REFRESH(arg2);
     __gmpn_divexact(Z_LIMB(q),
                     ptr_arg1,  size_arg1, ptr_arg2, size_arg2);
     q = ml_z_reduce(q, size_arg1 - size_arg2 + 1, sign_arg1 ^ sign_arg2);
     Z_CHECK(q);
     CAMLreturn(q);
+#else
+    /* mpz version */
+    value q;
+    MPZ_DECL(arg1); MPZ_DECL(arg2);
+    MPZ_ARG(arg1);
+    MPZ_ARG(arg2);
+    INIT_TEMP(tempres);
+    mpz_divexact(tempres, marg1, marg2);
+    q = ml_z_from_mpz(tempres);
+    CLEAR_TEMP(tempres);
+    return q;
+#endif
   }
   else {
     return Val_long(0);
@@ -2588,11 +2603,11 @@ CAMLprim value ml_z_divexact(value arg1, value arg2)
 
 CAMLprim value ml_z_powm(value base, value exp, value mod)
 {
-  CAMLparam3(base,exp,mod);
-  CAMLlocal1(r);
-  MPZ_DECL_POINTING_TO_Z(base);
-  MPZ_DECL_POINTING_TO_Z(exp);
-  MPZ_DECL_POINTING_TO_Z(mod);
+  Z_DECL(base); Z_DECL(exp); Z_DECL(mod);
+  MPZ_DECL(base); MPZ_DECL(exp); MPZ_DECL(mod);
+  Z_ARG(base); MPZ_ARG(base);
+  Z_ARG(exp); MPZ_ARG(exp);
+  Z_ARG(mod); MPZ_ARG(mod);
   INIT_TEMP(tempres);
   if (mpz_sgn(mexp) < 0) {
     /* we need to check whether base is invertible to avoid a division by zero
@@ -2609,28 +2624,32 @@ CAMLprim value ml_z_powm(value base, value exp, value mod)
   } else {
     mpz_powm(tempres, mbase, mexp, mmod);
   }
-  r = ml_z_from_mpz(tempres);
+  value r = ml_z_from_mpz(tempres);
   CLEAR_TEMP(tempres);
-  CAMLreturn(r);
+  return r;
 }
 
 CAMLprim value ml_z_powm_sec(value base, value exp, value mod)
 {
 #if __GNU_MP_VERSION >= 5
-  CAMLparam3(base,exp,mod);
-  CAMLlocal1(r);
-  MPZ_DECL_POINTING_TO_Z(base);
-  MPZ_DECL_POINTING_TO_Z(exp);
-  MPZ_DECL_POINTING_TO_Z(mod);
+#ifndef __MPIR_VERSION
+  Z_DECL(base); Z_DECL(exp); Z_DECL(mod);
+  MPZ_DECL(base); MPZ_DECL(exp); MPZ_DECL(mod);
+  Z_ARG(exp); MPZ_ARG(exp);
   if (mpz_sgn(mexp) <= 0)
     invalid_argument("Z.powm_sec: exponent must be positive");
+  Z_ARG(mod); MPZ_ARG(mod);
   if (! mpz_odd_p(mmod))
     invalid_argument("Z.powm_sec: modulus must be odd");
+  Z_ARG(base); MPZ_ARG(base);
   INIT_TEMP(tempres);
   mpz_powm_sec(tempres, mbase, mexp, mmod);
-  r = ml_z_from_mpz(tempres);
+  value r = ml_z_from_mpz(tempres);
   CLEAR_TEMP(tempres);
-  CAMLreturn(r);
+  return r;
+#else
+  invalid_argument("Z.powm_sec: not available in MPIR, needs GMP version >= 5");
+#endif
 #else
   invalid_argument("Z.powm_sec: not available, needs GMP version >= 5");
 #endif
@@ -2638,79 +2657,79 @@ CAMLprim value ml_z_powm_sec(value base, value exp, value mod)
 
 CAMLprim value ml_z_pow(value base, value exp)
 {
-  CAMLparam2(base,exp);
-  CAMLlocal1(r);
+  Z_DECL(base);
+  MPZ_DECL(base);
   int e = Long_val(exp);
   if (e < 0)
     caml_invalid_argument("Z.pow: exponent must be non-negative");
-  MPZ_DECL_POINTING_TO_Z(base);
+  Z_ARG(base); MPZ_ARG(base);
   INIT_TEMP(tempres);
   mpz_pow_ui(tempres, mbase, e);
-  r = ml_z_from_mpz(tempres);
+  value r = ml_z_from_mpz(tempres);
   CLEAR_TEMP(tempres);
-  CAMLreturn(r);
+  return r;
 }
 
 CAMLprim value ml_z_root(value a, value b)
 {
-  CAMLparam2(a,b);
-  CAMLlocal1(r);
+  Z_DECL(a); MPZ_DECL(a);
   int mb = Long_val(b);
   if (mb < 0)
     caml_invalid_argument("Z.root: exponent must be non-negative");
-  MPZ_DECL_POINTING_TO_Z(a);
+  Z_ARG(a); MPZ_ARG(a);
   INIT_TEMP(tempres);
   mpz_root(tempres, ma, mb);
-  r = ml_z_from_mpz(tempres);
+  value r = ml_z_from_mpz(tempres);
   CLEAR_TEMP(tempres);
-  CAMLreturn(r);
+  return r;
 }
 
 CAMLprim value ml_z_perfect_power(value a)
 {
-  CAMLparam1(a);
+  Z_DECL(a); MPZ_DECL(a);
   int r;
-  MPZ_DECL_POINTING_TO_Z(a);
+  Z_ARG(a); MPZ_ARG(a);
   r = mpz_perfect_power_p(ma);
-  CAMLreturn(r ? Val_true : Val_false);
+  return(r ? Val_true : Val_false);
 }
 
 CAMLprim value ml_z_perfect_square(value a)
 {
-  CAMLparam1(a);
+  Z_DECL(a); MPZ_DECL(a);
   int r;
-  MPZ_DECL_POINTING_TO_Z(a);
+  Z_ARG(a); MPZ_ARG(a);
   r = mpz_perfect_square_p(ma);
-  CAMLreturn(r ? Val_true : Val_false);
+  return(r ? Val_true : Val_false);
 }
 
 CAMLprim value ml_z_probab_prime(value a, int b)
 {
-  CAMLparam1(a);
+  Z_DECL(a); MPZ_DECL(a);
   int r;
-  MPZ_DECL_POINTING_TO_Z(a);
+  Z_ARG(a); MPZ_ARG(a);
   r = mpz_probab_prime_p(ma, Int_val(b));
-  CAMLreturn(Val_int(r));
+  return(Val_int(r));
 }
 
 CAMLprim value ml_z_nextprime(value a)
 {
-  CAMLparam1(a);
-  CAMLlocal1(r);
-  MPZ_DECL_POINTING_TO_Z(a);
+  Z_DECL(a); MPZ_DECL(a);
+  value r;
+  Z_ARG(a); MPZ_ARG(a);
   INIT_TEMP(tempres);
   mpz_nextprime(tempres, ma);
   r = ml_z_from_mpz(tempres);
   CLEAR_TEMP(tempres);
-  CAMLreturn(r);
+  return r;
 }
 
 CAMLprim value ml_z_invert(value base, value mod)
 {
-  CAMLparam2(base,mod);
-  CAMLlocal1(r);
-  MPZ_DECL_POINTING_TO_Z(base);
-  MPZ_DECL_POINTING_TO_Z(mod);
+  Z_DECL(base); MPZ_DECL(base);
+  Z_DECL(mod); MPZ_DECL(mod);
+  value r;
+  Z_ARG(base); MPZ_ARG(base);
+  Z_ARG(mod); MPZ_ARG(mod);
   INIT_TEMP(tempres);
   if (!mpz_invert(tempres, mbase, mmod)){
     CLEAR_TEMP(tempres);
@@ -2718,13 +2737,12 @@ CAMLprim value ml_z_invert(value base, value mod)
   }
   r = ml_z_from_mpz(tempres);
   CLEAR_TEMP(tempres);
-  CAMLreturn(r);
+  return r;
 }
 
 /* XXX should we support the following?
    mpz_divisible_p
    mpz_congruent_p
-   mpz_powm_sec
    mpz_rootrem
    mpz_jacobi
    mpz_legendre
@@ -2736,7 +2754,6 @@ CAMLprim value ml_z_invert(value base, value mod)
    mpz_lucnum_ui
    mpz_scan0, mpz_scan1
    mpz_setbit, mpz_clrbit, mpz_combit, mpz_tstbit
-   mpz_odd_p, mpz_even_p
    random numbers
 */
 

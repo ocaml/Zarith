@@ -77,7 +77,7 @@ let test nbbits =
                                       1)) 
   in
   test3 "Z.powm          " Z.powm 100 tabbase tabexp tabmod;
-  test3 "Z.powm_sec      " Z.powm_sec 100 tabbase tabexp tabmod;
+  (*  test3 "Z.powm_sec      " Z.powm_sec 100 tabbase tabexp tabmod;*)
   (* pow *)
   let tabbase = Array.init size (fun _ -> z_random ~signed:true (nbbits/4)) in
   let tabexp = Array.init size (fun _ -> Random.int 10) in
@@ -97,6 +97,7 @@ let test nbbits =
 let _ =
   Random.init 0;
   printf "random array(s) size : %i@." size;
+  test 30;
   test 60;
   test 120;
   test 500;

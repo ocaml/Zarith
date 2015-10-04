@@ -1,0 +1,49 @@
+tags/release-1.3	branches/speedup
+random array(s) size : 8192
+NBBITS : 30
+Z.div            (5000 times) = 0.49	0.48
+Z.divexact       (5000 times) = 0.60	0.49
+Q.add            ( 200 times) = 0.37	0.33
+Q.mul            ( 200 times) = 0.35	0.31
+Z.powm           ( 100 times) = 1.29	0.72
+Z.pow            (1000 times) = 3.67	0.84
+Z.root           ( 100 times) = 0.70	0.48
+Z.perfect_power  ( 100 times) = 0.76	0.57
+Z.perfect_square (1000 times) = 2.08	0.17
+Z.probab_prime 5 (  10 times) = 0.10	0.08
+Z.next_prime     (   1 times) = 0.17	0.17
+NBBITS : 60
+Z.div            (5000 times) = 5.30	5.36
+Z.divexact       (5000 times) = 22.79	2.70
+Q.add            ( 200 times) = 1.66	1.19
+Q.mul            ( 200 times) = 1.45	1.06
+Z.powm           ( 100 times) = 2.08	1.40
+Z.pow            (1000 times) = 4.02	1.18
+Z.root           ( 100 times) = 1.06	0.84
+Z.perfect_power  ( 100 times) = 1.30	1.10
+Z.perfect_square (1000 times) = 2.12	0.16
+Z.probab_prime 5 (  10 times) = 0.21	0.20
+Z.next_prime     (   1 times) = 0.53	0.58
+NBBITS : 120
+Z.div            (5000 times) = 7.31	7.40
+Z.divexact       (5000 times) = 26.78	5.50
+Q.add            ( 200 times) = 3.96	3.40
+Q.mul            ( 200 times) = 3.69	3.23
+Z.powm           ( 100 times) = 3.93	3.26
+Z.pow            (1000 times) = 4.49	1.67
+Z.root           ( 100 times) = 1.76	1.56
+Z.perfect_power  ( 100 times) = 2.33	2.13
+Z.perfect_square (1000 times) = 2.06	0.18
+Z.probab_prime 5 (  10 times) = 0.65	0.63
+Z.next_prime     (   1 times) = 3.20	3.35
+NBBITS : 500
+Z.div            (5000 times) = 29.50	29.54
+Z.divexact       (5000 times) = 39.25	18.00
+Q.add            ( 200 times) = 23.00	21.80
+Q.mul            ( 200 times) = 22.02	20.97
+Z.powm           ( 100 times) = 33.28	32.71
+Z.pow            (1000 times) = 10.72	9.41
+Z.root           ( 100 times) = 3.27	3.05
+Z.perfect_power  ( 100 times) = 9.27	9.05
+Z.perfect_square (1000 times) = 2.24	0.24
+Z.probab_prime 5 (  10 times) = 14.25	14.36

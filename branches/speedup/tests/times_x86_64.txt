@@ -1,0 +1,53 @@
+trunk	branches/speedup
+random array(s) size : 8192
+NBBITS : 60
+Z.div            (5000 times) = 0.94	0.96
+Z.divexact       (5000 times) = 1.04	0.95
+Q.add            ( 200 times) = 1.08	1.00
+Q.mul            ( 200 times) = 1.04	0.99
+Z.powm           ( 100 times) = 0.54	0.32
+Z.powm_sec       ( 100 times) = 1.80	1.58
+Z.pow            (1000 times) = 1.70	0.65
+Z.root           ( 100 times) = 0.92	0.83
+Z.perfect_power  ( 100 times) = 0.32	0.24
+Z.perfect_square (1000 times) = 0.84	0.17
+Z.probab_prime 5 (  10 times) = 0.04	0.03
+Z.next_prime     (   1 times) = 0.31	0.31
+NBBITS : 120
+Z.div            (5000 times) = 3.32	3.34
+Z.divexact       (5000 times) = 10.29	2.24
+Q.add            ( 200 times) = 1.53	1.24
+Q.mul            ( 200 times) = 1.38	1.12
+Z.powm           ( 100 times) = 0.67	0.41
+Z.powm_sec       ( 100 times) = 2.52	2.28
+Z.pow            (1000 times) = 1.76	0.70
+Z.root           ( 100 times) = 1.13	1.04
+Z.perfect_power  ( 100 times) = 0.38	0.31
+Z.perfect_square (1000 times) = 0.84	0.17
+Z.probab_prime 5 (  10 times) = 0.08	0.07
+Z.next_prime     (   1 times) = 0.99	0.97
+NBBITS : 500
+Z.div            (5000 times) = 7.75	7.62
+Z.divexact       (5000 times) = 17.61	4.68
+Q.add            ( 200 times) = 10.91	10.40
+Q.mul            ( 200 times) = 10.66	10.23
+Z.powm           ( 100 times) = 2.59	2.27
+Z.powm_sec       ( 100 times) = 15.70	15.46
+Z.pow            (1000 times) = 2.41	2.06
+Z.root           ( 100 times) = 1.55	1.46
+Z.perfect_power  ( 100 times) = 0.69	0.60
+Z.perfect_square (1000 times) = 1.05	0.19
+Z.probab_prime 5 (  10 times) = 1.07	1.05
+Z.next_prime     (   1 times) = 48.25	48.20
+NBBITS : 2000
+Z.div            (5000 times) = 31.85	31.67
+Z.divexact       (5000 times) = 33.57	17.11
+Q.add            ( 200 times) = 49.56	48.55
+Q.mul            ( 200 times) = 48.54	47.93
+Z.powm           ( 100 times) = 27.75	27.46
+Z.powm_sec       ( 100 times) = 199.32	199.06
+Z.pow            (1000 times) = 7.88	7.13
+Z.root           ( 100 times) = 2.48	2.32
+Z.perfect_power  ( 100 times) = 2.24	2.07
+Z.perfect_square (1000 times) = 1.71	0.25
+Z.probab_prime 5 (  10 times) = 36.35	38.20

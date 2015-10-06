@@ -89,11 +89,23 @@ val of_string: string -> t
     (Unlike C, a lone [0] prefix does not denote octal.)
  *)
 
-external of_string_base: int -> string -> t = "ml_z_of_string_base"
+val of_substring : string -> pos:int -> len:int -> t
+(** [of_substring s ~pos ~len] is the same as [of_string (String.sub s
+    pos len)]
+ *)
+
+val of_string_base: int -> string -> t 
 (** Parses a number represented as a string in the specified base,
     with optional [-] or [+] prefix.
     The base must be between 2 and 16.
  *)
+
+external of_substring_base
+  : int -> string -> pos:int -> len:int -> t
+  = "ml_z_of_substring_base"
+(** [of_substring_base base s ~pos ~len] is the same as [of_string_base
+    base (String.sub s pos len)]
+*)
 
 
 (** {1 Basic arithmetic operations} *)

@@ -187,6 +187,22 @@ extern "C" {
 #define Z_HI_INT     0x40000000
 #endif
 
+/* safe bounds for the length of a base n string fitting in a native
+   int. Defined as the result of (n - 2) log_base(2) with n = 64 or
+   32. 
+*/
+#ifdef ARCH_SIXTYFOUR
+#define Z_BASE16_LENGTH_OP 15
+#define Z_BASE10_LENGTH_OP 18
+#define Z_BASE8_LENGTH_OP 20
+#define Z_BASE2_LENGTH_OP 62
+#else
+#define Z_BASE16_LENGTH_OP 7
+#define Z_BASE10_LENGTH_OP 9
+#define Z_BASE8_LENGTH_OP 10
+#define Z_BASE2_LENGTH_OP 30
+#endif
+
 #define Z_LIMB_BITS  (8 * sizeof(mp_limb_t))
 
 
@@ -551,14 +567,29 @@ CAMLprim value ml_z_of_float(value v)
   return r;
 }
 
-CAMLprim value ml_z_of_string_base(value b, value v)
+CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value length)
 {
   CAMLparam1(v);
   CAMLlocal1(r);
-  char *d = String_val(v);
+  intnat ofs = Long_val(offset);
+  intnat len = Long_val(length);
+  /* make sure the ofs/length make sense */
+  if (ofs < 0
+      || len < 0
+      || (intnat)caml_string_length(v) < ofs + len)
+    caml_invalid_argument("Z.of_substring_base: invalid offset or length");
+  /* process the string */
+  char *d = String_val(v) + ofs;
+  char *end = d + len;  
   mp_size_t i, sz, sz2;
   mp_limb_t sign = 0;
   intnat base = Long_val(b);
+  /* We allow [d] to advance beyond [end] while parsing the prefix: 
+     sign, base, and/or leading zeros.  
+     This simplifies the code, and reading these locations is safe since
+     we don't progress beyond a terminating null character. 
+     At the end of the prefix, if we ran past the end, we return 0. 
+  */
   /* get optional sign */
   if (*d == '-') { sign ^= Z_SIGN_MASK; d++; }
   if (*d == '+') d++;
@@ -573,21 +604,48 @@ CAMLprim value ml_z_of_string_base(value b, value v)
     }
   }
   if (base < 2 || base > 16) 
-    caml_invalid_argument("Z.of_string_base: base must be between 2 and 16");
+    caml_invalid_argument("Z.of_substring_base: base must be between 2 and 16");
   while (*d == '0') d++;
-  sz = strlen(d);
-  if (!sz) r = Val_long(0); 
-  else {
-    /* converts to sequence of digits */
-    char* dd = (char*)malloc(strlen(d)+1);
-    strcpy(dd,d);
+  /* sz is the length of the substring that has not been consumed above. */
+  sz = end - d;
+#if Z_USE_NATINT
+  if (!sz) {
+    /* "+", "-", "0x" are parsed as 0. */
+    r = Val_long(0);
+  }
+  /* Process common case (fits into a native integer) */
+  else if ((base == 10 && sz <= Z_BASE10_LENGTH_OP)
+        || (base == 16 && sz <= Z_BASE16_LENGTH_OP)
+        || (base == 8  && sz <= Z_BASE8_LENGTH_OP)
+        || (base == 2  && sz <= Z_BASE2_LENGTH_OP)) {
+      Z_MARK_OP;
+      intnat ret = 0;
+      for (i = 0; i < sz; i++) {
+        int digit = 0;
+        if (d[i] >= '0' && d[i] <= '9') digit = d[i] - '0';
+        else if (d[i] >= 'a' && d[i] <= 'f') digit = d[i] - 'a' + 10;
+        else if (d[i] >= 'A' && d[i] <= 'F') digit = d[i] - 'A' + 10;
+        else caml_invalid_argument("Z.of_substring_base: invalid digit");
+        if (digit >= base) 
+          caml_invalid_argument("Z.of_substring_base: invalid digit");
+        ret = ret * base + digit;
+      }
+      r = Val_long(ret * (sign ? -1 : 1));
+  } else
+#endif
+  {
+     /* converts to sequence of digits */
+    char* dd = (char*)malloc(sz+1);
+    strncpy(dd,d,sz);
+    /* make sure that dd is nul terminated */
+    dd[sz] = 0;
     for (i = 0; i < sz; i++) {
       if (dd[i] >= '0' && dd[i] <= '9') dd[i] -= '0';
       else if (dd[i] >= 'a' && dd[i] <= 'f') dd[i] -= 'a' - 10;
       else if (dd[i] >= 'A' && dd[i] <= 'F') dd[i] -= 'A' - 10;
-      else caml_invalid_argument("Z.of_string_base: invalid number");
+      else caml_invalid_argument("Z.of_substring_base: invalid digit");
       if (dd[i] >= base) 
-        caml_invalid_argument("Z.of_string_base: invalid number");
+        caml_invalid_argument("Z.of_substring_base: invalid digit");
     }
     r = ml_z_alloc(1 + sz / (2 * sizeof(mp_limb_t)));
     sz2 = mpn_set_str(Z_LIMB(r), (unsigned char*)dd, sz, base);

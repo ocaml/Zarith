@@ -20,6 +20,10 @@ test:: tofloat.exe
 	@echo "Testing tofloat..."
 	@./tofloat.exe
 
+test:: ofstring.exe
+	@echo "Testing ofstring..."
+	@./ofstring.exe
+
 bench:: fib.exe
 	@for k in int natint Z bigint num; do echo "Benchmarking fib $$k"; time ./fib.exe $$k 45 > /dev/null; done
 

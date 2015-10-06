@@ -57,7 +57,7 @@ external to_int32: t -> int32 = "ml_z_to_int32"
 external to_int64: t -> int64 = "ml_z_to_int64"
 external to_nativeint: t -> nativeint = "ml_z_to_nativeint"
 external format: string -> t -> string = "ml_z_format"
-external of_string_base: int -> string -> t = "ml_z_of_string_base"
+external of_substring_base: int -> string -> pos:int -> len:int -> t = "ml_z_of_substring_base"
 external compare: t -> t -> int = "ml_z_compare" "noalloc"
 external equal: t -> t -> bool = "ml_z_equal" "noalloc"
 external sign: t -> int = "ml_z_sign" "noalloc"
@@ -102,7 +102,10 @@ let lt a b = compare a b < 0
 let gt a b = compare a b > 0
 
 let to_string = format "%d"
-let of_string = of_string_base 0
+
+let of_string s = of_substring_base 0 s ~pos:0 ~len:(String.length s)
+let of_substring = of_substring_base 0
+let of_string_base base s = of_substring_base base s ~pos:0 ~len:(String.length s)
 
 let ediv_rem a b =
   (* we have a = a * b + r, but [Big_int]'s remainder satisfies 0 <= r < |b|,

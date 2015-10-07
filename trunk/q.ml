@@ -2,11 +2,11 @@
    Rationals.
 
 
-   This file is part of the Zarith library 
+   This file is part of the Zarith library
    http://forge.ocamlcore.org/projects/zarith .
    It is distributed under LGPL 2 licensing, with static linking exception.
    See the LICENSE file included in the distribution.
-   
+
    Copyright (c) 2010-2011 Antoine Miné, Abstraction project.
    Abstraction is part of the LIENS (Laboratoire d'Informatique de l'ENS),
    a joint laboratory by:
@@ -37,14 +37,21 @@ type t = {
 let mk n d =
   { num = n; den = d; }
 
+(* make and normalize n/d, assuming d > 0 *)
+let make_real n d =
+  if n == Z.zero || d == Z.one then mk n Z.one
+  else
+    let g = Z.gcd n d in
+    if g == Z.one
+    then mk n d
+    else mk (Z.divexact n g) (Z.divexact d g)
 
-(* make and normalize *)
+(* make and normalize any fraction *)
 let make n d =
-  if Z.sign d = 0 then mk (Z.of_int (Z.sign n)) Z.zero else
-  if Z.sign n = 0 then mk Z.zero Z.one else
-  let g = Z.gcd n d in
-  let n,d = Z.div n g, Z.div d g in
-  if Z.sign d > 0 then mk n d else mk (Z.neg n) (Z.neg d)
+  let sd = Z.sign d in
+  if sd = 0 then mk (Z.of_int (Z.sign n)) Z.zero else
+  if sd > 0 then make_real n d else
+    make_real (Z.neg n) (Z.neg d)
 
 let of_bigint n = mk n Z.one
 (* n/1 *)
@@ -59,7 +66,7 @@ let of_nativeint n = of_bigint (Z.of_nativeint n)
 
 let of_ints n d = make (Z.of_int n) (Z.of_int d)
 
-let zero = of_bigint  Z.zero
+let zero = of_bigint Z.zero
 (* 0/1 *)
 
 let one = of_bigint Z.one
@@ -85,14 +92,14 @@ let of_float d =
   (* put into the form m * 2^e, where m is an integer *)
   let m,e = Z.of_float (ldexp m 53), e-53 in
   if e >= 0 then of_bigint (Z.shift_left m e)
-  else make m (Z.shift_left Z.one (-e))
+  else make_real m (Z.shift_left Z.one (-e))
 
 let of_string s =
   try
     let i  = String.index s '/' in
-    make 
-      (Z.of_string (String.sub s 0 i)) 
-      (Z.of_string (String.sub s (i+1) (String.length s-i-1)))
+    make
+      (Z.of_substring s 0 i)
+      (Z.of_substring s (i+1) (String.length s-i-1))
   with Not_found ->
     if s = "inf" || s = "+inf" then inf
     else if s = "-inf" then minus_inf
@@ -103,24 +110,25 @@ let of_string s =
 (* queries *)
 (* ------- *)
 
-type kind = 
+type kind =
   | ZERO   (* 0 *)
   | INF    (* 1/0 *)
   | MINF   (* -1/0 *)
   | UNDEF  (* 0/0 *)
-  | NZERO  (* non-special, non-0 *) 
+  | NZERO  (* non-special, non-0 *)
 
-let classify n = 
-  match Z.sign n.num, Z.sign n.den with
-  | 0,0  -> UNDEF
-  | 0,_  -> ZERO
-  | 1,0  -> INF
-  | -1,0 -> MINF
-  | _    -> NZERO
+let classify n =
+  if n.den == Z.zero then
+    match Z.sign n.num with
+    | 1  -> INF
+    | -1 -> MINF
+    | _ -> UNDEF
+  else
+    if n.num == Z.zero
+    then ZERO
+    else NZERO
 
-let is_real n = match classify n with
-| ZERO | NZERO -> true
-| INF | MINF | UNDEF -> false
+let is_real n = (n.den != Z.zero)
 
 let num x = x.num
 
@@ -129,10 +137,10 @@ let den x = x.den
 let sign x = Z.sign x.num
 (* sign undef = 0
    sign inf = 1
-   sign -inf = -1 
+   sign -inf = -1
 *)
 
-let equal x y = 
+let equal x y =
   (Z.equal x.num y.num) && (Z.equal x.den y.den)
 
 let compare x y =
@@ -142,7 +150,15 @@ let compare x y =
   | _,UNDEF -> 1
   | MINF,_ | _,INF -> -1
   | INF,_ | _,MINF -> 1
-  | _ -> Z.compare (Z.mul x.num y.den) (Z.mul y.num x.den)
+  | _ ->
+    if x.den == y.den (* implies equality,
+                         especially if immediate value and not a pointer,
+                         in particular in the case den = 1 *)
+    then Z.compare x.num y.num
+    else
+      Z.compare
+        (Z.mul x.num y.den)
+        (Z.mul y.num x.den)
 
 let min a b = if compare a b <= 0 then a else b
 let max a b = if compare a b >= 0 then a else b
@@ -181,22 +197,34 @@ let to_nativeint x = Z.to_nativeint (to_bigint x)
 (* operations *)
 (* ---------- *)
 
-let neg x = 
+let neg x =
   mk (Z.neg x.num) x.den
 (* neg undef = undef
    neg inf = -inf
    neg -inf = inf
  *)
 
-let abs x = 
+let abs x =
   mk (Z.abs x.num) x.den
 (* abs undef = undef
    abs inf = abs -inf = inf
  *)
 
+(* addition or substraction (zaors) of finite numbers *)
+let aors zaors x y =
+  if x.den == y.den then  (* implies equality,
+                             especially if immediate value and not a pointer,
+                             in particular in the case den = 1 *)
+    make_real (zaors x.num y.num) x.den
+  else
+    make_real
+      (zaors
+         (Z.mul x.num y.den)
+         (Z.mul y.num x.den))
+      (Z.mul x.den y.den)
+
 let add x y =
-  let d = Z.mul x.den y.den in
-  if Z.sign d = 0 then match classify x, classify y with
+  if x.den == Z.zero || y.den == Z.zero then match classify x, classify y with
   | ZERO,_ -> y
   | _,ZERO -> x
   | UNDEF,_ | _,UNDEF -> undef
@@ -204,7 +232,8 @@ let add x y =
   | INF,_ | _,INF -> inf
   | MINF,_ | _,MINF -> minus_inf
   | NZERO,NZERO -> failwith "impossible case"
-  else make (Z.add (Z.mul x.num y.den) (Z.mul y.num x.den)) d
+  else
+    aors Z.add x y
 (* undef + x = x + undef = undef
    inf + -inf = -inf + inf = undef
    inf + x = x + inf = inf
@@ -212,8 +241,7 @@ let add x y =
  *)
 
 let sub x y =
-  let d = Z.mul x.den y.den in
-  if Z.sign d = 0 then match classify x, classify y with
+  if x.den == Z.zero || y.den == Z.zero then match classify x, classify y with
   | ZERO,_ -> neg y
   | _,ZERO -> x
   | UNDEF,_ | _,UNDEF -> undef
@@ -221,22 +249,29 @@ let sub x y =
   | INF,_ | _,MINF -> inf
   | MINF,_ | _,INF -> minus_inf
   | NZERO,NZERO -> failwith "impossible case"
-  else make (Z.sub (Z.mul x.num y.den) (Z.mul y.num x.den)) d
+  else
+    aors Z.sub x y
 (* sub x y = add x (neg y) *)
 
 let mul x y =
-  make (Z.mul x.num y.num) (Z.mul x.den y.den)
+  if x.den == Z.zero || y.den == Z.zero then
+    mk
+      (Z.of_int ((Z.sign x.num) * (Z.sign y.num)))
+      Z.zero
+  else
+    make_real (Z.mul x.num y.num) (Z.mul x.den y.den)
+
 (* undef * x = x * undef = undef
    0 * inf = inf * 0 = 0 * -inf = -inf * 0 = undef
    inf * x = x * inf = sign x * inf
    -inf * x = x * -inf = - sign x * inf
- *)
+*)
 
 let inv x =
   match Z.sign x.num with
   | 1 -> mk x.den x.num
   | -1 -> mk (Z.neg x.den) (Z.neg x.num)
-  | _ ->  if Z.sign x.den = 0 then undef else inf
+  | _ ->  if x.den == Z.zero then undef else inf
 (* 1 / undef = undef
    1 / inf = 1 / -inf = 0
    1 / 0 = inf
@@ -246,8 +281,8 @@ let inv x =
 
 let div x y =
   if Z.sign y.num >= 0
-  then make (Z.mul x.num y.den) (Z.mul x.den y.num)
-  else make (Z.neg (Z.mul x.num y.den)) (Z.neg (Z.mul x.den y.num))
+  then mul x (mk y.den y.num)
+  else mul x (mk (Z.neg y.den) (Z.neg y.num))
 (* undef / x = x / undef = undef
    0 / 0 = undef
    inf / inf = inf / -inf = -inf / inf = -inf / -inf = undef
@@ -262,12 +297,12 @@ let div x y =
 *)
 
 let  mul_2exp x n =
-  if Z.sign x.den = 0 then x
-  else make (Z.shift_left x.num n) x.den
+  if x.den == Z.zero then x
+  else make_real (Z.shift_left x.num n) x.den
 
 let  div_2exp x n =
-  if Z.sign x.num = 0 then x
-  else make x.num (Z.shift_left x.den n)
+  if x.den == Z.zero then x
+  else make_real x.num (Z.shift_left x.den n)
 
 
 (* printing *)

@@ -238,6 +238,28 @@ L(div):
         EPILOG(div)
 
         
+         /* divexact */
+        PROLOG(divexact)
+        mov     %rsi, %rcx
+        cmp     $-1, %rsi
+                   /* division by -1, the only one that can overflow */
+        je      L(negenter)
+        sar     %rcx
+        jnc     L(divexact)	
+        jz      L(divexact)   /* division by zero */
+        mov     %rdi, %rax
+        sar     %rax
+        jnc     L(divexact)
+        cqo
+        idiv    %rcx
+        lea     1(%rax, %rax), %rax
+        OP
+        ret
+L(divexact):
+        C_JMP(divexact)
+        EPILOG(divexact)
+
+
         /* rem */
         PROLOG(rem)
         mov     %rdi, %rax

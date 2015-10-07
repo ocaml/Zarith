@@ -78,7 +78,7 @@ external extract: t -> int -> int -> t = "ml_z_extract"
 external powm: t -> t -> t -> t = "ml_z_powm"
 external pow: t -> int -> t = "ml_z_pow"
 external powm_sec: t -> t -> t -> t = "ml_z_powm_sec"
-external divexact: t -> t -> t = "ml_z_divexact"
+external divexact: t -> t -> t = divexact@ASM
 external root: t -> int -> t = "ml_z_root"
 external invert: t -> t -> t = "ml_z_invert"
 external perfect_power: t -> bool = "ml_z_perfect_power"
@@ -138,8 +138,8 @@ let testbit x n =
 (* The test [n >= 0] is done in Caml rather than in the C stub code
    so that the latter raises no exceptions and can be declared "noalloc". *)
 
-let is_even x = testbit_internal x 0
-let is_odd x  = not (testbit_internal x 0)
+let is_odd x = testbit_internal x 0
+let is_even x  = not (testbit_internal x 0)
 
 let signed_extract x o l =
   if o < 0 then invalid_arg "Z.signed_extract: negative bit offset";
@@ -205,7 +205,7 @@ external ( * ): t -> t -> t = mul@ASM
 external (/): t -> t -> t = div@ASM
 external (/>): t -> t -> t = "ml_z_cdiv"
 external (/<): t -> t -> t = "ml_z_fdiv"
-external (/|): t -> t -> t = "ml_z_divexact"
+external (/|): t -> t -> t = divexact@ASM
 external (mod): t -> t -> t = rem@ASM
 external (land): t -> t -> t = logand@ASM
 external (lor): t -> t -> t = logor@ASM

@@ -178,7 +178,7 @@ val erem: t -> t -> t
     [a = b * ediv a b + erem a b].  Raises [Division_by_zero] if [b = 0].
  *)
 
-external divexact: t -> t -> t = "ml_z_divexact"
+external divexact: t -> t -> t = divexact@ASM
 (** [divexact a b] divides [a] by [b], only producing correct result when the
     division is exact, i.e., when [b] evenly divides [a].
     It should be faster than general division.
@@ -574,7 +574,7 @@ external (/>): t -> t -> t = "ml_z_cdiv"
 external (/<): t -> t -> t = "ml_z_fdiv"
 (** Flooring division [fdiv]. *)
 
-external (/|): t -> t -> t = "ml_z_divexact"
+external (/|): t -> t -> t = divexact@ASM
 (** Exact division [div_exact]. *)
 
 external (mod): t -> t -> t = rem@ASM

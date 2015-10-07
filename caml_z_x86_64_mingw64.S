@@ -202,6 +202,37 @@ SYMB(ml_as_z_##proc):\
         EPILOG(div)
 
         
+        /* divexact */
+        PROLOG(divexact)
+        test    $1, %rcx
+        jz      .Ldivexact
+        test    $1, %rdx
+        jz      .Ldivexact
+        mov     %rdx, %r8
+        mov     %rcx, %rax
+        sar     %r8
+        jz      .Ldivexact   /* division by zero */
+        cmp     $-1, %r8
+        je      .Ldivexactneg
+        sar     %rax
+        cqo
+        idiv    %r8
+        sal     %rax
+        inc     %rax
+        OP
+        ret
+.Ldivexactneg:
+        /* division by -1, the only one that can overflow */
+        not     %rax
+        add     $3, %rax
+        jo      .Ldivexact
+        OP
+        ret
+.Ldivexact:
+        C_JMP(divexact)
+        EPILOG(divexact)
+
+        
         /* rem */
         PROLOG(rem)
         test    $1, %rcx

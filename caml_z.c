@@ -1740,11 +1740,12 @@ CAMLprim value ml_z_gcd(value arg1, value arg2)
     if (!a1 || !a2) ml_z_raise_divide_by_zero();
     if (a1 < 0) a1 = -a1;
     if (a2 < 0) a2 = -a2;
+    if (a1 < a2) { intnat t = a1; a1 = a2; a2 = t; }
     while (a2)  {
       intnat r = a1 % a2;
       a1 = a2; a2 = r;
     }
-    if (Z_FITS_INT(a1)) return Val_long(a1);
+    return Val_long(a1);
   }
 #endif
   /* mpn_ version */
@@ -2586,8 +2587,14 @@ value ml_z_from_mpz(mpz_t op)
   return ml_z_reduce(r, sz, (mpz_sgn(op) >= 0) ? 0 : Z_SIGN_MASK);
 }
 
+#if __GNU_MP_VERSION >= 5
+/* not exported by gmp.h */
+extern void __gmpn_divexact (mp_ptr, mp_srcptr, mp_size_t, mp_srcptr, mp_size_t);
+#endif
+
 CAMLprim value ml_z_divexact(value arg1, value arg2)
 {
+  Z_DECL(arg1); Z_DECL(arg2);
   Z_MARK_OP;
   Z_CHECK(arg1); Z_CHECK(arg2);
 #if Z_FAST_PATH
@@ -2601,9 +2608,31 @@ CAMLprim value ml_z_divexact(value arg1, value arg2)
     if (Z_FITS_INT(q)) return Val_long(q);
   }
 #endif
-  /* mpz_ version */
   Z_MARK_SLOW;
+#if __GNU_MP_VERSION >= 5
   {
+    /* mpn_ version */
+    Z_ARG(arg1);
+    Z_ARG(arg2);
+    if (!size_arg2)
+      ml_z_raise_divide_by_zero();
+    if (size_arg1 < size_arg2)
+      return Val_long(0);
+    {
+      CAMLparam2(arg1,arg2);
+      CAMLlocal1(q);
+      q = ml_z_alloc(size_arg1 - size_arg2 + 1);
+      Z_REFRESH(arg1); Z_REFRESH(arg2);
+      __gmpn_divexact(Z_LIMB(q),
+                      ptr_arg1,  size_arg1, ptr_arg2, size_arg2);
+      q = ml_z_reduce(q, size_arg1 - size_arg2 + 1, sign_arg1 ^ sign_arg2);
+      Z_CHECK(q);
+      CAMLreturn(q);
+    }
+  }
+#else
+  {
+    /* mpz_ version */
     CAMLparam2(arg1,arg2);
     CAMLlocal1(r);
     mpz_t a,b;
@@ -2617,6 +2646,7 @@ CAMLprim value ml_z_divexact(value arg1, value arg2)
     mpz_clear(b);
     CAMLreturn(r);
   }
+#endif
 }
  
 CAMLprim value ml_z_powm(value base, value exp, value mod)

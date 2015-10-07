@@ -732,6 +732,22 @@ gcdext 2^120 2^300
  = 1329227995784915872903807060280344576, 1, 0
 gcdext 2^300 2^120
  = 1329227995784915872903807060280344576, 0, 1
+is_odd 0
+ = false
+is_odd 1
+ = true
+is_odd 2
+ = false
+is_odd 3
+ = true
+is_odd 2^120
+ = false
+is_odd 2^120+1
+ = true
+is_odd 2^300
+ = false
+is_odd 2^300+1
+ = true
 sqrt 0
  = 0
 sqrt 1
@@ -1242,6 +1258,30 @@ undef * 1/ -1 = undef
 undef * 1/ +inf = undef
 undef * 1/ -inf = undef
 undef * 1/ undef = undef
+mul_2exp (1)  0 = 0
+mul_2exp (1)  1 = 2
+mul_2exp (1)  -1 = -2
+mul_2exp (1)  +inf = +inf
+mul_2exp (1)  -inf = -inf
+mul_2exp (1)  undef = undef
+mul_2exp (2)  0 = 0
+mul_2exp (2)  1 = 4
+mul_2exp (2)  -1 = -4
+mul_2exp (2)  +inf = +inf
+mul_2exp (2)  -inf = -inf
+mul_2exp (2)  undef = undef
+div_2exp (1)  0 = 0
+div_2exp (1)  1 = 1/2
+div_2exp (1)  -1 = -1/2
+div_2exp (1)  +inf = +inf
+div_2exp (1)  -inf = -inf
+div_2exp (1)  undef = undef
+div_2exp (2)  0 = 0
+div_2exp (2)  1 = 1/4
+div_2exp (2)  -1 = -1/4
+div_2exp (2)  +inf = +inf
+div_2exp (2)  -inf = -inf
+div_2exp (2)  undef = undef
 identity checking 0 0
 identity checking 0 1
 identity checking 0 -1

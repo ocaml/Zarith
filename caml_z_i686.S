@@ -234,6 +234,28 @@ L(div):
         EPILOG(div)
 
         
+        /* divexacty */
+        PROLOG(divexact)
+        mov     8(%esp), %ecx
+        sar     %ecx
+        jnc     L(divexact)   /* not a 31-bit integer */
+        jz      L(divexact)   /* division by zero */
+        cmp     $-1, %ecx
+	     /* division by -1, the only one that can overflow */
+        je      L(negenter)
+        mov     4(%esp), %eax
+        sar     %eax
+        jnc     L(divexact)   /* not a 31-bit integer */
+        cdq
+        idiv    %ecx
+	lea	1(%eax, %eax), %eax
+        OP
+        ret
+L(divexact):
+        C_JMP(divexact)
+        EPILOG(divexact)
+
+        
         /* rem */
         PROLOG(rem)
         mov     4(%esp), %eax

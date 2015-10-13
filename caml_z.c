@@ -2675,6 +2675,7 @@ CAMLprim value ml_z_powm(value base, value exp, value mod)
 
 CAMLprim value ml_z_powm_sec(value base, value exp, value mod)
 {
+#ifndef HAS_MPIR
 #if __GNU_MP_VERSION >= 5
   CAMLparam3(base,exp,mod);
   CAMLlocal1(r);
@@ -2693,7 +2694,10 @@ CAMLprim value ml_z_powm_sec(value base, value exp, value mod)
   mpz_clear(mmod);
   CAMLreturn(r);
 #else
-  invalid_argument("Z.powm_sec: not available, needs GMP version >= 5");
+  caml_invalid_argument("Z.powm_sec: not available, needs GMP version >= 5");
+#endif
+#else
+  caml_invalid_argument("Z.powm_sec: not available in MPIR, needs GMP version >= 5");
 #endif
 }
 

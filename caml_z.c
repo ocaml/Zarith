@@ -34,7 +34,7 @@
 #include <mpir.h>
 #endif
 
-#include "features.h"
+#include "z_features.h"
 #include "zarith.h"
 
 #ifdef __cplusplus

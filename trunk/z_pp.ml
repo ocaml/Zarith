@@ -82,4 +82,4 @@ let generate_config filename =
 
 let _ = treat_file "ml"
 let _ = treat_file "mli"
-let _ = generate_config "features.h"
+let _ = generate_config "z_features.h"

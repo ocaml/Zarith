@@ -72,7 +72,7 @@ doml "mli";
 
 # generate a features.h file recording the functions defined in asm
 
-open F, "> features.h";
+open F, "> z_features.h";
 for $i (sort (keys %ASM_FUNS)) { 
     print F "#define Z_ASM_$i\n";
 }

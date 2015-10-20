@@ -2684,9 +2684,9 @@ CAMLprim value ml_z_powm_sec(value base, value exp, value mod)
   ml_z_mpz_init_set_z(mexp, exp);
   ml_z_mpz_init_set_z(mmod, mod);
   if (mpz_sgn(mexp) <= 0)
-    invalid_argument("Z.powm_sec: exponent must be positive");
+    caml_invalid_argument("Z.powm_sec: exponent must be positive");
   if (! mpz_odd_p(mmod))
-    invalid_argument("Z.powm_sec: modulus must be odd");
+    caml_invalid_argument("Z.powm_sec: modulus must be odd");
   mpz_powm_sec(mbase, mbase, mexp, mmod);
   r = ml_z_from_mpz(mbase);
   mpz_clear(mbase);
@@ -2694,9 +2694,15 @@ CAMLprim value ml_z_powm_sec(value base, value exp, value mod)
   mpz_clear(mmod);
   CAMLreturn(r);
 #else
+  MAYBE_UNUSED(base);
+  MAYBE_UNUSED(exp);
+  MAYBE_UNUSED(mod);
   caml_invalid_argument("Z.powm_sec: not available, needs GMP version >= 5");
 #endif
 #else
+  MAYBE_UNUSED(base);
+  MAYBE_UNUSED(exp);
+  MAYBE_UNUSED(mod);
   caml_invalid_argument("Z.powm_sec: not available in MPIR, needs GMP version >= 5");
 #endif
 }

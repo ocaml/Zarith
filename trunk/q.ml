@@ -178,9 +178,6 @@ let to_string n =
       if Z.equal n.den Z.one then Z.to_string n.num
       else (Z.to_string n.num) ^ "/" ^ (Z.to_string n.den)
 
-let to_string_raw n =
-  (Z.to_string n.num) ^ "/" ^ (Z.to_string n.den)
-
 let to_bigint x = Z.div x.num x.den
 (* raises a Division by zero in case x is undefined or infinity *)
 

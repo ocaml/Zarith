@@ -1,9 +1,17 @@
-Development trunk:
+Release 1.4 (2015-11-02):
+- Improvements to Q (using divexact) [Bertrand Jeannet]
+- Fixed div_2exp bug [Bertrand Jeannet]
+- Improvements for divexact [Bertrand Jeannet]
+- Added of_substring, with fast path for native integers [Thomas Braibant]
 - Added Z.powm_sec (constant-time modular exponentiation)
 - Reimplemented Z.to_float, now produces correctly rounded FP numbers
 - Added Z.trailing_zeros.
 - Added Z.testbit, Z.is_even, Z.is_odd.
 - Added Z.numbits, Z.log2 and Z.log2up.
+- PR$1467: Z.hash is declared as "noalloc" [François Bobot]
+- PR#1451: configure fix [Spiros Eliopoulos]
+- PR#1436: disable "(void)" trick for unused variables on Windows [Bernhard Schommer]
+- PR#1434: removed dependencies on printf & co when Z_PERFORM_CHECK is 0 [Hannes Mehnert]
 - PR#1462: issues with Z.to_float and large numbers.
 
 Release 1.3 (2014-09-03):

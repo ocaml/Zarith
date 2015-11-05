@@ -1,4 +1,6 @@
-#!/usr/bin/perl -W
+#!/usr/bin/env perl
+
+use warnings "all";
 
 # Simple preprocessor to fix @ASM directives in z.mlp and z.mlip, and
 # generate z.ml and z.mli

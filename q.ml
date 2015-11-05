@@ -98,8 +98,8 @@ let of_string s =
   try
     let i  = String.index s '/' in
     make
-      (Z.of_substring s 0 i)
-      (Z.of_substring s (i+1) (String.length s-i-1))
+      (Z.of_substring s ~pos:0 ~len:i)
+      (Z.of_substring s ~pos:(i+1) ~len:(String.length s-i-1))
   with Not_found ->
     if s = "inf" || s = "+inf" then inf
     else if s = "-inf" then minus_inf

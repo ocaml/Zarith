@@ -609,7 +609,7 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
   /* sz is the length of the substring that has not been consumed above. */
   sz = end - d;
 #if Z_USE_NATINT
-  if (!sz) {
+  if (sz <= 0) {
     /* "+", "-", "0x" are parsed as 0. */
     r = Val_long(0);
   }
@@ -877,6 +877,7 @@ CAMLprim value ml_z_extract(value arg, value off, value len)
   value r;
   Z_DECL(arg);
   Z_MARK_OP;
+  MAYBE_UNUSED x;
   o = Long_val(off);
   l = Long_val(len);
   if (o < 0) caml_invalid_argument("Z.extract: negative bit offset");

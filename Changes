@@ -1,3 +1,7 @@
+Release 1.4.1 (2015-11-09):
+- Fixed ml_z_of_substring_base and Z.of_substring [Thomas Braibant]
+- Integrated Opam fix for Perl scripts [Thomas Braibant]
+
 Release 1.4 (2015-11-02):
 - Improvements to Q (using divexact) [Bertrand Jeannet]
 - Fixed div_2exp bug [Bertrand Jeannet]

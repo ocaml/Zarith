@@ -65,7 +65,7 @@ zarith.cmxa zarith.$(LIBSUFFIX): $(MLSRC:%.ml=%.cmx)
 	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)
 
 zarith.cmxs: zarith.cmxa libzarith.$(LIBSUFFIX)
-	$(OCAMLOPT) -shared -o $@ -I . zarith.cmxa
+	$(OCAMLOPT) -shared -o $@ -I . zarith.cmxa -linkall
 
 libzarith.$(LIBSUFFIX) dllzarith.$(DLLSUFFIX): $(SSRC:%.S=%.$(OBJSUFFIX)) $(CSRC:%.c=%.$(OBJSUFFIX)) 
 	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)

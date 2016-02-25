@@ -410,10 +410,12 @@ external gcd: t -> t -> t = "ml_z_gcd"
 *)
 
 val gcdext: t -> t -> (t * t * t)
-(** [gcd_ext u v] returns [(g,s,t)]  where [g] is the greatest common divisor
+(** [gcdext u v] returns [(g,s,t)]  where [g] is the greatest common divisor
     and [g=us+vt].
-    [g] is always positive.
+    [g] is always positive.      
     Raises a [Division_by_zero] is either argument is null.
+
+    Note: the function is based on the GMP [mpn_gcdext] function. The exact choice of [s] and [t] such that [g=us+vt] is not specified, as it may vary from a version of GMP to another (it has changed notably in GMP 4.3.0 and 4.3.1).
  *)
 
 val lcm: t -> t -> t

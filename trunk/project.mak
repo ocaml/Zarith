@@ -42,7 +42,7 @@ CMIOBJ = $(MLISRC:%.mli=%.cmi)
 TOINSTALL := zarith.h zarith.cma libzarith.$(LIBSUFFIX) $(MLISRC) $(CMIOBJ)
 
 ifeq ($(HASOCAMLOPT),yes)
-TOINSTALL := $(TOINSTALL) zarith.$(LIBSUFFIX) zarith.cmxa
+TOINSTALL := $(TOINSTALL) zarith.$(LIBSUFFIX) zarith.cmxa z.cmx
 endif
 
 ifeq ($(HASDYNLINK),yes)

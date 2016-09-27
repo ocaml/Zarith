@@ -39,10 +39,11 @@ MLISRC = z.mli q.mli big_int_Z.mli
 AUTOGEN = z.ml z.mli z_features.h
 
 CMIOBJ = $(MLISRC:%.mli=%.cmi)
+CMXOBJ = $(MLISRC:%.mli=%.cmx)
 TOINSTALL := zarith.h zarith.cma libzarith.$(LIBSUFFIX) $(MLISRC) $(CMIOBJ)
 
 ifeq ($(HASOCAMLOPT),yes)
-TOINSTALL := $(TOINSTALL) zarith.$(LIBSUFFIX) zarith.cmxa z.cmx
+TOINSTALL := $(TOINSTALL) zarith.$(LIBSUFFIX) zarith.cmxa $(CMXOBJ)
 endif
 
 ifeq ($(HASDYNLINK),yes)

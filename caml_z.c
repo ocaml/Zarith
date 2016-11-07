@@ -521,7 +521,7 @@ CAMLprim value ml_z_of_float(value v)
   Z_MARK_OP;
   x = Double_val(v);
 #if Z_USE_NATINT
-  if (x >= Z_MIN_INT_FL && x <= Z_MAX_INT_FL) return Val_long(x);
+  if (x >= Z_MIN_INT_FL && x <= Z_MAX_INT_FL) return Val_long((intnat) x);
 #endif
   Z_MARK_SLOW;
 #ifdef ARCH_ALIGN_INT64

@@ -25,6 +25,13 @@ die "Usage: './z_pp.pl architecture'" unless $#ARGV==0;
 $v = `grep version META`;
 ($ver) = $v =~ /version\s*=\s*(\S+)/;
 
+$ov = `ocamlc -version`;
+($major,$minor,$extra) = split(/\./, $ov, 3);
+if ($major > 4 || ($major == 4 && $minor >= 3)) {
+    $noalloc = "[\@\@noalloc]";
+} else {
+    $noalloc = "\"noalloc\"";
+}
 
 # scan assembly
 
@@ -64,6 +71,7 @@ sub doml {
             $l =~ s/$f\@ASM/$r/g;
         }
         $l =~ s/\@VERSION/$ver/;
+        $l =~ s/\@NOALLOC/$noalloc/;
         print O "$l";
     }
     close F;

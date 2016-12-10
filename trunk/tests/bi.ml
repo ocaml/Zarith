@@ -35,12 +35,16 @@ let random_int64 () =
 let random_int () = Int64.to_int (random_int64 ())
 
 let random_string () =
-  let s = String.create (1 + Random.int 200) in
-  for i = 0 to String.length s - 1 do
-    s.[i] <- Char.chr (48 + Random.int 10)
+  let l = 1 + Random.int 200 in
+  let s = Buffer.create l in
+  let st = if l > 1 && Random.bool () then begin
+      Buffer.add_char s '-';
+      1
+    end else 0 in
+  for i = st to l - 1 do
+   Buffer.add_char s (Char.chr (48 + Random.int 10))
   done;
-  if String.length s > 1 && Random.bool () then s.[0] <- '-';
-  s
+  Buffer.contents s
 
 
 (* list utility *)

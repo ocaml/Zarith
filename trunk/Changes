@@ -1,5 +1,6 @@
 - Z.of_float: fix a bug in the fast path [Richard Jones]
   (See https://bugzilla.redhat.com/show_bug.cgi?id=1392247)
+- Improve compatibility with OCaml 4.03 and up [Bernhard Schommer]
 
 Release 1.4.1 (2015-11-09):
 - Fixed ml_z_of_substring_base and Z.of_substring [Thomas Braibant]

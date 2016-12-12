@@ -475,7 +475,7 @@ CAMLprim value ml_z_of_int32(value v)
     value r;
     Z_MARK_SLOW;
     r = ml_z_alloc(1);
-    if (/* XXX:  */ > 0) { Z_HEAD(r) = 1; Z_LIMB(r)[0] = x; }
+    if (x > 0) { Z_HEAD(r) = 1; Z_LIMB(r)[0] = x; }
     else if (x < 0) { Z_HEAD(r) = 1 | Z_SIGN_MASK; Z_LIMB(r)[0] = 0-(mp_limb_t)x; }
     else Z_HEAD(r) = 0;
     Z_CHECK(r);

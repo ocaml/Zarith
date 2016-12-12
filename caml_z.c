@@ -398,7 +398,7 @@ static value ml_z_reduce(value r, mp_size_t sz, intnat sign)
 #if Z_USE_NATINT
   if (!sz) return Val_long(0);
   if (sz <= 1 && Z_LIMB(r)[0] <= Z_MAX_INT) {
-    if (sign) return Val_long(-Z_LIMB(r)[0]); 
+    if (sign) return Val_long(0-Z_LIMB(r)[0]);
     else return Val_long(Z_LIMB(r)[0]);
   }
 #else
@@ -463,23 +463,25 @@ CAMLprim value ml_z_of_nativeint(value v)
 CAMLprim value ml_z_of_int32(value v)
 {
   int32_t x;
-  value r;
   Z_MARK_OP;
   x = Int32_val(v);
-#if Z_USE_NATINT
-#ifdef ARCH_SIXTYFOUR
+#if Z_USE_NATINT && defined(ARCH_SIXTYFOUR)
   return Val_long(x);
 #else
+#if Z_USE_NATINT
   if (Z_FITS_INT(x)) return Val_long(x);
 #endif
+  {
+    value r;
+    Z_MARK_SLOW;
+    r = ml_z_alloc(1);
+    if (/* XXX:  */ > 0) { Z_HEAD(r) = 1; Z_LIMB(r)[0] = x; }
+    else if (x < 0) { Z_HEAD(r) = 1 | Z_SIGN_MASK; Z_LIMB(r)[0] = 0-(mp_limb_t)x; }
+    else Z_HEAD(r) = 0;
+    Z_CHECK(r);
+    return r;
+  }
 #endif
-  Z_MARK_SLOW;
-  r = ml_z_alloc(1);
-  if (x > 0) { Z_HEAD(r) = 1; Z_LIMB(r)[0] = x; }
-  else if (x < 0) { Z_HEAD(r) = 1 | Z_SIGN_MASK; Z_LIMB(r)[0] = -(mp_limb_t)x; }
-  else Z_HEAD(r) = 0;
-  Z_CHECK(r);
-  return r;
 }
 
 CAMLprim value ml_z_of_int64(value v)
@@ -2550,7 +2552,7 @@ CAMLprim value ml_z_testbit(value arg, value index)
     for (i = 0; i < l_idx; i++) {
       if (ptr_arg[i] != 0) { limb = ~limb; goto extract; }
     }
-    limb = -limb;
+    limb = 0-limb;
   }
  extract:
   return Val_int((limb >> (b_idx % Z_LIMB_BITS)) & 1);

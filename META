@@ -3,3 +3,11 @@ requires = ""
 version = "1.5"
 archive(byte) = "zarith.cma"
 archive(native) = "zarith.cmxa"
+
+package "ppx" (
+  description = "Zarith ppx"
+  version = "[distributed with zarith]"
+  ppx = "./ppx"
+  requires = "zarith"
+  exists_if = "ppx"
+)

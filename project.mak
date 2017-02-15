@@ -30,10 +30,10 @@ endif
 
 ifeq ($(HASOCAMLOPT),yes)
 OCAMLBEST=$(OCAMLOPT)
-OCAMLCOMMON=ocamlcommon.cmxa
+OCAMLCOMMON=ocamlcommon.cmxa str.cmxa
 else
 OCAMLBEST=$(OCAMLC)
-OCAMLCOMMON=ocamlcommon.cma
+OCAMLCOMMON=ocamlcommon.cma str.cma
 endif
 
 # project files

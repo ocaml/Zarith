@@ -36,6 +36,13 @@ test:: ofstring.exe
 	@echo "Testing ofstring..."
 	@./ofstring.exe
 
+testppx.out: testppx.ml ../zarith.cma ../ppx$(EXE)
+	TERM=dumb ocaml -noinit -noprompt -I .. ../zarith.cma -ppx ../ppx$(EXE) < testppx.ml | tail -n +2 &> testppx.out
+
+test:: testppx.ml testppx.out
+	@echo "Testing ppx..."
+	@diff testppx.out testppx.expected
+
 ifeq ($(HAS_NUM),true)
 bench:: fib.exe
 	@for k in int natint Z bigint num; do echo "Benchmarking fib $$k"; time ./fib.exe $$k 45 > /dev/null; done

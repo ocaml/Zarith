@@ -1,0 +1,62 @@
+
+- : Z.t = 0
+- : Z.t = 1
+- : Z.t = -1
+- : Z.t = 123
+- : Z.t = -2
+- : Z.t = 103
+- : Z.t = -83
+- : Z.t = 24
+- : Z.t = -170
+- : Z.t = 4294967297
+- : Z.t = 4294967297
+- : Z.t = -4294967297
+- : Z.t = 18446744073709551617
+- : Z.t = 18446744073709551617
+- : Z.t = -18446744073709551617
+- : Q.t = 0
+- : Q.t = 1
+- : Q.t = -1
+- : Q.t = 123
+- : Q.t = -2
+- : Q.t = 103
+- : Q.t = -83
+- : Q.t = 24
+- : Q.t = 170
+- : Q.t = 4294967297
+- : Q.t = 4294967297
+- : Q.t = -4294967297
+- : Q.t = 18446744073709551617
+- : Q.t = 18446744073709551617
+- : Q.t = -18446744073709551617
+Characters 12-16:
+  0b2z ;;
+  ^^^^
+Error: Invalid literal 0b2z
+Characters 0-4:
+  0O8z ;;
+  ^^^^
+Error: Invalid literal 0O8z
+Characters 0-7:
+  0x12g8z ;;
+  ^^^^^^^
+Error: Invalid literal 0x12g8z
+Characters 0-4:
+  0b2q ;;
+  ^^^^
+Error: Invalid literal 0b2q
+Characters 0-4:
+  0O8q ;;
+  ^^^^
+Error: Invalid literal 0O8q
+Characters 0-7:
+  0x12g8q ;;
+  ^^^^^^^
+Error: Invalid literal 0x12g8q
+Characters 46-53:
+  let foo = [ Q.neg 0x12.4q ] ;;
+                    ^^^^^^^
+Hexadecimal floating point numbers are not accepted. Please use hexadecimal
+integers, or regular floating point
+numbers.
+

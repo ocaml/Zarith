@@ -5,6 +5,8 @@
 *.exe
 *.o
 Makefile
+*.so
+*.out
 z.ml
 z.mli
 z_features.h

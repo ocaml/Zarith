@@ -1,6 +1,7 @@
 #install_printer Z.pp_print ;;
 #install_printer Q.pp_print ;;
 
+(* Integers *)
 0z ;;
 1z ;;
 -1z ;;
@@ -45,3 +46,21 @@
 
 (* Test error positions *)
 let foo = [ Q.neg 0x12.4q ] ;;
+
+(* Floats *)
+1.z;;
+1.2e10z;;
+-1135.32135e50z;;
+
+1.q;;
+0.324q;;
+123.545q;;
+-1.5e-1q;;
+1.e-4q;;
+1.2e10q;;
+-1135.32135e50q;;
+
+(* Rejected *)
+1.2z;;
+1.e-4z;;
+

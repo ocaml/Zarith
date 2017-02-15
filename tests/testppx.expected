@@ -59,4 +59,22 @@ Characters 46-53:
 Hexadecimal floating point numbers are not accepted. Please use hexadecimal
 integers, or regular floating point
 numbers.
+- : Z.t = 1
+- : Z.t = 12000000000
+- : Z.t = -113532135000000000000000000000000000000000000000000000
+- : Q.t = 1
+- : Q.t = 81/250
+- : Q.t = 24709/200
+- : Q.t = -3/20
+- : Q.t = 1/10000
+- : Q.t = 12000000000
+- : Q.t = -113532135000000000000000000000000000000000000000000000
+Characters 16-20:
+  1.2z;;
+  ^^^^
+This literal does not fit in an integer.
+Characters 0-6:
+  1.e-4z;;
+  ^^^^^^
+This literal does not fit in an integer.
 

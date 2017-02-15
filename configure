@@ -38,6 +38,7 @@ mloptflags="$OCAMLOPTFLAGS"
 mlinc="$OCAMLINC"
 objsuffix="o"
 ocamlfind="auto"
+withppx='no'
 
 # sanitize
 LC_ALL=C
@@ -402,6 +403,17 @@ case "$ocamlver" in
         hasbinannot='yes';;
 esac
 
+# PPX literals supported since 4.03.0
+case "$ocamlver" in
+    [123].* | 4.01* | 4.02*)
+        ;;
+    *)
+        echo "OCaml PPX literals supported"
+        withppx='yes'
+        ;;
+esac
+
+
 # dump Makefile
 
 cat > Makefile <<EOF
@@ -429,6 +441,7 @@ OBJSUFFIX=$objsuffix
 HASOCAMLOPT=$hasocamlopt
 HASDYNLINK=$hasdynlink
 HASBINANNOT=$hasbinannot
+WITHPPX=$withppx
 
 include project.mak
 EOF

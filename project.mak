@@ -28,6 +28,14 @@ endif
 endif
 
 
+ifeq ($(HASOCAMLOPT),yes)
+OCAMLBEST=$(OCAMLOPT)
+OCAMLCOMMON=ocamlcommon.cmxa
+else
+OCAMLBEST=$(OCAMLC)
+OCAMLCOMMON=ocamlcommon.cma
+endif
+
 # project files
 ###############
 
@@ -57,6 +65,10 @@ TOINSTALL += $(CMIDOC)
 OCAMLFLAGS += -bin-annot
 endif
 
+ifeq ($(WITHPPX),yes)
+TOINSTALL := $(TOINSTALL) ppx$(EXE)
+endif
+
 # build targets
 ###############
 
@@ -76,6 +88,9 @@ zarith.cmxs: zarith.cmxa libzarith.$(LIBSUFFIX)
 
 libzarith.$(LIBSUFFIX) dllzarith.$(DLLSUFFIX): $(SSRC:%.S=%.$(OBJSUFFIX)) $(CSRC:%.c=%.$(OBJSUFFIX)) 
 	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)
+
+ppx$(EXE): ppx.ml
+	$(OCAMLBEST) -I +compiler-libs -linkall $(OCAMLCOMMON) ppx.ml -o $@
 
 doc: $(MLISRC)
 	mkdir -p html
@@ -135,7 +150,7 @@ $(AUTOGEN): z.mlp z.mlip $(SSRC) z_pp.pl
 	$(OCAMLC) -ccopt "$(CFLAGS)" -c $<
 
 clean:
-	/bin/rm -rf *.$(OBJSUFFIX) *.$(LIBSUFFIX) *.$(DLLSUFFIX) *.cmi *.cmo *.cmx *.cmxa *.cmxs *.cma  *.cmt *.cmti *~ \#* depend test $(AUTOGEN) tmp.c depend
+	/bin/rm -rf *.$(OBJSUFFIX) *.$(LIBSUFFIX) *.$(DLLSUFFIX) *.cmi *.cmo *.cmx *.cmxa *.cmxs *.cma  *.cmt *.cmti *~ \#* depend test $(AUTOGEN) tmp.c depend ppx
 	make -C tests clean
 
 depend: $(AUTOGEN)

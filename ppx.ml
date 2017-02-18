@@ -35,9 +35,12 @@ let integer m s =
 let integer_z = integer "Z"
 let integer_q = integer "Q"
 
-(* float_of_string doesn't error on floats that are not representable so
-   we need to be careful.
-   Example: 9007199254740993.0
+(* When the programmer writes 9007199254740993.0q, they want the rational for
+   9007199254740993, not for the closest double-precision number to that
+   9007199254740992.
+   Similarly, when the programmer writes 0.1q, they want the rational for 1/10,
+   not for 1000000000000000055511151231257827021181583404541015625/10000000000000000000000000000000000000000000000000000000.
+   For all these reasons float_of_string must not be used here.
 
    Instead we use a regular expression to get the pieces and recombine them.
    The format is I.FeX

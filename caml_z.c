@@ -2713,7 +2713,7 @@ CAMLprim value ml_z_pow(value base, value exp)
   CAMLparam2(base,exp);
   CAMLlocal1(r);
   mpz_t mbase;
-  int e = Long_val(exp);
+  intnat e = Long_val(exp);
   if (e < 0) 
     caml_invalid_argument("Z.pow: exponent must be non-negative");
   ml_z_mpz_init_set_z(mbase, base);
@@ -2728,7 +2728,7 @@ CAMLprim value ml_z_root(value a, value b)
   CAMLparam2(a,b);
   CAMLlocal1(r);
   mpz_t ma;
-  int mb = Long_val(b);
+  intnat mb = Long_val(b);
   if (mb < 0) 
     caml_invalid_argument("Z.root: exponent must be non-negative");
   ml_z_mpz_init_set_z(ma, a);

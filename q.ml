@@ -189,7 +189,41 @@ let to_int64 x = Z.to_int64 (to_bigint x)
 
 let to_nativeint x = Z.to_nativeint (to_bigint x)
 
-
+let to_float x =
+  match classify x with
+  | ZERO -> 0.0
+  | INF  -> infinity
+  | MINF -> neg_infinity
+  | UNDEF -> nan
+  | NZERO ->
+    let p = x.num and q = x.den in
+    let np = Z.numbits p and nq = Z.numbits q in
+    if np <= 53 && nq <= 53 then
+      (* p and q convert to floats exactly; use FP division to get the
+         correctly-rounded result. *)
+      Int64.to_float (Z.to_int64 p) /. Int64.to_float (Z.to_int64 q)
+    else begin
+      (* |p| is in [2^(np-1), 2^np)
+         q is in [2^(nq-1), 2^nq)
+         hence |p/q| is in (2^(np-nq-1), 2^(np-nq+1)).
+         We define n such that |p/q*2^n| is in [2^54, 2^56).
+         >= 2^54 so that the round to odd technique applies.
+         < 2^56 so that the integral part is representable as an int64. *)
+      let n = 55 - (np - nq) in
+      (* Scaling p/q by 2^n *)
+      let (p', q') =
+        if n >= 0
+        then (Z.shift_left p n, q)
+        else (p, Z.shift_left q (-n)) in
+      (* Euclidean division of p' by q' *)
+      let (quo, rem) = Z.ediv_rem p' q' in
+      (* quo is the integral part of p/q*2^n
+         rem/q' is the fractional part. *)
+      (* Round quo to float *)
+      let f = Z.round_to_float quo (Z.sign rem = 0) in
+      (* Apply exponent *)
+      ldexp f (-n)
+    end
 
 (* operations *)
 (* ---------- *)

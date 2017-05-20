@@ -1,3 +1,4 @@
+- Added Q.to_float.
 - Z.of_float: fix a bug in the fast path [Richard Jones]
   (See https://bugzilla.redhat.com/show_bug.cgi?id=1392247)
 - Improve compatibility with OCaml 4.03 and up [Bernhard Schommer]

@@ -610,3 +610,8 @@ external ( ** ): t -> int -> t = "ml_z_pow"
 
 val version: string
 (** Library version (this file refers to version [@VERSION]). *)
+
+(**/**)
+
+(** For internal use in module [Q]. *)
+val round_to_float: t -> bool -> float

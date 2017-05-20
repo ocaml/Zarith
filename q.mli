@@ -164,6 +164,11 @@ val to_nativeint: t -> nativeint
 val to_string: t -> string
 (** Converts to human-readable, decimal, [/]-separated rational. *)
 
+val to_float: t -> float
+(** Converts to a floating-point number, using the current 
+    floating-point rounding mode.  With the default rounding mode,
+    the result is the floating-point number closest to the given
+    rational; ties break to even mantissa. *)
 
 (** {1 Arithmetic operations} *)
 

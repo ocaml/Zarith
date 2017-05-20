@@ -108,7 +108,7 @@ let of_substring = of_substring_base 0
 let of_string_base base s = of_substring_base base s ~pos:0 ~len:(String.length s)
 
 let ediv_rem a b =
-  (* we have a = a * b + r, but [Big_int]'s remainder satisfies 0 <= r < |b|,
+  (* we have a = q * b + r, but [Big_int]'s remainder satisfies 0 <= r < |b|,
      while [Z]'s remainder satisfies -|b| < r < |b| and sign(r) = sign(a)
    *)
    let q,r = div_rem a b in

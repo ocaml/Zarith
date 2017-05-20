@@ -1,0 +1,10 @@
+*.a
+*.cm?
+*.cmxa
+*.cmxs
+*.exe
+*.o
+Makefile
+z.ml
+z.mli
+z_features.h

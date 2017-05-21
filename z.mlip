@@ -74,7 +74,7 @@ external of_nativeint: nativeint -> t = "ml_z_of_nativeint"
 
 external of_float: float -> t = "ml_z_of_float"
 (** Converts from a floating-point value. 
-    The value is truncated.
+    The value is truncated (rounded towards zero).
     Raises [Overflow] on infinity and NaN arguments.
  *)
 
@@ -87,6 +87,8 @@ val of_string: string -> t
     represented, in hexadecimal, octal, or binary, respectively.
     Otherwise, base 10 is assumed.
     (Unlike C, a lone [0] prefix does not denote octal.)
+    Raises an [Invalid_argument] exception if the string is not a
+    syntactically correct representation of an integer.
  *)
 
 val of_substring : string -> pos:int -> len:int -> t
@@ -266,16 +268,16 @@ external hamdist: t -> t -> int = "ml_z_hamdist"
  *)
 
 external to_int: t -> int = "ml_z_to_int"
-(** Converts to a base integer. May raise an [Overflow]. *)
+(** Converts to a base integer. May raise [Overflow]. *)
 
 external to_int32: t -> int32 = "ml_z_to_int32"
-(** Converts to a 32-bit integer. May raise an [Overflow]. *)
+(** Converts to a 32-bit integer. May raise [Overflow]. *)
 
 external to_int64: t -> int64 = "ml_z_to_int64"
 (** Converts to a 64-bit integer. May raise [Overflow]. *)
 
 external to_nativeint: t -> nativeint = "ml_z_to_nativeint"
-(** Converts to a native integer. May raise an [Overflow]. *)
+(** Converts to a native integer. May raise [Overflow]. *)
 
 val to_float: t -> float
 (** Converts to a floating-point value.
@@ -471,7 +473,8 @@ external pow: t -> int -> t = "ml_z_pow"
  *)
 
 external sqrt: t -> t = "ml_z_sqrt"
-(** Returns the square root. The result is truncated. 
+(** Returns the square root. The result is truncated (rounded down
+    to an integer).
     Raises an [Invalid_argument] on negative arguments.
  *)
 
@@ -519,7 +522,7 @@ val signed_extract: t -> int -> int -> t
 (** [signed_extract a off len] extracts bits [off] to [off]+[len]-1 of [b],
     as [extract] does, then sign-extends bit [len-1] of the result
     (that is, bit [off + len - 1] of [a]).  The result is between
-    [- 2{^[len]-1}] (included) and [2{^[len]-1}] excluded, 
+    [- 2{^[len]-1}] (included) and [2{^[len]-1}] (excluded), 
     and equal to [extract a off len] modulo [2{^len}].
  *)
 

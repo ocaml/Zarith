@@ -1,7 +1,13 @@
-- Added Q.to_float.
+Release 1.5 (2017-05-26):
+- Install all .cmx files, improving performance of clients and
+  avoiding a warning from OCaml 4.03 and up.
 - Z.of_float: fix a bug in the fast path [Richard Jones]
   (See https://bugzilla.redhat.com/show_bug.cgi?id=1392247)
-- Improve compatibility with OCaml 4.03 and up [Bernhard Schommer]
+- Improve compatibility with OCaml 4.03 and up
+  [Bernhard Schommer]
+- Overflow issue in Z.pow and Z.root with very large exponents (GPR#5)
+  [Andre Maroneze]
+- Added function Q.to_float.
 
 Release 1.4.1 (2015-11-09):
 - Fixed ml_z_of_substring_base and Z.of_substring [Thomas Braibant]
@@ -17,7 +23,7 @@ Release 1.4 (2015-11-02):
 - Added Z.trailing_zeros.
 - Added Z.testbit, Z.is_even, Z.is_odd.
 - Added Z.numbits, Z.log2 and Z.log2up.
-- PR$1467: Z.hash is declared as "noalloc" [François Bobot]
+- PR#1467: Z.hash is declared as "noalloc" [François Bobot]
 - PR#1451: configure fix [Spiros Eliopoulos]
 - PR#1436: disable "(void)" trick for unused variables on Windows [Bernhard Schommer]
 - PR#1434: removed dependencies on printf & co when Z_PERFORM_CHECK is 0 [Hannes Mehnert]

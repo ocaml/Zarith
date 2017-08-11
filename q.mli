@@ -71,7 +71,7 @@ val of_float: float -> t
 
 val of_string: string -> t
 (** Converts a string to a rational.
-    Plain decimals, and [/] separated decimal ratios (with optional sign) are
+    Plain integers, and [/] separated integer ratios (with optional sign) are
     understood.
     Additionally, the special [inf], [-inf], and [undef] are recognized
     (they can also be typeset respectively as [1/0], [-1/0], [0/0]).
@@ -162,7 +162,7 @@ val to_nativeint: t -> nativeint
 *)
 
 val to_string: t -> string
-(** Converts to human-readable, decimal, [/]-separated rational. *)
+(** Converts to human-readable, base-10, [/]-separated rational. *)
 
 val to_float: t -> float
 (** Converts to a floating-point number, using the current 

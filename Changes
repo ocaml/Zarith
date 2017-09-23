@@ -1,4 +1,8 @@
+Release 1.6 (2017-09-23):
 - On Linux and BSD, keep the stack non-executable.
+- Issue#10: clarify documentation of Q.of_string
+- Fixed spurious installation error if shared libraries not supported
+  [Bernhard Schommer]
 
 Release 1.5 (2017-05-26):
 - Install all .cmx files, improving performance of clients and

@@ -1,3 +1,5 @@
+- On Linux and BSD, keep the stack non-executable.
+
 Release 1.5 (2017-05-26):
 - Install all .cmx files, improving performance of clients and
   avoiding a warning from OCaml 4.03 and up.

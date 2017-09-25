@@ -398,7 +398,7 @@ static value ml_z_reduce(value r, mp_size_t sz, intnat sign)
 #if Z_USE_NATINT
   if (!sz) return Val_long(0);
   if (sz <= 1 && Z_LIMB(r)[0] <= Z_MAX_INT) {
-    if (sign) return Val_long(0-Z_LIMB(r)[0]);
+    if (sign) return Val_long(-Z_LIMB(r)[0]); 
     else return Val_long(Z_LIMB(r)[0]);
   }
 #else
@@ -476,7 +476,7 @@ CAMLprim value ml_z_of_int32(value v)
     Z_MARK_SLOW;
     r = ml_z_alloc(1);
     if (x > 0) { Z_HEAD(r) = 1; Z_LIMB(r)[0] = x; }
-    else if (x < 0) { Z_HEAD(r) = 1 | Z_SIGN_MASK; Z_LIMB(r)[0] = 0-(mp_limb_t)x; }
+    else if (x < 0) { Z_HEAD(r) = 1 | Z_SIGN_MASK; Z_LIMB(r)[0] = -(mp_limb_t)x; }
     else Z_HEAD(r) = 0;
     Z_CHECK(r);
     return r;
@@ -2552,7 +2552,7 @@ CAMLprim value ml_z_testbit(value arg, value index)
     for (i = 0; i < l_idx; i++) {
       if (ptr_arg[i] != 0) { limb = ~limb; goto extract; }
     }
-    limb = 0-limb;
+    limb = -limb;
   }
  extract:
   return Val_int((limb >> (b_idx % Z_LIMB_BITS)) & 1);

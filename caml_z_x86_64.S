@@ -19,12 +19,7 @@
 
  */
 
-        
-        /* makes the stack non-executable. */
-#ifdef Z_ELF
-        .section .note.GNU-stack,"",@progbits
-#endif
-        
+
         /* helper functions */
         /* **************** */
 

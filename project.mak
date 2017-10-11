@@ -129,7 +129,7 @@ $(AUTOGEN): z.mlp z.mlip $(SSRC) z_pp.pl
 	$(OCAMLC) -ccopt "$(CFLAGS)" -c $<
 
 clean:
-	/bin/rm -rf *.$(OBJSUFFIX) *.$(LIBSUFFIX) *.$(DLLSUFFIX) *.cmi *.cmo *.cmx *.cmxa *.cmxs *.cma  *~ \#* depend test $(AUTOGEN) tmp.c depend
+	/bin/rm -rf *.$(OBJSUFFIX) *.$(LIBSUFFIX) *.$(DLLSUFFIX) *.cmi *.cmo *.cmx *.cmxa *.cmxs *.cma  *~ '#'* depend test $(AUTOGEN) tmp.c
 	make -C tests clean
 
 depend: $(AUTOGEN)

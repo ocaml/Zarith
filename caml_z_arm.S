@@ -20,10 +20,6 @@
 
  */
 
-        
-        /* makes the stack non-executable. */
-        .section .note.GNU-stack,"",@progbits
-
 
         /* helper functions */
         /* **************** */

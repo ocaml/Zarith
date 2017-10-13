@@ -1,3 +1,6 @@
+- Issue#14, pull request#15: ARM assembly code was broken.
+- Fix tests so that they work even if the legacy Num library is unavailable.
+
 Release 1.6 (2017-09-23):
 - On Linux and BSD, keep the stack non-executable.
 - Issue#10: clarify documentation of Q.of_string

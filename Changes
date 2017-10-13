@@ -1,3 +1,4 @@
+Release 1.7 (2017-10-13):
 - Issue#14, pull request#15: ARM assembly code was broken.
 - Fix tests so that they work even if the legacy Num library is unavailable.
 

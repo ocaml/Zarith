@@ -80,6 +80,10 @@ let g_t_list =
     )
     g_list
 
+let rec cut_list n l =
+  if n <= 0 then [] else match l with [] -> [] | h :: t -> h :: cut_list (n-1) t
+
+let small_g_t_list = cut_list 256 g_t_list
 
 (* operator tests *)
 
@@ -95,8 +99,8 @@ let test_un msg filt gf tf =
       with Failure _ -> ()
     ) g_t_list
 
-let test_bin msg filt gf tf =
-  Printf.printf "testing %s on %i x %i numbers\n%!" msg (List.length g_t_list) (List.length g_t_list);
+let test_bin_gen msg filt gf tf l =
+  Printf.printf "testing %s on %i x %i numbers\n%!" msg (List.length l) (List.length l);
   List.iter
     (fun (g1,t1) ->
       List.iter
@@ -105,8 +109,11 @@ let test_bin msg filt gf tf =
             let g' = gf g1 g2 and t' = tf t1 t2 in
             if B.string_of_big_int g' <> T.string_of_big_int t' then failwith (Printf.sprintf "%s failure: arg1=%s arg2=%s Bresult=%s Tresult=%s" msg (B.string_of_big_int g1) (B.string_of_big_int g2) (B.string_of_big_int g') (T.string_of_big_int t'))
            )
-        ) g_t_list
-    ) g_t_list
+        ) l
+    ) l
+
+let test_bin msg filt gf tf = test_bin_gen msg filt gf tf g_t_list
+let test_bin_small msg filt gf tf = test_bin_gen msg filt gf tf small_g_t_list
 
 let test_shift msg gf tf =
   Printf.printf "testing %s on %i numbers\n%!" msg (List.length g_t_list);
@@ -156,11 +163,11 @@ let _ = test_un "sqrt_big_int" filt_pos B.sqrt_big_int T.sqrt_big_int
 let _ = test_bin "add_big_int" filt_none B.add_big_int T.add_big_int
 let _ = test_bin "sub_big_int" filt_none B.sub_big_int T.sub_big_int
 let _ = test_bin "mult_big_int" filt_none B.mult_big_int T.mult_big_int
-let _ = test_bin "div_big_int" filt_nonzero2 B.div_big_int T.div_big_int
-let _ = test_bin "quomod_big_int #1" filt_nonzero2 (ffst2 B.quomod_big_int) (ffst2 T.quomod_big_int)
-let _ = test_bin "quomod_big_int #2" filt_nonzero2 (fsnd2 B.quomod_big_int) (fsnd2 T.quomod_big_int)
-let _ = test_bin "mod_big_int" filt_nonzero2 B.mod_big_int T.mod_big_int
-let _ = test_bin "gcd_big_int" filt_nonzero22 B.gcd_big_int T.gcd_big_int
+let _ = test_bin_small "div_big_int" filt_nonzero2 B.div_big_int T.div_big_int
+let _ = test_bin_small "quomod_big_int #1" filt_nonzero2 (ffst2 B.quomod_big_int) (ffst2 T.quomod_big_int)
+let _ = test_bin_small "quomod_big_int #2" filt_nonzero2 (fsnd2 B.quomod_big_int) (fsnd2 T.quomod_big_int)
+let _ = test_bin_small "mod_big_int" filt_nonzero2 B.mod_big_int T.mod_big_int
+let _ = test_bin_small "gcd_big_int" filt_nonzero22 B.gcd_big_int T.gcd_big_int
 
 let _ = test_bin "and_big_int" filt_pos2 B.and_big_int T.and_big_int
 let _ = test_bin "or_big_int" filt_pos2 B.or_big_int T.or_big_int

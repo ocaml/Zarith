@@ -272,3 +272,21 @@ val (~$$): Z.t -> t
 
 val (///): Z.t -> Z.t -> t
 (** Creates a rational from two [Z.t]. *)
+
+val (=): t -> t -> bool
+(** Same as [equal]. *)
+
+val (<): t -> t -> bool
+(** Same as [lt]. *)
+
+val (>): t -> t -> bool
+(** Same as [gt]. *)
+
+val (<=): t -> t -> bool
+(** Same as [leq]. *)
+
+val (>=): t -> t -> bool
+(** Same as [geq]. *)
+
+val (<>): t -> t -> bool
+(** [a <> b] is equivalent to [not (equal a b)]. *)

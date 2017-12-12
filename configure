@@ -62,6 +62,7 @@ where options include:
 
 Environment variables that affect configuration:
   CC                   C compiler to use (default: try gcc, then cc)
+  AR                   archive tool to use (default: ar in system path)
   CFLAGS               extra flags to pass to the C compiler
   CPPFLAGS             extra includes, e.g. -I/path/to/gmp/include
   LDFLAGS              extra link flags, e.g. -L/path/to/gmp/lib
@@ -197,8 +198,14 @@ searchbinreq $ocamlc
 searchbinreq $ocamldep
 searchbinreq $ocamlmklib
 searchbinreq $ocamldoc
-searchbinreq $ar
 searchbinreq perl
+
+if test -n "$AR"; then
+  searchbinreq "$AR"
+  ar="$AR"
+else
+  searchbinreq $ar
+fi
 
 if test -n "$CC"; then
   searchbinreq "$CC"
@@ -220,7 +227,6 @@ hasocamlopt='no'
 searchbin $ocamlopt
 if test $? -eq 1; then hasocamlopt='yes'; fi
 
-
 # check C compiler
 
 checkcc
@@ -234,11 +240,23 @@ fi
 
 # directories
 
-if test "$ocamllibdir" = "auto"; then ocamllibdir=`ocamlc -where`; fi
-
-# fails on Cygwin:
-# if test ! -f "$ocamllibdir/caml/mlvalues.h"
-# then echo "cannot find OCaml libraries in $ocamllibdir"; exit 2; fi
+if test "$ocamllibdir" = "auto"; then
+  ocamllibdir=`ocamlc -where`;
+  if test "$OSTYPE" = "cygwin"; then
+    # OCaml's native Win32 port outputs the path to OCaml's library
+    # directory as a Windows path containing backslashes as path separators
+    # and followed by a carriage return.
+    # Hence, we rewrite the path using Cygwin's built-in cygpath utility
+    # and remove any trailing slash. In this way, we obtain a Unix-style
+    # path that is accepted by both the mingw-w64 toolchain and Cygwin's gcc.
+    # Note that although OCaml's Cygwin port outputs Unix-style paths directly,
+    # it does not harm if they are processed by `cygpath -u` again, as that
+    # command does not alter an input that is already a Unix-style path.
+    # Hence, we can use the same logic to obtain a valid Unix-style path on
+    # both Windows ports of Ocaml.
+    ocamllibdir="`cygpath -u $ocamllibdir | tr -d '\r'`/";
+  fi
+fi
 ccinc="-I$ocamllibdir $ccinc"
 checkinc "caml/mlvalues.h"
 if test $? -eq 0; then echo "cannot include caml/mlvalues.h"; exit 2; fi
@@ -287,7 +305,6 @@ if test "x$host" = 'xauto'; then
     fi
 fi
 
-
 # set arch from host
 
 arch='none'
@@ -298,7 +315,7 @@ case $host in
     i486-*linux-gnu|i686-*linux-gnu|i486-kfreebsd-gnu)
         ccdef="-DZ_ELF -DZ_DOT_LABEL_PREFIX $ccdef"
         arch='i686';;
-    i686-*cygwin)
+    i686-*cygwin|x86_64-*cygwin)
         if test "x$wordsize" = "x64"; then
             ccdef="-DZ_COFF $ccdef"
             arch='x86_64_mingw64'

@@ -386,6 +386,15 @@ case "$ocamlver" in
         ;;
 esac
 
+# -bin-annot available since 4.00.0
+case "$ocamlver" in
+    [123].*)
+        hasbinannot='no';;
+    *)
+        echo "OCaml supports -bin-annot to produce documentation"
+        hasbinannot='yes';;
+esac
+
 # dump Makefile
 
 cat > Makefile <<EOF
@@ -412,6 +421,7 @@ INSTMETH=$instmeth
 OBJSUFFIX=$objsuffix
 HASOCAMLOPT=$hasocamlopt
 HASDYNLINK=$hasdynlink
+HASBINANNOT=$hasbinannot
 
 include project.mak
 EOF

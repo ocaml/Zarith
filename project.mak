@@ -40,16 +40,22 @@ AUTOGEN = z.ml z.mli z_features.h
 
 CMIOBJ = $(MLISRC:%.mli=%.cmi)
 CMXOBJ = $(MLISRC:%.mli=%.cmx)
+CMIDOC = $(MLISRC:%.mli=%.cmti)
+
 TOINSTALL := zarith.h zarith.cma libzarith.$(LIBSUFFIX) $(MLISRC) $(CMIOBJ)
 
 ifeq ($(HASOCAMLOPT),yes)
-TOINSTALL := $(TOINSTALL) zarith.$(LIBSUFFIX) zarith.cmxa $(CMXOBJ)
+TOINSTALL += zarith.$(LIBSUFFIX) zarith.cmxa $(CMXOBJ)
 endif
 
 ifeq ($(HASDYNLINK),yes)
-TOINSTALL := $(TOINSTALL) zarith.cmxs
+TOINSTALL += zarith.cmxs
 endif
 
+ifeq ($(HASBINANNOT),yes)
+TOINSTALL += $(CMIDOC)
+OCAMLFLAGS += -bin-annot
+endif
 
 # build targets
 ###############

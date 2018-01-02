@@ -1,3 +1,8 @@
+- Issue #22: wrong stack marking directive in caml_z_x86_64_mingw64.S
+  [Bernhard Schommer]
+- Issue #25: false alarm in tests/zq.ml owing to unreliable printing  
+  of FP values
+
 Release 1.7 (2017-10-13):
 - Issue#14, pull request#15: ARM assembly code was broken.
 - Fix tests so that they work even if the legacy Num library is unavailable.

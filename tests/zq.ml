@@ -33,6 +33,12 @@ let pr3 ch (x,y,z) =
     (I.to_string x) (I.to_string y) (I.to_string z); 
   flush ch
 
+let prfloat ch (x,y : float * float) =
+  if x = y then
+    Printf.fprintf ch "OK"
+  else
+    Printf.fprintf ch "WRONG! (expected %g, got %g)" y x
+
 let pow2 n =
   let rec doit acc n =
     if n<=0 then acc else doit (I.add acc acc) (n-1)
@@ -312,22 +318,22 @@ let test_Z() =
   Printf.printf "of_float -0.5\n = %a\n" pr (I.of_float (-. 0.5));
   Printf.printf "of_float 200.5\n = %a\n" pr (I.of_float 200.5);
   Printf.printf "of_float -200.5\n = %a\n" pr (I.of_float (-. 200.5));
-  Printf.printf "to_float 0\n = %f\n" (I.to_float I.zero);
-  Printf.printf "to_float 1\n = %f\n" (I.to_float I.one);
-  Printf.printf "to_float -1\n = %f\n" (I.to_float I.minus_one);
-  Printf.printf "to_float 2^120\n = %f\n" (I.to_float p120);
-  Printf.printf "to_float -2^120\n = %f\n" (I.to_float (I.neg p120));
-  Printf.printf "to_float (2^120-1)\n = %f\n" (I.to_float (I.pred p120));
-  Printf.printf "to_float (-2^120+1)\n = %f\n" (I.to_float (I.succ (I.neg p120)));
-  Printf.printf "to_float 2^63\n = %f\n" (I.to_float (pow2 63));
-  Printf.printf "to_float -2^63\n = %f\n" (I.to_float (I.neg (pow2 63)));
-  Printf.printf "to_float (2^63-1)\n = %f\n" (I.to_float (I.pred (pow2 63)));
-  Printf.printf "to_float (-2^63-1)\n = %f\n" (I.to_float (I.pred (I.neg (pow2 63))));
-  Printf.printf "to_float (-2^63+1)\n = %f\n" (I.to_float (I.succ (I.neg (pow2 63))));
-  Printf.printf "to_float 2^300\n = %f\n" (I.to_float p300);
-  Printf.printf "to_float -2^300\n = %f\n" (I.to_float (I.neg p300));
-  Printf.printf "to_float (2^300-1)\n = %f\n" (I.to_float (I.pred p300));
-  Printf.printf "to_float (-2^300+1)\n = %f\n" (I.to_float (I.succ (I.neg p300)));
+  Printf.printf "to_float 0\n = %a\n" prfloat (I.to_float I.zero, 0.0);
+  Printf.printf "to_float 1\n = %a\n" prfloat (I.to_float I.one, 1.0);
+  Printf.printf "to_float -1\n = %a\n" prfloat (I.to_float I.minus_one, -1.0);
+  Printf.printf "to_float 2^120\n = %a\n" prfloat (I.to_float p120, ldexp 1.0 120);
+  Printf.printf "to_float -2^120\n = %a\n" prfloat (I.to_float (I.neg p120), -. (ldexp 1.0 120));
+  Printf.printf "to_float (2^120-1)\n = %a\n" prfloat (I.to_float (I.pred p120), ldexp 1.0 120);
+  Printf.printf "to_float (-2^120+1)\n = %a\n" prfloat (I.to_float (I.succ (I.neg p120)), -. (ldexp 1.0 120));
+  Printf.printf "to_float 2^63\n = %a\n" prfloat (I.to_float (pow2 63), ldexp 1.0 63);
+  Printf.printf "to_float -2^63\n = %a\n" prfloat (I.to_float (I.neg (pow2 63)), -. (ldexp 1.0 63));
+  Printf.printf "to_float (2^63-1)\n = %a\n" prfloat (I.to_float (I.pred (pow2 63)), ldexp 1.0 63);
+  Printf.printf "to_float (-2^63-1)\n = %a\n" prfloat (I.to_float (I.pred (I.neg (pow2 63))), -. (ldexp 1.0 63));
+  Printf.printf "to_float (-2^63+1)\n = %a\n" prfloat (I.to_float (I.succ (I.neg (pow2 63))), -. (ldexp 1.0 63));
+  Printf.printf "to_float 2^300\n = %a\n" prfloat (I.to_float p300, ldexp 1.0 300);
+  Printf.printf "to_float -2^300\n = %a\n" prfloat (I.to_float (I.neg p300), -. (ldexp 1.0 300));
+  Printf.printf "to_float (2^300-1)\n = %a\n" prfloat (I.to_float (I.pred p300), ldexp 1.0 300);
+  Printf.printf "to_float (-2^300+1)\n = %a\n" prfloat (I.to_float (I.succ (I.neg p300)), -. (ldexp 1.0 300));
   Printf.printf "of_string 12\n = %a\n" pr (I.of_string "12");
   Printf.printf "of_string 0x12\n = %a\n" pr (I.of_string "0x12");
   Printf.printf "of_string 0b10\n = %a\n" pr (I.of_string "0b10");

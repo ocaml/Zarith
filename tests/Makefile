@@ -16,7 +16,7 @@ test:: zq.exe
 
 test:: zq.byt
 	@echo "Testing zq (bytecode)..."
-	@if ocamlrun -I .. ./zq.byt | cmp -s zq.output$(WORDSIZE) - ; then echo "zq: passed"; else echo "zq: FAILED"; exit 2; fi
+	@if ./zq.byt | cmp -s zq.output$(WORDSIZE) - ; then echo "zq: passed"; else echo "zq: FAILED"; exit 2; fi
 
 ifeq ($(HAS_NUM),true)
 test:: bi.exe

@@ -12,11 +12,11 @@ endif
 
 test:: zq.exe
 	@echo "Testing zq (native)..."
-	@if ./zq.exe | cmp -s zq.output$(WORDSIZE) - ; then echo "zq: passed"; else echo "zq: FAILED"; exit 2; fi
+	@if ./zq.exe | diff -w zq.output$(WORDSIZE) - ; then echo "zq: passed"; else echo "zq: FAILED"; exit 2; fi
 
 test:: zq.byt
 	@echo "Testing zq (bytecode)..."
-	@if ./zq.byt | cmp -s zq.output$(WORDSIZE) - ; then echo "zq: passed"; else echo "zq: FAILED"; exit 2; fi
+	@if ./zq.byt | diff -w zq.output$(WORDSIZE) - ; then echo "zq: passed"; else echo "zq: FAILED"; exit 2; fi
 
 ifeq ($(HAS_NUM),true)
 test:: bi.exe
@@ -26,7 +26,7 @@ endif
 
 test:: pi.exe
 	@echo "Testing pi..."
-	@if ./pi.exe 500 | cmp -s pi.output - ; then echo "pi: passed"; else echo "pi: FAILED"; exit 2; fi
+	@if ./pi.exe 500 | diff -w pi.output - ; then echo "pi: passed"; else echo "pi: FAILED"; exit 2; fi
 
 test:: tofloat.exe
 	@echo "Testing tofloat..."

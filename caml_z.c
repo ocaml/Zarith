@@ -463,23 +463,25 @@ CAMLprim value ml_z_of_nativeint(value v)
 CAMLprim value ml_z_of_int32(value v)
 {
   int32_t x;
-  value r;
   Z_MARK_OP;
   x = Int32_val(v);
-#if Z_USE_NATINT
-#ifdef ARCH_SIXTYFOUR
+#if Z_USE_NATINT && defined(ARCH_SIXTYFOUR)
   return Val_long(x);
 #else
+#if Z_USE_NATINT
   if (Z_FITS_INT(x)) return Val_long(x);
 #endif
+  {
+    value r;
+    Z_MARK_SLOW;
+    r = ml_z_alloc(1);
+    if (x > 0) { Z_HEAD(r) = 1; Z_LIMB(r)[0] = x; }
+    else if (x < 0) { Z_HEAD(r) = 1 | Z_SIGN_MASK; Z_LIMB(r)[0] = -(mp_limb_t)x; }
+    else Z_HEAD(r) = 0;
+    Z_CHECK(r);
+    return r;
+  }
 #endif
-  Z_MARK_SLOW;
-  r = ml_z_alloc(1);
-  if (x > 0) { Z_HEAD(r) = 1; Z_LIMB(r)[0] = x; }
-  else if (x < 0) { Z_HEAD(r) = 1 | Z_SIGN_MASK; Z_LIMB(r)[0] = -(mp_limb_t)x; }
-  else Z_HEAD(r) = 0;
-  Z_CHECK(r);
-  return r;
 }
 
 CAMLprim value ml_z_of_int64(value v)

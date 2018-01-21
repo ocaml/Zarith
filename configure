@@ -128,7 +128,7 @@ searchbin()
     done
     unset IFS
     # Finally, test absolute path
-    if test -x $1; then echo "found"; return 1; fi
+    if test "/${1#'/'}" = "$1" ; then if test -x $1; then echo "found"; return 1; fi ; fi
     echo "not found"
     return 0
 }

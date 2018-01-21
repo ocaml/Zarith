@@ -119,8 +119,6 @@ searchbin()
 {
     if test "x$1" = "x"; then return 0; fi
     echo_n "binary $1: "
-    # Test absolute path
-    if test -x $1; then echo "found"; return 1; fi
     # Search in $PATH
     IFS=':'
     for i in $PATH
@@ -128,8 +126,10 @@ searchbin()
         if test -z "$i"; then i='.'; fi
         if test -x $i/$1; then echo "found in $i"; unset IFS; return 1; fi
     done
-    echo "not found"
     unset IFS
+    # Finally, test absolute path
+    if test -x $1; then echo "found"; return 1; fi
+    echo "not found"
     return 0
 }
 

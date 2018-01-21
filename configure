@@ -120,7 +120,7 @@ searchbin()
     if test "x$1" = "x"; then return 0; fi
     echo_n "binary $1: "
     # Test absolute path
-    if test -x $1; then echo "found in $i"; return 1; fi
+    if test -x $1; then echo "found"; return 1; fi
     # Search in $PATH
     IFS=':'
     for i in $PATH

@@ -119,14 +119,17 @@ searchbin()
 {
     if test "x$1" = "x"; then return 0; fi
     echo_n "binary $1: "
+    # Search in $PATH
     IFS=':'
     for i in $PATH
     do
         if test -z "$i"; then i='.'; fi
         if test -x $i/$1; then echo "found in $i"; unset IFS; return 1; fi
     done
-    echo "not found"
     unset IFS
+    # Finally, test absolute path
+    if test "/${1#/}" = "$1" ; then if test -x $1; then echo "found"; return 1; fi ; fi
+    echo "not found"
     return 0
 }
 

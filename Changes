@@ -3,6 +3,7 @@
 - Issue #24: generate and install .cmti files for easy access to documentation
 - Issue #25: false alarm in tests/zq.ml owing to unreliable printing  
   of FP values
+- Request #28: better handling of absolute paths in "configure" 
 
 Release 1.7 (2017-10-13):
 - Issue#14, pull request#15: ARM assembly code was broken.

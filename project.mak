@@ -18,7 +18,7 @@ EXE          := .exe
 else
 OBJSUFFIX    := o
 LIBSUFFIX    := a
-ifeq "$(shell $(OCAMLC) -config |grep system)" "system: mingw"
+ifeq "$(findstring mingw,$(shell $(OCAMLC) -config |grep system))" "mingw"
 DLLSUFFIX    := dll
 EXE          := .exe
 else

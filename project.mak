@@ -30,10 +30,10 @@ endif
 
 ifeq ($(HASOCAMLOPT),yes)
 OCAMLBEST=$(OCAMLOPT)
-OCAMLCOMMON=ocamlcommon.cmxa str.cmxa
+OCAMLLIB=cmxa
 else
 OCAMLBEST=$(OCAMLC)
-OCAMLCOMMON=ocamlcommon.cma str.cma
+OCAMLLIB=cma
 endif
 
 # project files
@@ -89,8 +89,8 @@ zarith.cmxs: zarith.cmxa libzarith.$(LIBSUFFIX)
 libzarith.$(LIBSUFFIX) dllzarith.$(DLLSUFFIX): $(SSRC:%.S=%.$(OBJSUFFIX)) $(CSRC:%.c=%.$(OBJSUFFIX)) 
 	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)
 
-ppx$(EXE): ppx.ml
-	$(OCAMLBEST) -I +compiler-libs -linkall $(OCAMLCOMMON) ppx.ml -o $@
+ppx$(EXE): ppx.ml zarith.$(OCAMLLIB) 
+	$(OCAMLBEST) -I +compiler-libs -I . -linkall ocamlcommon.$(OCAMLLIB) str.$(OCAMLLIB) zarith.$(OCAMLLIB) ppx.ml -o $@
 
 doc: $(MLISRC)
 	mkdir -p html

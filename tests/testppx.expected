@@ -14,6 +14,7 @@
 - : Z.t = 18446744073709551617
 - : Z.t = 18446744073709551617
 - : Z.t = -18446744073709551617
+- : Z.t = 2415919103
 - : Q.t = 0
 - : Q.t = 1
 - : Q.t = -1
@@ -29,6 +30,7 @@
 - : Q.t = 18446744073709551617
 - : Q.t = 18446744073709551617
 - : Q.t = -18446744073709551617
+- : Q.t = 2415919103
 Characters 12-16:
   0b2z ;;
   ^^^^
@@ -56,7 +58,7 @@ Error: Invalid literal 0x12g8q
 Characters 46-53:
   let foo = [ Q.neg 0x12.4q ] ;;
                     ^^^^^^^
-Hexadecimal floating point numbers are not accepted. Please use hexadecimal
+Error: Hexadecimal floating point numbers are not accepted. Please use hexadecimal
 integers, or regular floating point
 numbers.
 - : Z.t = 1
@@ -72,9 +74,9 @@ numbers.
 Characters 16-20:
   1.2z;;
   ^^^^
-This literal does not fit in an integer.
+Error: This literal does not fit in an integer.
 Characters 0-6:
   1.e-4z;;
   ^^^^^^
-This literal does not fit in an integer.
+Error: This literal does not fit in an integer.
 

@@ -17,20 +17,16 @@ let app m lid l =
   Exp.(apply (mklid m lid)
       (List.map (fun e -> Asttypes.Nolabel, e) l))
 
-let try_int s =
-  try `Int32 (Int32.of_string s)
-  with _ ->
-  try `Int64 (Int64.of_string s)
-  with _ -> `ZInt s
-
 let integer m s =
-  match try_int s with
-  | `Int32 0l -> mklid m "zero"
-  | `Int32 1l -> mklid m "one"
-  | `Int32 (-1l) -> mklid m "minus_one"
-  | `Int32 i -> app m "of_int32" [Exp.constant @@ Const.int32 i]
-  | `Int64 i -> app m "of_int64" [Exp.constant @@ Const.int64 i]
-  | `ZInt s -> app m "of_string" [Exp.constant @@ Const.string s]
+  let x = Z.of_string s in
+  if x = Z.zero then mklid m "zero"
+  else if x = Z.one then mklid m "one"
+  else if x = Z.minus_one then mklid m "minus_one"
+  else if Z.fits_int32 x then
+    app m "of_int32" [Exp.constant @@ Const.int32 @@ Z.to_int32 x]
+  else if Z.fits_int64 x then
+    app m "of_int64" [Exp.constant @@ Const.int64 @@ Z.to_int64 x]
+  else app m "of_string" [Exp.constant @@ Const.string s]
 
 let integer_z = integer "Z"
 let integer_q = integer "Q"
@@ -74,7 +70,6 @@ let mul_10exp a n =
   if n = 0 then `Z a
   else if n < 0 then `Q (app "Q" "make" [a; e10 (-n)])
   else `Z (app "Z" "mul" [a; e10 n])
-let as_q = function `Q q -> q | `Z z -> app "Q" "of_bigint" [z]
 let addx a b = match a,b with
   | `Z a, `Z b -> `Z (add "Z" [a;b])
   | `Z a, `Q b | `Q b, `Z a ->`Q (add "Q" [app "Q" "of_bigint" [a]; b])
@@ -100,7 +95,7 @@ let fail_exa () =
 let float_z s =
   if is_float_exa s then fail_exa ()
   else match match_float s with
-    | None -> error "This literal is not a valid zarith rational number."
+    | None -> error "This literal is not a valid zarith integer."
     | Some (pos, i, e, f) ->
       match make_float i e f with
       | `Q _ -> error "This literal does not fit in an integer."
@@ -109,7 +104,7 @@ let float_z s =
 let float_q s =
   if is_float_exa s then fail_exa ()
   else match match_float s with
-    | None -> error "This is not a valid zarith rational number."
+    | None -> error "This literal is not a valid zarith rational number."
     | Some (pos, i, e, f) ->
       neg_if pos "Q" @@ match make_float i e f with
       | `Q q -> q

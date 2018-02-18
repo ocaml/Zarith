@@ -22,6 +22,8 @@ let integer m s =
   if x = Z.zero then mklid m "zero"
   else if x = Z.one then mklid m "one"
   else if x = Z.minus_one then mklid m "minus_one"
+  else if Z.numbits x < 31 then
+    app m "of_int" [Exp.constant @@ Const.int @@ Z.to_int x]
   else if Z.fits_int32 x then
     app m "of_int32" [Exp.constant @@ Const.int32 @@ Z.to_int32 x]
   else if Z.fits_int64 x then

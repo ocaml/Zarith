@@ -1,0 +1,5 @@
+Literals for Zarith's arbitrary-precision integers and rationals
+
+The Zarith library implements arithmetic and logical operations over
+arbitrary-precision integers. Zarith-ppx add support for literals
+of the form '13z' and '1.5q'.

@@ -1,0 +1,19 @@
+opam-version: "1.2"
+name: "zarith-ppx"
+version: "dev"
+
+maintainer: "Xavier Leroy <xavier.leroy@inria.fr>"
+authors: ["Gabriel Radanne"]
+
+homepage: "https://github.com/ocaml/Zarith"
+bug-reports: "https://github.com/ocaml/Zarith/issues"
+dev-repo: "git+https://github.com/ocaml/Zarith.git"
+          
+depends: [
+  "jbuilder" {build}
+  "ocaml-migrate-parsetree"
+  "zarith"
+]
+available: [ ocaml-version >= "4.03.0" ]
+
+build: ["jbuilder" "build" "-p" name "-j" jobs]

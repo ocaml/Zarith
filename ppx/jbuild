@@ -1,0 +1,31 @@
+(jbuild_version 1)
+
+(library
+ ((name zarith_ppx)
+  (public_name zarith-ppx)
+  (synopsis "Zarith PPX syntax extension")
+  (modules (ppx))
+  (libraries (compiler-libs.common
+              ocaml-migrate-parsetree
+              zarith
+              str))
+  (ppx_runtime_libraries (zarith))
+  (kind ppx_rewriter)
+))
+
+
+;; Testing
+(executable
+ ((name testmain)
+  (modules (testmain))
+  (libraries (zarith_ppx ocaml-migrate-parsetree))))
+
+(rule
+ ((targets (testppx.result))
+  (deps   (testppx.ml testmain.exe))
+  (action (system "TERM=dumb ${OCAML} -noinit -noprompt -ppx ./${exe:testmain.exe} < ${<} 2>&1 | tail -n +16 > ${@}"))))
+
+(alias
+ ((name   runtest)
+  (deps   (testppx.result testppx.expected))
+  (action (run diff -dEbZBt testppx.result testppx.expected))))

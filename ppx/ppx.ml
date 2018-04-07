@@ -1,3 +1,9 @@
+open Migrate_parsetree
+
+(* Define the rewriter on OCaml 4.05 AST *)
+open Ast_405
+let ocaml_version = Versions.ocaml_405
+
 module Stre = Str
 open Parsetree
 open Ast_helper
@@ -130,4 +136,10 @@ let expr mapper expr =
   | _ -> AM.default_mapper.AM.expr mapper expr
 
 let mapper = { AM.default_mapper with AM.expr }
-let () = AM.run_main (fun _ -> mapper)
+
+(** Register the rewriter in the driver *)
+let () =
+  Driver.register
+    ~name:"zarith-ppx"
+    ocaml_version
+    (fun _config _cookies -> mapper)

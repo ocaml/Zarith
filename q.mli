@@ -5,11 +5,11 @@
    integers from module Z.
 
 
-   This file is part of the Zarith library 
+   This file is part of the Zarith library
    http://forge.ocamlcore.org/projects/zarith .
    It is distributed under LGPL 2 licensing, with static linking exception.
    See the LICENSE file included in the distribution.
-   
+
    Copyright (c) 2010-2011 Antoine Miné, Abstraction project.
    Abstraction is part of the LIENS (Laboratoire d'Informatique de l'ENS),
    a joint laboratory by:
@@ -89,12 +89,12 @@ val den: t -> Z.t
 
 (** {1 Testing} *)
 
-type kind = 
+type kind =
   | ZERO   (** 0 *)
   | INF    (** infinity, i.e. 1/0 *)
   | MINF   (** minus infinity, i.e. -1/0 *)
   | UNDEF  (** undefined, i.e., 0/0 *)
-  | NZERO  (** well-defined, non-infinity, non-zero number *) 
+  | NZERO  (** well-defined, non-infinity, non-zero number *)
 (** Rationals can be categorized into different kinds, depending mainly on
     whether the numerator and/or denominator is null.
  *)
@@ -117,7 +117,7 @@ val compare: t -> t -> int
     This is a total ordering.
     Infinities are ordered in the natural way, while undefined is considered
     the smallest of all: undef = undef < -inf <= -inf < x < inf <= inf.
-    This is consistent with OCaml's handling of floating-point infinities 
+    This is consistent with OCaml's handling of floating-point infinities
     and NaN.
 
     OCaml's polymorphic comparison will NOT return a result consistent with
@@ -125,7 +125,7 @@ val compare: t -> t -> int
  *)
 
 val equal: t -> t -> bool
-(** Equality testing. 
+(** Equality testing.
     This is consistent with [compare]; in particular, [undef]=[undef].
  *)
 
@@ -156,7 +156,7 @@ val to_int32: t -> int32
 val to_int64: t -> int64
 val to_nativeint: t -> nativeint
 (** Convert to integer by truncation.
-    Raises a [Divide_by_zero] if the argument is an infinity or undefined. 
+    Raises a [Divide_by_zero] if the argument is an infinity or undefined.
     Raises a [Z.Overflow] if the result does not fit in the destination
     type.
 *)
@@ -165,7 +165,7 @@ val to_string: t -> string
 (** Converts to human-readable, base-10, [/]-separated rational. *)
 
 val to_float: t -> float
-(** Converts to a floating-point number, using the current 
+(** Converts to a floating-point number, using the current
     floating-point rounding mode.  With the default rounding mode,
     the result is the floating-point number closest to the given
     rational; ties break to even mantissa. *)
@@ -226,7 +226,7 @@ val bprint: Buffer.t -> t -> unit
 (** To be used as [%a] format printer in [Printf.bprintf]. *)
 
 val pp_print: Format.formatter -> t -> unit
-(** Prints the argument on the specified formatter. 
+(** Prints the argument on the specified formatter.
     Also intended to be used as [%a] format printer in [Format.printf].
  *)
 
@@ -261,13 +261,13 @@ val (lsl): t -> int -> t
 val (asr): t -> int -> t
 (** Division by a power of two [shift_right]. *)
 
-val (~$): int -> t 
+val (~$): int -> t
 (** Conversion from [int]. *)
 
 val (//): int -> int -> t
 (** Creates a rational from two [int]s. *)
 
-val (~$$): Z.t -> t 
+val (~$$): Z.t -> t
 (** Conversion from [Z.t]. *)
 
 val (///): Z.t -> Z.t -> t

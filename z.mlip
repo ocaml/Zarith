@@ -11,11 +11,11 @@
    (GCD, square root, pop-count, etc.).
 
 
-   This file is part of the Zarith library 
+   This file is part of the Zarith library
    http://forge.ocamlcore.org/projects/zarith .
    It is distributed under LGPL 2 licensing, with static linking exception.
    See the LICENSE file included in the distribution.
-   
+
    Copyright (c) 2010-2011 Antoine Miné, Abstraction project.
    Abstraction is part of the LIENS (Laboratoire d'Informatique de l'ENS),
    a joint laboratory by:
@@ -28,7 +28,7 @@
 
 (** {1 Toplevel} *)
 
-(** For an optimal experience with the [ocaml] interactive toplevel, 
+(** For an optimal experience with the [ocaml] interactive toplevel,
     the magic commands are:
 
     {[
@@ -73,7 +73,7 @@ external of_nativeint: nativeint -> t = "ml_z_of_nativeint"
 (** Converts from a native integer. *)
 
 external of_float: float -> t = "ml_z_of_float"
-(** Converts from a floating-point value. 
+(** Converts from a floating-point value.
     The value is truncated (rounded towards zero).
     Raises [Overflow] on infinity and NaN arguments.
  *)
@@ -96,7 +96,7 @@ val of_substring : string -> pos:int -> len:int -> t
     pos len)]
  *)
 
-val of_string_base: int -> string -> t 
+val of_string_base: int -> string -> t
 (** Parses a number represented as a string in the specified base,
     with optional [-] or [+] prefix.
     The base must be between 2 and 16.
@@ -154,12 +154,12 @@ external div_rem: t -> t -> (t * t) = "ml_z_div_rem"
 
 external cdiv: t -> t -> t = "ml_z_cdiv"
 (** Integer division with rounding towards +oo (ceiling).
-    Can raise a [Division_by_zero]. 
+    Can raise a [Division_by_zero].
  *)
 
 external fdiv: t -> t -> t = "ml_z_fdiv"
 (** Integer division with rounding towards -oo (floor).
-    Can raise a [Division_by_zero]. 
+    Can raise a [Division_by_zero].
  *)
 
 val ediv_rem: t -> t -> (t * t)
@@ -184,40 +184,40 @@ external divexact: t -> t -> t = divexact@ASM
 (** [divexact a b] divides [a] by [b], only producing correct result when the
     division is exact, i.e., when [b] evenly divides [a].
     It should be faster than general division.
-    Can raise a [Division_by_zero]. 
+    Can raise a [Division_by_zero].
 *)
 
 
 (** {1 Bit-level operations} *)
 
 (** For all bit-level operations, negative numbers are considered in 2's
-    complement representation, starting with a virtual infinite number of 
+    complement representation, starting with a virtual infinite number of
     1s.
  *)
 
 external logand: t -> t -> t = logand@ASM
 (** Bitwise logical and. *)
-    
+
 external logor: t -> t -> t = logor@ASM
 (** Bitwise logical or. *)
-    
+
 external logxor: t -> t -> t = logxor@ASM
 (** Bitwise logical exclusive or. *)
 
 external lognot: t -> t = lognot@ASM
-(** Bitwise logical negation. 
+(** Bitwise logical negation.
     The identity [lognot a]=[-a-1] always hold.
  *)
 
 external shift_left: t -> int -> t = shift_left@ASM
-(** Shifts to the left. 
+(** Shifts to the left.
     Equivalent to a multiplication by a power of 2.
     The second argument must be non-negative.
  *)
 
 external shift_right: t -> int -> t = shift_right@ASM
-(** Shifts to the right. 
-    This is an arithmetic shift, 
+(** Shifts to the right.
+    This is an arithmetic shift,
     equivalent to a division by a power of 2 with rounding towards -oo.
     The second argument must be non-negative.
  *)
@@ -250,20 +250,20 @@ val testbit: t -> int -> bool
     is negative. *)
 
 external popcount: t -> int = "ml_z_popcount"
-(** Counts the number of bits set. 
+(** Counts the number of bits set.
     Raises [Overflow] for negative arguments, as those have an infinite
     number of bits set.
  *)
 
 external hamdist: t -> t -> int = "ml_z_hamdist"
-(** Counts the number of different bits. 
+(** Counts the number of different bits.
     Raises [Overflow] if the arguments have different signs
     (in which case the distance is infinite).
  *)
 
 (** {1 Conversions} *)
 
-(** Note that, when converting to an integer type that cannot represent the 
+(** Note that, when converting to an integer type that cannot represent the
     converted value, an [Overflow] exception is raised.
  *)
 
@@ -297,7 +297,7 @@ external format: string -> t -> string = "ml_z_format"
     [% \[flags\] \[width\] type]
 
     Where the type actually indicates the base:
-    
+
     - [i], [d], [u]: decimal
     - [b]: binary
     - [o]: octal
@@ -347,7 +347,7 @@ val bprint: Buffer.t -> t -> unit
 (** To be used as [%a] format printer in [Printf.bprintf]. *)
 
 val pp_print: Format.formatter -> t -> unit
-(** Prints the argument on the specified formatter. 
+(** Prints the argument on the specified formatter.
     Can be used as [%a] format printer in [Format.printf] and as
     argument to [#install_printer] in the top-level.
  *)
@@ -406,7 +406,7 @@ external hash: t -> int = "ml_z_hash" @NOALLOC
 (** {1 Elementary number theory} *)
 
 external gcd: t -> t -> t = "ml_z_gcd"
-(** Greatest common divisor. 
+(** Greatest common divisor.
     The result is always positive.
     Raises a [Division_by_zero] is either argument is null.
 *)
@@ -414,14 +414,14 @@ external gcd: t -> t -> t = "ml_z_gcd"
 val gcdext: t -> t -> (t * t * t)
 (** [gcdext u v] returns [(g,s,t)]  where [g] is the greatest common divisor
     and [g=us+vt].
-    [g] is always positive.      
+    [g] is always positive.
     Raises a [Division_by_zero] is either argument is null.
 
     Note: the function is based on the GMP [mpn_gcdext] function. The exact choice of [s] and [t] such that [g=us+vt] is not specified, as it may vary from a version of GMP to another (it has changed notably in GMP 4.3.0 and 4.3.1).
  *)
 
 val lcm: t -> t -> t
-(** 
+(**
     Least common multiple.
     The result is always positive.
     Raises a [Division_by_zero] is either argument is null.
@@ -429,7 +429,7 @@ val lcm: t -> t -> t
 
 external powm: t -> t -> t -> t = "ml_z_powm"
 (** [powm base exp mod] computes [base]^[exp] modulo [mod].
-    Negative [exp] are supported, in which case ([base]^-1)^(-[exp]) modulo 
+    Negative [exp] are supported, in which case ([base]^-1)^(-[exp]) modulo
     [mod] is computed.
     However, if [exp] is negative but [base] has no inverse modulo [mod], then
     a [Division_by_zero] is raised.
@@ -468,7 +468,7 @@ external pow: t -> int -> t = "ml_z_pow"
 (** [pow base exp] raises [base] to the [exp] power.
     [exp] must be non-negative.
     Note that only exponents fitting in a machine integer are supported, as
-    larger exponents would surely make the result's size overflow the 
+    larger exponents would surely make the result's size overflow the
     address space.
  *)
 
@@ -479,7 +479,7 @@ external sqrt: t -> t = "ml_z_sqrt"
  *)
 
 external sqrt_rem: t -> (t * t) = "ml_z_sqrt_rem"
-(** Returns the square root truncated, and the remainder. 
+(** Returns the square root truncated, and the remainder.
     Raises an [Invalid_argument] on negative arguments.
  *)
 
@@ -512,7 +512,7 @@ external size: t -> int = "ml_z_size" @NOALLOC
 (** Returns the number of machine words used to represent the number. *)
 
 external extract: t -> int -> int -> t = "ml_z_extract"
-(** [extract a off len] returns a non-negative number corresponding to bits 
+(** [extract a off len] returns a non-negative number corresponding to bits
     [off] to [off]+[len]-1 of [b].
     Negative [a] are considered in infinite-length 2's complement
     representation.
@@ -522,14 +522,14 @@ val signed_extract: t -> int -> int -> t
 (** [signed_extract a off len] extracts bits [off] to [off]+[len]-1 of [b],
     as [extract] does, then sign-extends bit [len-1] of the result
     (that is, bit [off + len - 1] of [a]).  The result is between
-    [- 2{^[len]-1}] (included) and [2{^[len]-1}] (excluded), 
+    [- 2{^[len]-1}] (included) and [2{^[len]-1}] (excluded),
     and equal to [extract a off len] modulo [2{^len}].
  *)
 
 external to_bits: t -> string = "ml_z_to_bits"
 (** Returns a binary representation of the argument.
     The string result should be interpreted as a sequence of bytes,
-    corresponding to the binary representation of the absolute value of 
+    corresponding to the binary representation of the absolute value of
     the argument in little endian ordering.
     The sign is not stored in the string.
  *)
@@ -547,7 +547,7 @@ external of_bits: string -> t = "ml_z_of_bits"
 (** {1 Prefix and infix operators} *)
 
 (**
-   Classic (and less classic) prefix and infix [int] operators are 
+   Classic (and less classic) prefix and infix [int] operators are
    redefined on [t].
 
    This makes it easy to typeset expressions.

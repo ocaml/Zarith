@@ -42,11 +42,15 @@ CMIOBJ = $(MLISRC:%.mli=%.cmi)
 CMXOBJ = $(MLISRC:%.mli=%.cmx)
 CMIDOC = $(MLISRC:%.mli=%.cmti)
 
-TOINSTALL := zarith.h zarith.cma libzarith.$(LIBSUFFIX) $(MLISRC) $(CMIOBJ)
+TOINSTALL := zarith.h zarith.cma libzarith.$(LIBSUFFIX) $(MLISRC) $(CMIOBJ) \
+  zarith_top.cma
 
 ifeq ($(HASOCAMLOPT),yes)
 TOINSTALL += zarith.$(LIBSUFFIX) zarith.cmxa $(CMXOBJ)
 endif
+
+OCAMLFLAGS = -I +compiler-libs
+OCAMLOPTFLAGS = -I +compiler-libs
 
 ifeq ($(HASDYNLINK),yes)
 TOINSTALL += zarith.cmxs
@@ -76,6 +80,9 @@ zarith.cmxs: zarith.cmxa libzarith.$(LIBSUFFIX)
 
 libzarith.$(LIBSUFFIX) dllzarith.$(DLLSUFFIX): $(SSRC:%.S=%.$(OBJSUFFIX)) $(CSRC:%.c=%.$(OBJSUFFIX)) 
 	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)
+
+zarith_top.cma: zarith_top.cmo
+	$(OCAMLC) -o $@ -a $<
 
 doc: $(MLISRC)
 	mkdir -p html

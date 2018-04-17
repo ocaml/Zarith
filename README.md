@@ -94,6 +94,7 @@ See LICENSE file for details.
 * Antoine Miné, Université Pierre et Marie Curie, formerly ENS Paris.
 * Xavier Leroy, INRIA Paris-Rocquencourt.
 * Pascal Cuoq, CEA LIST.
+* Christophe Troestler (toplevel module)
 
 
 ## COPYRIGHT
@@ -117,6 +118,7 @@ Source files        | Description
   z.ml[i]p          | templates used to generate z.ml[i]p
   big_int_z.ml[i]   | wrapper to provide a Big_int compatible API to Z
   q.ml[i]           | rational library, pure OCaml on top of Z
+  zarith_top.ml     | toplevel module to provide pretty-printing
   projet.mak        | builds Z, Q and the tests
   tests/            | simple regression tests and benchmarks
 

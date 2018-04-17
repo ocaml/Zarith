@@ -35,6 +35,11 @@
     #load "zarith.cma";;
     #install_printer Z.pp_print;;
     ]}
+
+    Alternatively, using the new [Zarith_top] toplevel module, simply:
+    {[
+    #require "zarith.top";;
+    ]}
 *)
 
 

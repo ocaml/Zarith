@@ -361,3 +361,9 @@ let (~$) = of_int
 let (//) = of_ints
 let (~$$) = of_bigint
 let (///) = make
+let (=) = equal
+let (<) = lt
+let (>) = gt
+let (<=) = leq
+let (>=) = geq
+let (<>) a b = not (equal a b)

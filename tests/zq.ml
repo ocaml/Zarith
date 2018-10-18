@@ -506,6 +506,7 @@ let test_Z() =
   Printf.printf "gcd -12 27\n = %a\n" pr (I.gcd (I.of_int (-12)) (I.of_int 27));
   Printf.printf "gcd 12 -27\n = %a\n" pr (I.gcd (I.of_int 12) (I.of_int (-27)));
   Printf.printf "gcd -12 -27\n = %a\n" pr (I.gcd (I.of_int (-12)) (I.of_int (-27)));
+  Printf.printf "gcd 0 2^300\n = %a\n" pr (I.gcd (I.of_int 0) p300);
   Printf.printf "gcd 2^120 2^300\n = %a\n" pr (I.gcd p120 p300);
   Printf.printf "gcd 2^300 2^120\n = %a\n" pr (I.gcd p300 p120);
   Printf.printf "gcdext 12 27\n = %a\n" pr3 (I.gcdext (I.of_int 12) (I.of_int 27));

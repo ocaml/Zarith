@@ -1740,7 +1740,7 @@ CAMLprim value ml_z_gcd(value arg1, value arg2)
     /* fast path */
     intnat a1 = Long_val(arg1);
     intnat a2 = Long_val(arg2);
-    if (!a1 || !a2) ml_z_raise_divide_by_zero();
+    if (!a1 && !a2) ml_z_raise_divide_by_zero();
     if (a1 < 0) a1 = -a1;
     if (a2 < 0) a2 = -a2;
     if (a1 < a2) { intnat t = a1; a1 = a2; a2 = t; }

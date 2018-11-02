@@ -2997,7 +2997,10 @@ struct custom_operations ml_z_custom_ops = {
   ml_z_custom_deserialize,
 #if Z_OCAML_COMPARE_EXT
   ml_z_custom_compare,
+#else
+  custom_compare_ext_default,
 #endif
+  custom_fixed_length_default
 };
 
 

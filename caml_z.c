@@ -3000,7 +3000,9 @@ struct custom_operations ml_z_custom_ops = {
 #else
   custom_compare_ext_default,
 #endif
+#ifndef Z_OCAML_LEGACY_CUSTOM_OPERATIONS
   custom_fixed_length_default
+#endif
 };
 
 

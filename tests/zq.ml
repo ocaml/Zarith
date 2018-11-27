@@ -39,6 +39,13 @@ let prfloat ch (x,y : float * float) =
   else
     Printf.fprintf ch "WRONG! (expected %g, got %g)" y x
 
+let prmarshal ch (x,y : I.t * I.t) =
+  (if I.equal x y then
+     Printf.fprintf ch "OK"
+   else
+     Printf.fprintf ch "WRONG! (expected %a, got %a)" pr y pr x);
+  flush ch
+
 let pow2 n =
   let rec doit acc n =
     if n<=0 then acc else doit (I.add acc acc) (n-1)
@@ -87,10 +94,9 @@ let chk_bits x =
   Printf.printf "\n";
   assert(I.equal (I.abs x) (I.of_bits (I.to_bits x)));
   assert((I.to_bits x) = (I.to_bits (I.neg x)));
-  Printf.printf "marshal %a\n =" pr x;
-  String.iter (fun c -> Printf.printf " %02x" (Char.code c)) (Marshal.to_string  x []);
-  Printf.printf "\n";
-  assert (x = Marshal.from_string (Marshal.to_string x []) 0)
+  Printf.printf "marshal round trip %a\n =" pr x;
+  let y = Marshal.(from_string (to_string x []) 0) in
+  Printf.printf " %a\n" prmarshal (y, x)
 
 let chk_extract (x, o, l) =
   let expected =

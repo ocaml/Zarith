@@ -402,6 +402,16 @@ case "$ocamlver" in
         hasbinannot='yes';;
 esac
 
+# Changes to C API (the custom_operation struct) since 4.08.0
+case "$ocamlver" in
+    [123].* | 4.0[01234567].* )
+        echo "Using OCaml legacy C API custom operations"
+        ccdef="-DZ_OCAML_LEGACY_CUSTOM_OPERATIONS $ccdef"
+    ;;
+    *)
+    ;;
+esac
+
 # dump Makefile
 
 cat > Makefile <<EOF

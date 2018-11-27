@@ -1,11 +1,11 @@
 (* Simple tests for the Z and Q modules.
 
 
-   This file is part of the Zarith library 
+   This file is part of the Zarith library
    http://forge.ocamlcore.org/projects/zarith .
    It is distributed under LGPL 2 licensing, with static linking exception.
    See the LICENSE file included in the distribution.
-   
+
    Copyright (c) 2010-2011 Antoine Miné, Abstraction project.
    Abstraction is part of the LIENS (Laboratoire d'Informatique de l'ENS),
    a joint laboratory by:
@@ -20,17 +20,17 @@
 
 module I = Z
 
-let pr ch x = 
-  output_string ch (I.to_string x); 
+let pr ch x =
+  output_string ch (I.to_string x);
   flush ch
 
-let pr2 ch (x,y) = 
-  Printf.fprintf ch "%s, %s" (I.to_string x) (I.to_string y); 
+let pr2 ch (x,y) =
+  Printf.fprintf ch "%s, %s" (I.to_string x) (I.to_string y);
   flush ch
 
-let pr3 ch (x,y,z) = 
-  Printf.fprintf ch "%s, %s, %s" 
-    (I.to_string x) (I.to_string y) (I.to_string z); 
+let pr3 ch (x,y,z) =
+  Printf.fprintf ch "%s, %s, %s"
+    (I.to_string x) (I.to_string y) (I.to_string z);
   flush ch
 
 let prfloat ch (x,y : float * float) =
@@ -45,7 +45,7 @@ let pow2 n =
   in
   doit I.one n
 
-let fact n = 
+let fact n =
   let rec doit acc n =
   if n<=1 then acc
   else doit (I.mul acc (I.of_int n)) (n-1)
@@ -135,12 +135,12 @@ let chk_testbit x =
   let n = I.numbits x in
   let ok = ref true in
   for i = 0 to n + 64 do
-    let actual = I.testbit x i 
+    let actual = I.testbit x i
     and expected = I.extract x i 1 in
     if not (I.equal expected (if actual then I.one else I.zero))
     then begin Printf.printf "(error on %d) " i; ok := false end
   done;
-  if !ok 
+  if !ok
   then Printf.printf "(passed)\n"
   else Printf.printf "(FAILED)\n"
 
@@ -565,9 +565,9 @@ let test_Z() =
   Printf.printf "2^120 < 1\n = %B\n" (p120 < I.one);
   Printf.printf "-2^120 > 1\n = %B\n" ((I.neg p120) > I.one);
   Printf.printf "-2^120 < 1\n = %B\n" ((I.neg p120) < I.one);
-  Printf.printf "demarshal 2^120, 2^300, 1\n = %a\n" pr3 
+  Printf.printf "demarshal 2^120, 2^300, 1\n = %a\n" pr3
     (Marshal.from_string (Marshal.to_string (p120,p300,I.one) []) 0);
-  Printf.printf "demarshal -2^120, -2^300, -1\n = %a\n" pr3 
+  Printf.printf "demarshal -2^120, -2^300, -1\n = %a\n" pr3
     (Marshal.from_string (Marshal.to_string (I.neg p120,I.neg p300,I.minus_one) []) 0);
   Printf.printf "format %%i 0 = /%s/\n" (I.format "%i" I.zero);
   Printf.printf "format %%i 1 = /%s/\n" (I.format "%i" I.one);
@@ -696,13 +696,13 @@ let test_Z() =
   chk_bits minni;
 
   List.iter chk_testbit [
-    I.zero; I.one; I.of_int (-42); 
+    I.zero; I.one; I.of_int (-42);
     I.of_string "31415926535897932384626433832795028841971693993751058209749445923078164062862089986";
     I.neg (I.shift_left (I.of_int 123456) 64);
   ];
 
   List.iter chk_numbits_tz [
-    I.zero; I.one; I.of_int (-42); 
+    I.zero; I.one; I.of_int (-42);
     I.shift_left (I.of_int 9999) 77;
     I.neg (I.shift_left (I.of_int 123456) 64);
   ];
@@ -727,7 +727,7 @@ let t_list = [Q.zero;Q.one;Q.minus_one;Q.inf;Q.minus_inf;Q.undef]
 
 let test1 msg op =
   List.iter
-    (fun x -> 
+    (fun x ->
       let r = op x in
       check r;
       Printf.printf "%s %s = %s\n" msg (Q.to_string x)  (Q.to_string r)
@@ -735,9 +735,9 @@ let test1 msg op =
 
 let test2 msg op =
   List.iter
-    (fun x -> 
+    (fun x ->
       List.iter
-        (fun y -> 
+        (fun y ->
           let r = op x y in
           check r;
           Printf.printf "%s %s %s = %s\n" (Q.to_string x) msg (Q.to_string y) (Q.to_string r)
@@ -749,7 +749,7 @@ let test_Q () =
   let _ = test1 "-" Q.neg in
   let _ = test1 "1/" Q.inv in
   let _ = test1 "abs" Q.abs in
-  let _ = test2 "+" Q.add in 
+  let _ = test2 "+" Q.add in
   let _ = test2 "-" Q.sub in
   let _ = test2 "*" Q.mul in
   let _ = test2 "/" Q.div in
@@ -760,11 +760,11 @@ let test_Q () =
   let _ = test1 "div_2exp (2) " (fun a -> Q.div_2exp a 2) in
   (* check simple identitites *)
   List.iter
-    (fun x -> 
+    (fun x ->
       assert (Q.equal x (Q.div_2exp (Q.mul_2exp x 2) 2));
       assert (Q.equal x (Q.mul_2exp (Q.div_2exp x 2) 2));
       List.iter
-        (fun y -> 
+        (fun y ->
           Printf.printf "identity checking %s %s\n" (Q.to_string x) (Q.to_string y);
           assert (Q.equal (Q.add x y) (Q.add y x));
           assert (Q.equal (Q.sub x y) (Q.neg (Q.sub y x)));
@@ -779,8 +779,3 @@ let test_Q () =
 
 let _ = test_Z()
 let _ = test_Q()
-
-
-
-
-

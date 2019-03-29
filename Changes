@@ -1,3 +1,8 @@
+Release 1.8 (2019-03-30):
+- Request #20: infix comparison operators for Q and Z [Max Mouratov]
+- Request #39: gdc(x,0) = gcd(0,x) = x [Vincent Laporte]
+- Request #41: support for upcoming OCaml 4.08 [Daniel Hillerström]
+- Issue #17: add package zarith.top with REPL printer [Christophe Troestler]
 - Issue #22: wrong stack marking directive in caml_z_x86_64_mingw64.S
   [Bernhard Schommer]
 - Issue #24: generate and install .cmti files for easy access to documentation

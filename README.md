@@ -81,6 +81,11 @@ option to `ocamlc` / `ocamlopt`, or the `-package zarith` option to `ocamlfind`.
   make doc
 ```
 
+## ONLINE DOCUMENTATION
+
+The documentation for the latest release is hosted on [GitHub Pages](https://antoinemine.github.io/Zarith/doc/latest/index.html).
+
+
 ## LICENSE
 
 This Library is distributed under the terms of the GNU Library General

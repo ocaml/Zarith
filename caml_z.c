@@ -2718,9 +2718,25 @@ CAMLprim value ml_z_pow(value base, value exp)
   CAMLlocal1(r);
   mpz_t mbase;
   intnat e = Long_val(exp);
+  mp_size_t sz, ralloc;
+  int cnt;
   if (e < 0) 
     caml_invalid_argument("Z.pow: exponent must be non-negative");
   ml_z_mpz_init_set_z(mbase, base);
+
+  /* Safe overapproximation of the size of the result.
+     In case this overflows an int, GMP may abort with a message
+     "gmp: overflow in mpz type". To avoid this, we test the size before
+     calling mpz_pow_ui and raise an OCaml exception.
+     Note: we lifted the computation from mpz_n_pow_ui.
+   */
+  sz = mbase->_mp_size;
+  if (sz < 0) sz = -sz;
+  cnt = sz > 0 ? ml_z_clz(mbase->_mp_d[sz - 1]) : 0;
+  ralloc = (sz * GMP_NUMB_BITS - cnt + GMP_NAIL_BITS) * e / GMP_NUMB_BITS + 5;
+  if (ralloc > INT_MAX)
+    caml_invalid_argument("Z.pow: risk of overflow in mpz type");
+
   mpz_pow_ui(mbase, mbase, e);
   r = ml_z_from_mpz(mbase);
   mpz_clear(mbase);

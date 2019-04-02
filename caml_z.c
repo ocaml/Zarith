@@ -2570,6 +2570,8 @@ void ml_z_mpz_set_z(mpz_t rop, value op)
   Z_DECL(op);
   Z_CHECK(op);
   Z_ARG(op);
+  if (size_op * Z_LIMB_BITS > INT_MAX)
+    caml_invalid_argument("Z: risk of overflow in mpz type");  
   mpz_realloc2(rop, size_op * Z_LIMB_BITS);
   rop->_mp_size = (sign_op >= 0) ? size_op : -size_op;
   ml_z_cpy_limb(rop->_mp_d, ptr_op, size_op);

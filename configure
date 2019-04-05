@@ -59,6 +59,7 @@ where options include:
   -gmp                 use GMP library (default if found)
   -mpir                use MPIR library instead of GMP
   -perf                enable performance statistics
+  -prefixnonocaml      add for non ocaml tool, e.g. -prefixnonocaml x86_64-w64-mingw32-
 
 Environment variables that affect configuration:
   CC                   C compiler to use (default: try gcc, then cc)
@@ -99,6 +100,9 @@ while : ; do
             gmp='mpir';;
         -perf|--perf)
             perf='yes';;
+        -prefixnonocaml|--prefixnonocaml)
+            prefixnonocaml="$2"
+            shift;;
         *)
             echo "unknown option $1, try -help"
             exit 2;;
@@ -204,7 +208,8 @@ searchbinreq $ocamlc
 searchbinreq $ocamldep
 searchbinreq $ocamlmklib
 searchbinreq $ocamldoc
-searchbinreq $ar
+searchbin $ar
+if test $? -eq 0; then ar=$prefixnonocaml$ar; searchbinreq $ar; fi
 searchbinreq perl
 
 if test -n "$CC"; then
@@ -214,9 +219,15 @@ if test -n "$CC"; then
 elif ! searchbin 'gcc'; then
   cc='gcc'
   ccopt="-O3 -Wall -Wextra $CFLAGS"
-else
-  searchbinreq 'cc'
+elif ! searchbin $prefixnonocaml'gcc'; then
+  cc=$prefixnonocaml'gcc'
+  ccopt="-O3 -Wall -Wextra $CFLAGS"
+elif ! searchbin 'cc'; then
   cc='cc'
+  ccopt="-O3 -Wall -Wextra $CFLAGS"
+else
+  searchbinreq $prefixnonocaml'cc'
+  cc=$prefixnonocaml'cc'
   ccopt="-O3 -Wall -Wextra $CFLAGS"
 fi
 
@@ -464,4 +475,3 @@ configuration successful!
 now type "make" to build
 then type "make install" or "sudo make install" to install
 EOF
-

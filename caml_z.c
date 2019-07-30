@@ -26,6 +26,7 @@
 #include <string.h>
 #include <math.h>
 #include <stdint.h>
+#include <limits.h>
 
 #ifdef HAS_GMP
 #include <gmp.h>

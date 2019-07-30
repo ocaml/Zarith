@@ -151,9 +151,9 @@ let compare x y =
   | MINF,_ | _,INF -> -1
   | INF,_ | _,MINF -> 1
   | _ ->
-    if x.den == y.den (* implies equality,
-                         especially if immediate value and not a pointer,
-                         in particular in the case den = 1 *)
+    if x.den = y.den (* implies equality,
+                        especially if immediate value and not a pointer,
+                        in particular in the case den = 1 *)
     then Z.compare x.num y.num
     else
       Z.compare
@@ -163,10 +163,35 @@ let compare x y =
 let min a b = if compare a b <= 0 then a else b
 let max a b = if compare a b >= 0 then a else b
 
-let leq a b = compare a b <= 0
-let geq a b = compare a b >= 0
-let lt a b = compare a b < 0
-let gt a b = compare a b > 0
+
+let leq x y =
+  match classify x, classify y with
+  | UNDEF,_ | _,UNDEF -> false
+  | MINF,_ | _,INF -> true
+  | INF,_ | _,MINF -> false
+  | _ ->
+     if x.den = y.den
+     then Z.leq x.num y.num
+     else
+       Z.leq
+         (Z.mul x.num y.den)
+         (Z.mul y.num x.den)
+
+let lt x y =
+  match classify x, classify y with
+  | UNDEF,_ | _,UNDEF -> false
+  | INF,_ | _,MINF -> false
+  | MINF,_ | _,INF -> true
+  | _ ->
+     if x.den = y.den
+     then Z.lt x.num y.num
+     else
+       Z.lt
+         (Z.mul x.num y.den)
+         (Z.mul y.num x.den)
+
+let geq x y = leq y x
+let gt x y = lt y x
 
 let to_string n =
   match classify n with

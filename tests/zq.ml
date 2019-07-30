@@ -780,7 +780,13 @@ let test_Q () =
           assert (Q.equal (Q.mul x y) (Q.mul y x));
           assert (Q.equal (Q.div x y) (Q.mul x (Q.inv y)));
         ) t_list
-    ) t_list
+    ) t_list;
+  assert (Q.compare Q.undef Q.undef = 0);
+  assert (not (Q.equal Q.undef Q.undef));
+  assert (not (Q.lt  Q.undef Q.undef));
+  assert (not (Q.leq Q.undef Q.undef));
+  assert (not (Q.gt  Q.undef Q.undef));
+  assert (not (Q.geq Q.undef Q.undef))
 
 
 (* main *)

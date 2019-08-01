@@ -215,11 +215,14 @@ external (lsl): t -> int -> t = shift_left@ASM
 external (asr): t -> int -> t = shift_right@ASM
 external (~$): int -> t = "ml_z_of_int" @NOALLOC
 external ( ** ): t -> int -> t = "ml_z_pow"
-let (=) = equal
-let (<) = lt
-let (>) = gt
-let (<=) = leq
-let (>=) = geq
-let (<>) a b = not (equal a b)
+
+module Compare = struct
+  let (=) = equal
+  let (<) = lt
+  let (>) = gt
+  let (<=) = leq
+  let (>=) = geq
+  let (<>) a b = not (equal a b)
+end
 
 let version = @VERSION

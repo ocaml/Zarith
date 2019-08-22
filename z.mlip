@@ -614,24 +614,27 @@ external (~$): int -> t = "ml_z_of_int" @NOALLOC
 external ( ** ): t -> int -> t = "ml_z_pow"
 (** Power [pow]. *)
 
-val (=): t -> t -> bool
-(** Same as [equal]. *)
+module Compare : sig
 
-val (<): t -> t -> bool
-(** Same as [lt]. *)
+    val (=): t -> t -> bool
+    (** Same as [equal]. *)
 
-val (>): t -> t -> bool
-(** Same as [gt]. *)
+    val (<): t -> t -> bool
+    (** Same as [lt]. *)
 
-val (<=): t -> t -> bool
-(** Same as [leq]. *)
+    val (>): t -> t -> bool
+    (** Same as [gt]. *)
 
-val (>=): t -> t -> bool
-(** Same as [geq]. *)
+    val (<=): t -> t -> bool
+    (** Same as [leq]. *)
 
-val (<>): t -> t -> bool
-(** [a <> b] is equivalent to [not (equal a b)]. *)
+    val (>=): t -> t -> bool
+    (** Same as [geq]. *)
 
+    val (<>): t -> t -> bool
+    (** [a <> b] is equivalent to [not (equal a b)]. *)
+
+end
 
 (** {1 Miscellaneous} *)
 

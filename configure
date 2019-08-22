@@ -31,7 +31,7 @@ ocamldep='ocamldep'
 ocamldoc='ocamldoc'
 ccinc="$CPPFLAGS"
 cclib="$LDFLAGS"
-asopt=''
+asopt="$ASFLAGS"
 ccdef=''
 mlflags="$OCAMLFLAGS"
 mloptflags="$OCAMLOPTFLAGS"
@@ -64,6 +64,7 @@ where options include:
 Environment variables that affect configuration:
   CC                   C compiler to use (default: try gcc, then cc)
   CFLAGS               extra flags to pass to the C compiler
+  ASFLAGS              extra flags to pass to the assembler
   CPPFLAGS             extra includes, e.g. -I/path/to/gmp/include
   LDFLAGS              extra link flags, e.g. -L/path/to/gmp/lib
   OCAMLFLAGS           extra flags to pass to the ocamlc Caml compiler
@@ -313,7 +314,15 @@ arch='none'
 case $host in
     x86_64-*linux-gnu|x86_64-kfreebsd-gnu)
         ccdef="-DZ_ELF -DZ_DOT_LABEL_PREFIX $ccdef"
-        arch='x86_64';;
+        if test $wordsize = 32; then
+            # 32-bit OCaml on a 64-bit host
+            arch='i686'
+            ccopt="-m32 $ccopt"
+            asopt="-m32 $asopt"
+        else
+            arch='x86_64'
+        fi
+        ;;
     i486-*linux-gnu|i686-*linux-gnu|i486-kfreebsd-gnu)
         ccdef="-DZ_ELF -DZ_DOT_LABEL_PREFIX $ccdef"
         arch='i686';;

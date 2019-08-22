@@ -769,16 +769,16 @@ let test_Q () =
   (* check simple identitites *)
   List.iter
     (fun x ->
-      assert (Q.equal x (Q.div_2exp (Q.mul_2exp x 2) 2));
-      assert (Q.equal x (Q.mul_2exp (Q.div_2exp x 2) 2));
+      assert (0 = Q.compare x (Q.div_2exp (Q.mul_2exp x 2) 2));
+      assert (0 = Q.compare x (Q.mul_2exp (Q.div_2exp x 2) 2));
       List.iter
         (fun y ->
           Printf.printf "identity checking %s %s\n" (Q.to_string x) (Q.to_string y);
-          assert (Q.equal (Q.add x y) (Q.add y x));
-          assert (Q.equal (Q.sub x y) (Q.neg (Q.sub y x)));
-          assert (Q.equal (Q.sub x y) (Q.add x (Q.neg y)));
-          assert (Q.equal (Q.mul x y) (Q.mul y x));
-          assert (Q.equal (Q.div x y) (Q.mul x (Q.inv y)));
+          assert (0 = Q.compare (Q.add x y) (Q.add y x));
+          assert (0 = Q.compare (Q.sub x y) (Q.neg (Q.sub y x)));
+          assert (0 = Q.compare (Q.sub x y) (Q.add x (Q.neg y)));
+          assert (0 = Q.compare (Q.mul x y) (Q.mul y x));
+          assert (0 = Q.compare (Q.div x y) (Q.mul x (Q.inv y)));
         ) t_list
     ) t_list;
   assert (Q.compare Q.undef Q.undef = 0);

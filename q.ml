@@ -141,7 +141,7 @@ let sign x = Z.sign x.num
 *)
 
 let equal x y =
-  (Z.equal x.num y.num) && (Z.equal x.den y.den)
+  (Z.equal x.num y.num) && (Z.equal x.den y.den) && (classify x <> UNDEF)
 
 let compare x y =
   match classify x, classify y with

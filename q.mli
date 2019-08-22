@@ -126,7 +126,7 @@ val compare: t -> t -> int
 
 val equal: t -> t -> bool
 (** Equality testing.
-    This is consistent with [compare]; in particular, [undef]=[undef].
+    Unlike [compare], this follows IEEE semantics: [undef] <> [undef].
  *)
 
 val min: t -> t -> t
@@ -136,10 +136,10 @@ val max: t -> t -> t
 (** Returns the largest of its arguments. *)
 
 val leq: t -> t -> bool
-(** Less than or equal. *)
+(** Less than or equal. [leq undef undef] resturns false. *)
 
 val geq: t -> t -> bool
-(** Greater than or equal. *)
+(** Greater than or equal. [leq undef undef] resturns false. *)
 
 val lt: t -> t -> bool
 (** Less than (not equal). *)

@@ -253,9 +253,9 @@ fi
 
 # directories
 
-if test "$ocamllibdir" = "auto"; then ocamllibdir=`ocamlc -where`; fi
-# to avoir fail on Cygwin
-ocamllibdir=${ocamllibdir//$'\r'/}
+if test "$ocamllibdir" = "auto"
+then ocamllibdir=`ocamlc -where | sed 's/\r$//'`
+fi
 
 if test ! -f "$ocamllibdir/caml/mlvalues.h"
 then echo "cannot find OCaml libraries in $ocamllibdir"; exit 2; fi

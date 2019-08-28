@@ -1,12 +1,16 @@
+Release 1.9,1 (2019-08-28):
+- Fix configure issue for non-bash sh introduced in #45
+- Tweaks to opam file [kit-ty-kate]
+
 Release 1.9 (2019-08-22):
 - Issue #50: add opam file, make it easy to "opam publish" new versions
 - Issue #38: configure detects 32bit OCaml switch on 64bit host
 - Fix #36: change Q.equal, leq, geq comparisons for undef
-- Request #47: move infix comparison operators of Z in submodule,
-  avoid shadowing the polymorphic compare
+- Request #47: move infix comparison operators of Z in submodule 
+  avoid shadowing the polymorphic compare [Bernhard Schommer]
 - Fix #49: INT_MAX undeclared
-- Request #46: add prefixnonocaml option ()
-- Request #45: fix ocamllibdir/caml/mlvalues.h bug (Cygwin)
+- Request #46: add prefixnonocaml option [Et7f3]
+- Request #45: fix ocamllibdir/caml/mlvalues.h bug (Cygwin) [Et7f3]
 - Fix: attempting to build numbers too large for GMP raises an OCaml exception
   instead of crashing with "gmp: overflow in mpz type"
 

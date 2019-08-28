@@ -1,4 +1,4 @@
-Release 1.9,1 (2019-08-28):
+Release 1.9.1 (2019-08-28) (bugfix):
 - Fix configure issue for non-bash sh introduced in #45
 - Tweaks to opam file [kit-ty-kate]
 

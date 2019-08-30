@@ -220,7 +220,6 @@ unsigned long ml_z_ops_as = 0;
 #define Z_MARK_SLOW
 #endif
 
-
 /*---------------------------------------------------
   UTILITIES
   ---------------------------------------------------*/
@@ -582,8 +581,8 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
       || (intnat)caml_string_length(v) < ofs + len)
     caml_invalid_argument("Z.of_substring_base: invalid offset or length");
   /* process the string */
-  char *d = String_val(v) + ofs;
-  char *end = d + len;
+  const char *d = String_val(v) + ofs;
+  const char *end = d + len;
   mp_size_t i, sz, sz2;
   mp_limb_t sign = 0;
   intnat base = Long_val(b);
@@ -778,7 +777,7 @@ CAMLprim value ml_z_format(value f, value v)
   char* buf, *dst;
   mp_size_t i, size_dst, max_size;
   value r;
-  char* fmt = String_val(f);
+  const char* fmt = String_val(f);
   int base = 10;     /* base */
   int cas = 0;       /* uppercase X / lowercase x */
   int width = 0;
@@ -979,13 +978,13 @@ CAMLprim value ml_z_of_bits(value arg)
   mp_size_t sz, szw;
   mp_size_t i = 0;
   mp_limb_t x;
-  unsigned char* p;
+  const unsigned char* p;
   Z_MARK_OP;
   Z_MARK_SLOW;
   sz = caml_string_length(arg);
   szw = (sz + sizeof(mp_limb_t) - 1) / sizeof(mp_limb_t);
   r = ml_z_alloc(szw);
-  p = (unsigned char*) String_val(arg);
+  p = (const unsigned char*) String_val(arg);
   /* all limbs but last */
   if (szw > 1) {
     for (; i < szw - 1; i++) {

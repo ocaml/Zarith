@@ -2,11 +2,11 @@
    Integers.
 
 
-   This file is part of the Zarith library 
+   This file is part of the Zarith library
    http://forge.ocamlcore.org/projects/zarith .
    It is distributed under LGPL 2 licensing, with static linking exception.
    See the LICENSE file included in the distribution.
-   
+
    Copyright (c) 2010-2011 Antoine Miné, Abstraction project.
    Abstraction is part of the LIENS (Laboratoire d'Informatique de l'ENS),
    a joint laboratory by:
@@ -128,7 +128,7 @@ let gcdext u v =
   if z then g, s, div (sub g (mul u s)) v
   else g, div (sub g (mul v s)) u, s
 
-let lcm u v = 
+let lcm u v =
   let g = gcd u v in
   abs (mul (divexact u g) v)
 
@@ -156,7 +156,7 @@ let log2up x =
 (* Consider a real number [r] such that
    - the integral part of [r] is the bigint [x]
    - 2^54 <= |x| < 2^63
-   - the fractional part of [r] is 0 if [exact = true], 
+   - the fractional part of [r] is 0 if [exact = true],
      nonzero if [exact = false].
    Then, the following function returns [r] correctly rounded
    according to the current rounding mode of the processor.

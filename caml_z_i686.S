@@ -4,19 +4,19 @@
    - System 5 ABI and assembly syntax
    - GNU as
 
- 
-   This file is part of the Zarith library 
+
+   This file is part of the Zarith library
    http://forge.ocamlcore.org/projects/zarith .
    It is distributed under LGPL 2 licensing, with static linking exception.
    See the LICENSE file included in the distribution.
-   
+
    Copyright (c) 2010-2011 Antoine Miné, Abstraction project.
    Abstraction is part of the LIENS (Laboratoire d'Informatique de l'ENS),
    a joint laboratory by:
    CNRS (Centre national de la recherche scientifique, France),
    ENS (École normale supérieure, Paris, France),
    INRIA Rocquencourt (Institut national de recherche en informatique, France).
-        
+
  */
 
 
@@ -28,7 +28,7 @@
         /* helper functions */
         /* **************** */
 
-        
+
         /* optional underscope prefix for symbols */
 #ifdef Z_UNDERSCORE_PREFIX
 #define SYMB(x) _##x
@@ -82,7 +82,7 @@ SYMB(ml_as_z_##proc):
 
 
         /* operation counter */
-        
+
 #ifdef Z_PERF_COUNTER
 #define OP \
         incl    SYMB(ml_z_ops_as)
@@ -91,7 +91,7 @@ SYMB(ml_as_z_##proc):
 #endif
 
 
-        
+
         /* unary arithmetics */
         /* ***************** */
 
@@ -128,7 +128,7 @@ L(abs):
         C_JMP(abs)
         EPILOG(abs)
 
-        
+
         /* succ */
         PROLOG(succ)
         mov     4(%esp), %eax
@@ -157,8 +157,8 @@ L(pred):
         EPILOG(pred)
 
 
-        
-        
+
+
         /* binary arithmetics */
         /* ****************** */
 
@@ -179,7 +179,7 @@ L(add):
         C_JMP(add)
         EPILOG(add)
 
- 
+
         /* sub */
         PROLOG(sub)
         mov     4(%esp), %eax
@@ -197,7 +197,7 @@ L(sub):
         C_JMP(sub)
         EPILOG(sub)
 
-        
+
         /* mul */
         PROLOG(mul)
         mov     4(%esp), %eax
@@ -216,7 +216,7 @@ L(mul):
         C_JMP(mul)
         EPILOG(mul)
 
-        
+
         /* div */
         PROLOG(div)
         mov     8(%esp), %ecx
@@ -238,7 +238,7 @@ L(div):
         C_JMP(div)
         EPILOG(div)
 
-        
+
         /* divexacty */
         PROLOG(divexact)
         mov     8(%esp), %ecx
@@ -260,7 +260,7 @@ L(divexact):
         C_JMP(divexact)
         EPILOG(divexact)
 
-        
+
         /* rem */
         PROLOG(rem)
         mov     4(%esp), %eax
@@ -286,11 +286,11 @@ L(rem):
         C_JMP(rem)
         EPILOG(rem)
 
-        
+
         /* bit operations */
         /* ************** */
 
-        
+
         /* not */
         PROLOG(lognot)
         mov     4(%esp), %eax
@@ -334,7 +334,7 @@ L(logand):
         C_JMP(logand)
         EPILOG(logand)
 
-        
+
         /* xor */
         PROLOG(logxor)
         mov     4(%esp), %eax

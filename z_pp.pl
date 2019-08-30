@@ -5,11 +5,11 @@ use warnings "all";
 # Simple preprocessor to fix @ASM directives in z.mlp and z.mlip, and
 # generate z.ml and z.mli
 
-# This file is part of the Zarith library 
+# This file is part of the Zarith library
 # http://forge.ocamlcore.org/projects/zarith .
 # It is distributed under LGPL 2 licensing, with static linking exception.
 # See the LICENSE file included in the distribution.
-#   
+#
 # Copyright (c) 2010-2011 Antoine Miné, Abstraction project.
 # Abstraction is part of the LIENS (Laboratoire d'Informatique de l'ENS),
 # a joint laboratory by:
@@ -47,8 +47,8 @@ if (-e $ASM) {
     close F;
 }
 
-for $i (sort (keys %ASM_FUNS)) { 
-    print "  found $i\n"; 
+for $i (sort (keys %ASM_FUNS)) {
+    print "  found $i\n";
 }
 
 
@@ -83,7 +83,7 @@ doml "mli";
 # generate a features.h file recording the functions defined in asm
 
 open F, "> z_features.h";
-for $i (sort (keys %ASM_FUNS)) { 
+for $i (sort (keys %ASM_FUNS)) {
     print F "#define Z_ASM_$i\n";
 }
 close F;

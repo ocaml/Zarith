@@ -4,12 +4,12 @@
    - System 5 ABI and assembly syntax
    - GNU as
 
- 
-   This file is part of the Zarith library 
+
+   This file is part of the Zarith library
    http://forge.ocamlcore.org/projects/zarith .
    It is distributed under LGPL 2 licensing, with static linking exception.
    See the LICENSE file included in the distribution.
-   
+
    Copyright (c) 2010-2011 Antoine Miné, Abstraction project.
    Abstraction is part of the LIENS (Laboratoire d'Informatique de l'ENS),
    a joint laboratory by:
@@ -19,12 +19,12 @@
 
  */
 
-        
+
         /* makes the stack non-executable. */
 #ifdef Z_ELF
         .section .note.GNU-stack,"",@progbits
 #endif
-        
+
         /* helper functions */
         /* **************** */
 
@@ -88,7 +88,7 @@ SYMB(ml_as_z_##proc):
 #endif
 
         /* operation counter */
-        
+
 #ifndef Z_PERF_COUNTER
 #define OP
 #else
@@ -98,7 +98,7 @@ SYMB(ml_as_z_##proc):
         addq    $1, (%rcx)
 #endif
 #endif
-        
+
         /* unary arithmetics */
         /* ***************** */
 
@@ -117,7 +117,7 @@ L(neg):
         C_JMP(neg)
         EPILOG(neg)
 
-        
+
         /* abs */
         PROLOG(abs)
         test    $1, %dil
@@ -135,7 +135,7 @@ L(abs):
         C_JMP(abs)
         EPILOG(abs)
 
-        
+
         /* succ */
         PROLOG(succ)
         test    $1, %dil
@@ -149,7 +149,7 @@ L(succ):
         C_JMP(succ)
         EPILOG(succ)
 
-        
+
         /* pred */
         PROLOG(pred)
         test    $1, %dil
@@ -165,17 +165,17 @@ L(pred):
 
 
 
-        
+
         /* binary arithmetics */
         /* ****************** */
 
-        
+
         /* add */
         PROLOG(add)
         test    $1, %dil
         jz      L(add)
         test    $1, %sil
-        jz      L(add)        
+        jz      L(add)
         lea     -1(%rdi), %rax
         add     %rsi, %rax
         jo      L(add)
@@ -185,7 +185,7 @@ L(add):
         C_JMP(add)
         EPILOG(add)
 
-        
+
         /* sub */
         PROLOG(sub)
         test    $1, %dil
@@ -202,7 +202,7 @@ L(sub):
         C_JMP(sub)
         EPILOG(sub)
 
-  
+
         /* mul */
         PROLOG(mul)
         test    $1, %dil
@@ -220,7 +220,7 @@ L(mul):
         C_JMP(mul)
         EPILOG(mul)
 
-  
+
         /* div */
         PROLOG(div)
         mov     %rsi, %rcx
@@ -242,7 +242,7 @@ L(div):
         C_JMP(div)
         EPILOG(div)
 
-        
+
          /* divexact */
         PROLOG(divexact)
         mov     %rsi, %rcx
@@ -290,7 +290,7 @@ L(rem):
         C_JMP(rem)
         EPILOG(rem)
 
-        
+
         /* bit operations */
         /* ************** */
 
@@ -307,7 +307,7 @@ L(lognot):
         C_JMP(lognot)
         EPILOG(lognot)
 
-        
+
         /* and */
         PROLOG(logand)
         mov     %rdi, %rax
@@ -320,7 +320,7 @@ L(logand):
         C_JMP(logand)
         EPILOG(logand)
 
-        
+
          /* or */
         PROLOG(logor)
         test    $1, %dil
@@ -335,7 +335,7 @@ L(logor):
         C_JMP(logor)
         EPILOG(logor)
 
-        
+
          /* xor */
         PROLOG(logxor)
         test    $1, %dil
@@ -350,7 +350,7 @@ L(logxor):
         C_JMP(logxor)
         EPILOG(logxor)
 
-        
+
          /* shift_left */
         PROLOG(shift_left)
         test    $1, %dil
@@ -392,5 +392,5 @@ L(shift_left):
 L(shift_right):
         C_JMP(shift_right)
         EPILOG(shift_right)
-        
+
 

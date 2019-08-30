@@ -4,12 +4,12 @@
    - System 5 ABI and assembly syntax
    - GNU as
 
- 
-   This file is part of the Zarith library 
+
+   This file is part of the Zarith library
    http://forge.ocamlcore.org/projects/zarith .
    It is distributed under LGPL 2 licensing, with static linking exception.
    See the LICENSE file included in the distribution.
-   
+
    Copyright (c) 2013 Xavier Leroy, INRIA Paris-Rocquencourt,
    and Antoine Miné, Abstraction project.
    Abstraction is part of the LIENS (Laboratoire d'Informatique de l'ENS),
@@ -20,7 +20,7 @@
 
  */
 
-        
+
         /* makes the stack non-executable. */
         .section .note.GNU-stack,"",%progbits
 
@@ -50,9 +50,9 @@ ml_as_z_##proc:
         b     ml_z_##proc(PLT)
 
         /* operation counter (not implemented) */
-        
+
 #define OP
-        
+
         /* unary arithmetics */
         /* ***************** */
 
@@ -70,7 +70,7 @@ L(neg):
         C_JMP(neg)
         EPILOG(neg)
 
-        
+
         /* abs */
         PROLOG(abs)
 	tst     r0, #1
@@ -87,7 +87,7 @@ L(abs):
         C_JMP(abs)
         EPILOG(abs)
 
-        
+
         /* succ */
         PROLOG(succ)
         tst     r0, #1
@@ -101,7 +101,7 @@ L(succ):
         C_JMP(succ)
         EPILOG(succ)
 
-        
+
         /* pred */
         PROLOG(pred)
         tst     r0, #1
@@ -117,11 +117,11 @@ L(pred):
 
 
 
-        
+
         /* binary arithmetics */
         /* ****************** */
 
-        
+
         /* add */
         PROLOG(add)
 	and     r2, r0, r1
@@ -137,7 +137,7 @@ L(add):
         C_JMP(add)
         EPILOG(add)
 
-        
+
         /* sub */
         PROLOG(sub)
 	and     r2, r0, r1
@@ -152,7 +152,7 @@ L(sub):
         C_JMP(sub)
         EPILOG(sub)
 
-  
+
         /* mul */
         PROLOG(mul)
 	and     r2, r0, r1
@@ -186,7 +186,7 @@ L(lognot):
         C_JMP(lognot)
         EPILOG(lognot)
 
-        
+
         /* and */
         PROLOG(logand)
 	and     r2, r0, r1
@@ -199,7 +199,7 @@ L(logand):
         C_JMP(logand)
         EPILOG(logand)
 
-        
+
          /* or */
         PROLOG(logor)
 	and     r2, r0, r1
@@ -212,7 +212,7 @@ L(logor):
         C_JMP(logor)
         EPILOG(logor)
 
-        
+
          /* xor */
         PROLOG(logxor)
 	and     r2, r0, r1
@@ -226,7 +226,7 @@ L(logxor):
         C_JMP(logxor)
         EPILOG(logxor)
 
-        
+
          /* shift_left */
         PROLOG(shift_left)
 	tst     r0, #1
@@ -261,5 +261,5 @@ L(shift_left):
 L(shift_right):
         C_JMP(shift_right)
         EPILOG(shift_right)
-        
+
 

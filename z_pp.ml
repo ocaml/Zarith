@@ -4,14 +4,14 @@ let version = ref "VERSION"
 let usage = "Usage: './z_pp architecture"
 
 let () =
-  Arg.parse 
+  Arg.parse
     ["-noalloc", Arg.Set noalloc, "noalloc attribute available";
      "-ov", Arg.Set_string version, "ocaml compiler version"]
     (fun name -> archname := name)
     usage;
-  if !archname = "" 
+  if !archname = ""
   then begin
-      print_endline usage; 
+      print_endline usage;
       exit 1
     end
 
@@ -37,7 +37,7 @@ let () =
 	funcnames := StringSet.add funcname !funcnames
     done
   with
-    End_of_file -> 
+    End_of_file ->
       close_in input
 
 
@@ -58,7 +58,7 @@ let treat_file =
 	let line_in = input_line input in
         let line_in = Str.(global_replace (regexp "@VERSION") (Printf.sprintf "%S" !version) line_in) in
         let line_in = Str.(global_replace (regexp "@NOALLOC") noalloc_str line_in) in
-	let line_out = 
+	let line_out =
 	  if Str.string_match rASM line_in 0
 	  then
 	    let funcname = Str.matched_group 2 line_in in
@@ -75,7 +75,7 @@ let treat_file =
 	Printf.fprintf output "%s\n" line_out
       done
     with
-      End_of_file -> 
+      End_of_file ->
 	close_in input
 ;;
 

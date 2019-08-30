@@ -1,8 +1,8 @@
-/** 
+/**
   Implementation of Z module.
 
 
-  This file is part of the Zarith library 
+  This file is part of the Zarith library
   http://forge.ocamlcore.org/projects/zarith .
   It is distributed under LGPL 2 licensing, with static linking exception.
   See the LICENSE file included in the distribution.
@@ -18,7 +18,7 @@
 
 
 /*---------------------------------------------------
-  INCLUDES 
+  INCLUDES
   ---------------------------------------------------*/
 
 #include <stdio.h>
@@ -74,8 +74,8 @@ extern "C" {
 /* Sanity checks. */
 #define Z_PERFORM_CHECK 0
 
-/* Enable performance counters. 
-   Prints some info on stdout at exit. 
+/* Enable performance counters.
+   Prints some info on stdout at exit.
 */
 /*
   #define Z_PERF_COUNTER 0
@@ -90,7 +90,7 @@ extern "C" {
 /* whether the "compare_ext" operation over custom blocks is supported.
    This operation is required for OCaml's generic comparisons to
    operate properly over values of type Z.t.
-   The compare_ext operation is supported in OCaml since version 3.12.1. 
+   The compare_ext operation is supported in OCaml since version 3.12.1.
 */
 /*
   #define Z_OCAML_COMPARE_EXT 0
@@ -118,13 +118,13 @@ extern "C" {
   A z object x can be:
   - either an ocaml int
   - or a block with abstract or custom tag and containing:
-    . a 1 value header containing the sign Z_SIGN(x) and the size Z_SIZE(x) 
+    . a 1 value header containing the sign Z_SIGN(x) and the size Z_SIZE(x)
     . Z_SIZE(x) mp_limb_t
 
   Invariant:
   - if the number fits in an int, it is stored in an int, not a block
   - if the number is stored in a block, then Z_SIZE(x) >= 1 and
-  the most significant limb Z_LIMB(x)[Z_SIZE(x)] is not 0 
+  the most significant limb Z_LIMB(x)[Z_SIZE(x)] is not 0
  */
 
 
@@ -190,7 +190,7 @@ extern "C" {
 
 /* safe bounds for the length of a base n string fitting in a native
    int. Defined as the result of (n - 2) log_base(2) with n = 64 or
-   32. 
+   32.
 */
 #ifdef ARCH_SIXTYFOUR
 #define Z_BASE16_LENGTH_OP 15
@@ -217,7 +217,7 @@ unsigned long ml_z_ops_as = 0;
 #define Z_MARK_SLOW  ml_z_slow++
 #else
 #define Z_MARK_OP
-#define Z_MARK_SLOW 
+#define Z_MARK_SLOW
 #endif
 
 
@@ -255,7 +255,7 @@ void ml_z_check(const char* fn, int line, const char* arg, value v)
   if (Is_block(v)) {
 #if Z_CUSTOM_BLOCK
     if (Custom_ops_val(v) != &ml_z_custom_ops) {
-      printf("ml_z_check: wrong custom block for %s at %s:%i.\n", 
+      printf("ml_z_check: wrong custom block for %s at %s:%i.\n",
              arg, fn, line);
       exit(1);
     }
@@ -264,13 +264,13 @@ void ml_z_check(const char* fn, int line, const char* arg, value v)
     sz = Wosize_val(v);
 #endif
     if (Z_SIZE(v) + 2 > sz) {
-      printf("ml_z_check: invalid block size (%i / %i) for %s at %s:%i.\n", 
+      printf("ml_z_check: invalid block size (%i / %i) for %s at %s:%i.\n",
              (int)Z_SIZE(v), (int)sz,
              arg, fn, line);
       exit(1);
     }
     if ((mp_size_t) Z_LIMB(v)[sz - 2] != (mp_size_t)(0xDEADBEEF ^ (sz - 2))) {
-      printf("ml_z_check: corrupted block for %s at %s:%i.\n", 
+      printf("ml_z_check: corrupted block for %s at %s:%i.\n",
              arg, fn, line);
       exit(1);
     }
@@ -278,7 +278,7 @@ void ml_z_check(const char* fn, int line, const char* arg, value v)
 #if !Z_USE_NATINT
     if (!Z_SIZE(v)) {
       if (Z_SIGN(v)) {
-        printf("ml_z_check: invalid sign of 0 for %s at %s:%i.\n", 
+        printf("ml_z_check: invalid sign of 0 for %s at %s:%i.\n",
                arg, fn, line);
         exit(1);
       }
@@ -296,7 +296,7 @@ void ml_z_check(const char* fn, int line, const char* arg, value v)
   }
 }
 #endif
-  
+
 /* for debugging */
 #if Z_PERFORM_CHECK
 #define Z_CHECK(v) ml_z_check(__FUNCTION__, __LINE__, #v, v)
@@ -357,7 +357,7 @@ static inline mp_limb_t* ml_z_dup_limb(mp_limb_t* src, mp_size_t sz)
 /* given a z object, define:
    - ptr_arg: a pointer to the first mp_limb_t
    - size_arg: the number of mp-limb_t
-   - sign_arg: the sign of the number 
+   - sign_arg: the sign of the number
    if arg is an int, it is converted to a 1-limb number
 */
 #define Z_DECL(arg)                                                     \
@@ -399,7 +399,7 @@ static value ml_z_reduce(value r, mp_size_t sz, intnat sign)
 #if Z_USE_NATINT
   if (!sz) return Val_long(0);
   if (sz <= 1 && Z_LIMB(r)[0] <= Z_MAX_INT) {
-    if (sign) return Val_long(-Z_LIMB(r)[0]); 
+    if (sign) return Val_long(-Z_LIMB(r)[0]);
     else return Val_long(Z_LIMB(r)[0]);
   }
 #else
@@ -425,7 +425,7 @@ static void ml_z_raise_overflow()
 
 CAMLprim value ml_z_of_int(value v)
 {
-#if Z_USE_NATINT  
+#if Z_USE_NATINT
   Z_MARK_OP;
   return v;
 #else
@@ -449,7 +449,7 @@ CAMLprim value ml_z_of_nativeint(value v)
   value r;
   Z_MARK_OP;
   x = Nativeint_val(v);
-#if Z_USE_NATINT  
+#if Z_USE_NATINT
   if (Z_FITS_INT(x)) return Val_long(x);
 #endif
   Z_MARK_SLOW;
@@ -583,15 +583,15 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
     caml_invalid_argument("Z.of_substring_base: invalid offset or length");
   /* process the string */
   char *d = String_val(v) + ofs;
-  char *end = d + len;  
+  char *end = d + len;
   mp_size_t i, sz, sz2;
   mp_limb_t sign = 0;
   intnat base = Long_val(b);
-  /* We allow [d] to advance beyond [end] while parsing the prefix: 
-     sign, base, and/or leading zeros.  
+  /* We allow [d] to advance beyond [end] while parsing the prefix:
+     sign, base, and/or leading zeros.
      This simplifies the code, and reading these locations is safe since
-     we don't progress beyond a terminating null character. 
-     At the end of the prefix, if we ran past the end, we return 0. 
+     we don't progress beyond a terminating null character.
+     At the end of the prefix, if we ran past the end, we return 0.
   */
   /* get optional sign */
   if (*d == '-') { sign ^= Z_SIGN_MASK; d++; }
@@ -606,7 +606,7 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
       else if (*d == 'b' || *d == 'B') { base = 2; d++; }
     }
   }
-  if (base < 2 || base > 16) 
+  if (base < 2 || base > 16)
     caml_invalid_argument("Z.of_substring_base: base must be between 2 and 16");
   while (*d == '0') d++;
   /* sz is the length of the substring that has not been consumed above. */
@@ -629,7 +629,7 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
         else if (d[i] >= 'a' && d[i] <= 'f') digit = d[i] - 'a' + 10;
         else if (d[i] >= 'A' && d[i] <= 'F') digit = d[i] - 'A' + 10;
         else caml_invalid_argument("Z.of_substring_base: invalid digit");
-        if (digit >= base) 
+        if (digit >= base)
           caml_invalid_argument("Z.of_substring_base: invalid digit");
         ret = ret * base + digit;
       }
@@ -647,7 +647,7 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
       else if (dd[i] >= 'a' && dd[i] <= 'f') dd[i] -= 'a' - 10;
       else if (dd[i] >= 'A' && dd[i] <= 'F') dd[i] -= 'A' - 10;
       else caml_invalid_argument("Z.of_substring_base: invalid digit");
-      if (dd[i] >= base) 
+      if (dd[i] >= base)
         caml_invalid_argument("Z.of_substring_base: invalid digit");
     }
     r = ml_z_alloc(1 + sz / (2 * sizeof(mp_limb_t)));
@@ -691,7 +691,7 @@ CAMLprim value ml_z_to_nativeint(value v)
   Z_MARK_SLOW;
   Z_ARG(v);
   if (size_v > 1) ml_z_raise_overflow();
-  if (!size_v) x = 0; 
+  if (!size_v) x = 0;
   else {
     x = *ptr_v;
     if (sign_v) {
@@ -714,7 +714,7 @@ CAMLprim value ml_z_to_int32(value v)
   if (Is_long(v)) {
     x = Long_val(v);
 #ifdef ARCH_SIXTYFOUR
-    if (x >= (intnat)Z_HI_INT32 || x < -(intnat)Z_HI_INT32) 
+    if (x >= (intnat)Z_HI_INT32 || x < -(intnat)Z_HI_INT32)
       ml_z_raise_overflow();
 #endif
     return caml_copy_int32(x);
@@ -723,7 +723,7 @@ CAMLprim value ml_z_to_int32(value v)
     Z_ARG(v);
     Z_MARK_SLOW;
     if (size_v > 1) ml_z_raise_overflow();
-    if (!size_v) x = 0; 
+    if (!size_v) x = 0;
     else {
       x = *ptr_v;
       if (sign_v) {
@@ -743,7 +743,7 @@ CAMLprim value ml_z_to_int64(value v)
   int64_t x = 0;
   Z_DECL(v);
   Z_MARK_OP;
-  Z_CHECK(v);  
+  Z_CHECK(v);
   if (Is_long(v)) return caml_copy_int64(Long_val(v));
   Z_MARK_SLOW;
   Z_ARG(v);
@@ -772,7 +772,7 @@ CAMLprim value ml_z_format(value f, value v)
 {
   CAMLparam2(f,v);
   Z_DECL(v);
-  const char tab[2][16] = 
+  const char tab[2][16] =
     { { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' },
       { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' } };
   char* buf, *dst;
@@ -802,7 +802,7 @@ CAMLprim value ml_z_format(value f, value v)
     else break;
   }
   if (sign_v) sign = '-';
-  for (;*fmt>='0' && *fmt<='9';fmt++) 
+  for (;*fmt>='0' && *fmt<='9';fmt++)
     width = 10*width + *fmt-'0';
   switch (*fmt) {
   case 'i': case 'd': case 'u': break;
@@ -836,15 +836,15 @@ CAMLprim value ml_z_format(value f, value v)
   if (pad == ' ') {
     if (dir) {
       /* left alignment */
-      for (i = strlen(prefix); i > 0; i--, size_dst++) 
+      for (i = strlen(prefix); i > 0; i--, size_dst++)
         *(--dst) = prefix[i-1];
       if (sign) { *(--dst) = sign; size_dst++; }
-      for (; size_dst < width; size_dst++) 
+      for (; size_dst < width; size_dst++)
         dst[size_dst] = pad;
     }
     else {
       /* right alignment, space padding */
-      for (i = strlen(prefix); i > 0; i--, size_dst++) 
+      for (i = strlen(prefix); i > 0; i--, size_dst++)
         *(--dst) = prefix[i-1];
       if (sign) { *(--dst) = sign; size_dst++; }
       for (; size_dst < width; size_dst++) *(--dst) = pad;
@@ -854,7 +854,7 @@ CAMLprim value ml_z_format(value f, value v)
     /* right alignment, non-space padding */
     width -= strlen(prefix) + (sign ? 1 : 0);
     for (; size_dst < width; size_dst++) *(--dst) = pad;
-    for (i = strlen(prefix); i > 0; i--, size_dst++) 
+    for (i = strlen(prefix); i > 0; i--, size_dst++)
       *(--dst) = prefix[i-1];
     if (sign) { *(--dst) = sign; size_dst++; }
   }
@@ -926,7 +926,7 @@ CAMLprim value ml_z_extract(value arg, value off, value len)
     Z_LIMB(r)[i] = 0;
   /* 2's complement */
   if (sign_arg) {
-    for (i = 0; i < sz; i++) 
+    for (i = 0; i < sz; i++)
       Z_LIMB(r)[i] = ~Z_LIMB(r)[i];
     /* carry (cr=0 if all shifted-out bits are 0) */
     for (i = 0; !cr && i < c1 && i < size_arg; i++)
@@ -1152,7 +1152,7 @@ CAMLprim value ml_z_fits_int32(value v)
   if (Is_long(v)) {
 #ifdef ARCH_SIXTYFOUR
     x = Long_val(v);
-    if (x >= (intnat)Z_HI_INT32 || x < -(intnat)Z_HI_INT32) 
+    if (x >= (intnat)Z_HI_INT32 || x < -(intnat)Z_HI_INT32)
       return Val_false;
 #endif
     return Val_true;
@@ -1179,7 +1179,7 @@ CAMLprim value ml_z_fits_int64(value v)
   int64_t x;
   Z_DECL(v);
   Z_MARK_OP;
-  Z_CHECK(v);  
+  Z_CHECK(v);
   if (Is_long(v)) return Val_true;
   Z_MARK_SLOW;
   Z_ARG(v);
@@ -1303,7 +1303,7 @@ static value ml_z_addsub(value arg1, value arg2, intnat sign)
       c = mpn_add(Z_LIMB(r), ptr_arg2, size_arg2, ptr_arg1, size_arg1);
       Z_LIMB(r)[size_arg2] = c;
       r = ml_z_reduce(r, size_arg2+1, sign_arg1);
-    }  
+    }
   }
   else {
     /* subtraction */
@@ -1453,7 +1453,7 @@ static value ml_z_tdiv_qr(value arg1, value arg2)
     q = ml_z_alloc(size_arg1 - size_arg2 + 1);
     r = ml_z_alloc(size_arg2);
     Z_REFRESH(arg1); Z_REFRESH(arg2);
-    mpn_tdiv_qr(Z_LIMB(q), Z_LIMB(r), 0, 
+    mpn_tdiv_qr(Z_LIMB(q), Z_LIMB(r), 0,
                 ptr_arg1, size_arg1, ptr_arg2, size_arg2);
     q = ml_z_reduce(q, size_arg1 - size_arg2 + 1, sign_arg1 ^ sign_arg2);
     r = ml_z_reduce(r, size_arg2, sign_arg1);
@@ -1549,7 +1549,7 @@ static value ml_z_rdiv(value arg1, value arg2, intnat dir)
     q = ml_z_alloc(size_arg1 - size_arg2 + 2);
     r = ml_z_alloc(size_arg2);
     Z_REFRESH(arg1); Z_REFRESH(arg2);
-    mpn_tdiv_qr(Z_LIMB(q), Z_LIMB(r), 0, 
+    mpn_tdiv_qr(Z_LIMB(q), Z_LIMB(r), 0,
                 ptr_arg1, size_arg1, ptr_arg2, size_arg2);
     if ((sign_arg1 ^ sign_arg2) == dir) {
       /* outward rounding */
@@ -1688,7 +1688,7 @@ CAMLprim value ml_z_sqrt(value arg)
   Z_MARK_SLOW;
   Z_CHECK(arg);
   Z_ARG(arg);
-  if (sign_arg) 
+  if (sign_arg)
     caml_invalid_argument("Z.sqrt: square root of a negative number");
   if (size_arg) {
     mp_size_t sz = (size_arg + 1) / 2;
@@ -1712,7 +1712,7 @@ CAMLprim value ml_z_sqrt_rem(value arg)
   Z_MARK_SLOW;
   Z_CHECK(arg);
   Z_ARG(arg);
-  if (sign_arg) 
+  if (sign_arg)
     caml_invalid_argument("Z.sqrt_rem: square root of a negative number");
   if (size_arg) {
     mp_size_t sz = (size_arg + 1) / 2, sz2;
@@ -1722,7 +1722,7 @@ CAMLprim value ml_z_sqrt_rem(value arg)
     sz2 = mpn_sqrtrem(Z_LIMB(r), Z_LIMB(s), ptr_arg, size_arg);
     r = ml_z_reduce(r, sz, 0);
     s = ml_z_reduce(s, sz2, 0);
-  } 
+  }
   else r = s = Val_long(0);
   Z_CHECK(r);
   Z_CHECK(s);
@@ -1780,7 +1780,7 @@ CAMLprim value ml_z_gcd(value arg1, value arg2)
         if (!Z_LIMB(tmp1)[size_arg1-1]) size_arg1--;
       }
       else ml_z_cpy_limb(Z_LIMB(tmp1), ptr_arg1 + limb1, size_arg1);
-      if (bit2) { 
+      if (bit2) {
         mpn_rshift(Z_LIMB(tmp2), ptr_arg2 + limb2, size_arg2, bit2);
         if (!Z_LIMB(tmp2)[size_arg2-1]) size_arg2--;
       }
@@ -1792,7 +1792,7 @@ CAMLprim value ml_z_gcd(value arg1, value arg2)
       /* compute gcd of arg1 & arg2 without lower 0 bits */
       /* second argument must have less bits than first  */
       if ((size_arg1 > size_arg2) ||
-          ((size_arg1 == size_arg2) && 
+          ((size_arg1 == size_arg2) &&
            (Z_LIMB(tmp1)[size_arg1 - 1] >= Z_LIMB(tmp2)[size_arg1 - 1]))) {
         r = ml_z_alloc(size_arg2 + limb + 1);
         sz = mpn_gcd(Z_LIMB(r) + limb, Z_LIMB(tmp1), size_arg1, Z_LIMB(tmp2), size_arg2);
@@ -1800,9 +1800,9 @@ CAMLprim value ml_z_gcd(value arg1, value arg2)
       else {
         r = ml_z_alloc(size_arg1 + limb + 1);
         sz = mpn_gcd(Z_LIMB(r) + limb, Z_LIMB(tmp2), size_arg2, Z_LIMB(tmp1), size_arg1);
-      } 
+      }
       /* glue the two results */
-      for (i = 0; i < limb; i++) 
+      for (i = 0; i < limb; i++)
         Z_LIMB(r)[i] = 0;
       Z_LIMB(r)[sz + limb] = 0;
       if (bit) mpn_lshift(Z_LIMB(r) + limb, Z_LIMB(r) + limb, sz + 1, bit);
@@ -1835,11 +1835,11 @@ CAMLprim value ml_z_gcdext_intern(value arg1, value arg2)
   ml_z_cpy_limb(Z_LIMB(res_arg2), ptr_arg2, size_arg2);
   /* must have arg1 >= arg2 */
   if ((size_arg1 > size_arg2) ||
-      ((size_arg1 == size_arg2) && 
+      ((size_arg1 == size_arg2) &&
        (mpn_cmp(Z_LIMB(res_arg1), Z_LIMB(res_arg2), size_arg1)  >= 0))) {
     r = ml_z_alloc(size_arg1 + 1);
     s = ml_z_alloc(size_arg1 + 1);
-    sz = mpn_gcdext(Z_LIMB(r), Z_LIMB(s), &sn, 
+    sz = mpn_gcdext(Z_LIMB(r), Z_LIMB(s), &sn,
                     Z_LIMB(res_arg1), size_arg1, Z_LIMB(res_arg2), size_arg2);
     p = caml_alloc_small(3, 0);
     Field(p,2) = Val_true;
@@ -1847,12 +1847,12 @@ CAMLprim value ml_z_gcdext_intern(value arg1, value arg2)
   else {
     r = ml_z_alloc(size_arg2 + 1);
     s = ml_z_alloc(size_arg2 + 1);
-    sz = mpn_gcdext(Z_LIMB(r), Z_LIMB(s), &sn, 
+    sz = mpn_gcdext(Z_LIMB(r), Z_LIMB(s), &sn,
                     Z_LIMB(res_arg2), size_arg2, Z_LIMB(res_arg1), size_arg1);
     p = caml_alloc_small(3, 0);
     Field(p,2) = Val_false;
     sign_arg1 = sign_arg2;
-  } 
+  }
   /* pack result */
   r = ml_z_reduce(r, sz, 0);
   if ((int)sn >= 0) s = ml_z_reduce(s, sn, sign_arg1);
@@ -1921,7 +1921,7 @@ CAMLprim value ml_z_logand(value arg1, value arg2)
       Z_REFRESH(arg1);
       Z_REFRESH(arg2);
       mpn_sub_1(Z_LIMB(r), ptr_arg1, size_arg2, 1);
-      for (i = 0; i < size_arg2; i++) 
+      for (i = 0; i < size_arg2; i++)
         Z_LIMB(r)[i] = (~Z_LIMB(r)[i]) & ptr_arg2[i];
       r = ml_z_reduce(r, size_arg2, 0);
     }
@@ -1931,9 +1931,9 @@ CAMLprim value ml_z_logand(value arg1, value arg2)
       Z_REFRESH(arg1);
       Z_REFRESH(arg2);
       mpn_sub_1(Z_LIMB(r), ptr_arg2, size_arg2, 1);
-      for (i = 0; i < size_arg2; i++) 
+      for (i = 0; i < size_arg2; i++)
         Z_LIMB(r)[i] = ptr_arg1[i] & (~Z_LIMB(r)[i]);
-      for (; i < size_arg1; i++) 
+      for (; i < size_arg1; i++)
         Z_LIMB(r)[i] = ptr_arg1[i];
       r = ml_z_reduce(r, size_arg1, 0);
     }
@@ -1942,7 +1942,7 @@ CAMLprim value ml_z_logand(value arg1, value arg2)
       r = ml_z_alloc(size_arg2);
       Z_REFRESH(arg1);
       Z_REFRESH(arg2);
-      for (i = 0; i < size_arg2; i++) 
+      for (i = 0; i < size_arg2; i++)
         Z_LIMB(r)[i] = ptr_arg1[i] & ptr_arg2[i];
       r = ml_z_reduce(r, size_arg2, 0);
     }
@@ -2003,7 +2003,7 @@ CAMLprim value ml_z_logor(value arg1, value arg2)
       Z_REFRESH(arg1);
       Z_REFRESH(arg2);
       mpn_sub_1(Z_LIMB(r), ptr_arg1, size_arg1, 1);
-      for (i = 0; i < size_arg2; i++) 
+      for (i = 0; i < size_arg2; i++)
         Z_LIMB(r)[i] = Z_LIMB(r)[i] & (~ptr_arg2[i]);
       c = mpn_add_1(Z_LIMB(r), Z_LIMB(r), size_arg1, 1);
       Z_LIMB(r)[size_arg1] = c;
@@ -2015,7 +2015,7 @@ CAMLprim value ml_z_logor(value arg1, value arg2)
       Z_REFRESH(arg1);
       Z_REFRESH(arg2);
       mpn_sub_1(Z_LIMB(r), ptr_arg2, size_arg2, 1);
-      for (i = 0; i < size_arg2; i++) 
+      for (i = 0; i < size_arg2; i++)
         Z_LIMB(r)[i] = (~ptr_arg1[i]) & Z_LIMB(r)[i];
       c = mpn_add_1(Z_LIMB(r), Z_LIMB(r), size_arg2, 1);
       Z_LIMB(r)[size_arg2] = c;
@@ -2026,9 +2026,9 @@ CAMLprim value ml_z_logor(value arg1, value arg2)
       r = ml_z_alloc(size_arg1);
       Z_REFRESH(arg1);
       Z_REFRESH(arg2);
-      for (i = 0; i < size_arg2; i++) 
+      for (i = 0; i < size_arg2; i++)
         Z_LIMB(r)[i] = ptr_arg1[i] | ptr_arg2[i];
-      for (; i < size_arg1; i++) 
+      for (; i < size_arg1; i++)
         Z_LIMB(r)[i] = ptr_arg1[i];
       r = ml_z_reduce(r, size_arg1, 0);
     }
@@ -2087,7 +2087,7 @@ CAMLprim value ml_z_logxor(value arg1, value arg2)
       Z_REFRESH(arg1);
       Z_REFRESH(arg2);
       mpn_sub_1(Z_LIMB(r), ptr_arg1, size_arg1, 1);
-      for (i = 0; i < size_arg2; i++) 
+      for (i = 0; i < size_arg2; i++)
         Z_LIMB(r)[i] = Z_LIMB(r)[i] ^ ptr_arg2[i];
       c = mpn_add_1(Z_LIMB(r), Z_LIMB(r), size_arg1, 1);
       Z_LIMB(r)[size_arg1] = c;
@@ -2099,9 +2099,9 @@ CAMLprim value ml_z_logxor(value arg1, value arg2)
       Z_REFRESH(arg1);
       Z_REFRESH(arg2);
       mpn_sub_1(Z_LIMB(r), ptr_arg2, size_arg2, 1);
-      for (i = 0; i < size_arg2; i++) 
+      for (i = 0; i < size_arg2; i++)
         Z_LIMB(r)[i] = ptr_arg1[i] ^ Z_LIMB(r)[i];
-      for (; i < size_arg1; i++) 
+      for (; i < size_arg1; i++)
         Z_LIMB(r)[i] = ptr_arg1[i];
       c = mpn_add_1(Z_LIMB(r), Z_LIMB(r), size_arg1, 1);
       Z_LIMB(r)[size_arg1] = c;
@@ -2112,9 +2112,9 @@ CAMLprim value ml_z_logxor(value arg1, value arg2)
       r = ml_z_alloc(size_arg1);
       Z_REFRESH(arg1);
       Z_REFRESH(arg2);
-      for (i = 0; i < size_arg2; i++) 
+      for (i = 0; i < size_arg2; i++)
         Z_LIMB(r)[i] = ptr_arg1[i] ^ ptr_arg2[i];
-      for (; i < size_arg1; i++) 
+      for (; i < size_arg1; i++)
         Z_LIMB(r)[i] = ptr_arg1[i];
       r = ml_z_reduce(r, size_arg1, 0);
     }
@@ -2262,7 +2262,7 @@ CAMLprim value ml_z_shift_right(value arg, value count)
       for (i = 0; i < c1; i++)
         if (ptr_arg[i]) { cr = 1; break; }
       }
-      if (cr) 
+      if (cr)
         cr = mpn_add_1(Z_LIMB(r), Z_LIMB(r), size_arg - c1, 1);
     }
     else cr = 0;
@@ -2365,7 +2365,7 @@ CAMLprim value ml_z_numbits(value arg)
     }
   }
 #endif
-  /* mpn_ version */  
+  /* mpn_ version */
   Z_MARK_SLOW;
   Z_ARG(arg);
   if (size_arg == 0) return Val_int(0);
@@ -2425,7 +2425,7 @@ CAMLprim value ml_z_trailing_zeros(value arg)
     }
   }
 #endif
-  /* mpn_ version */  
+  /* mpn_ version */
   Z_MARK_SLOW;
   Z_ARG(arg);
   if (size_arg == 0) return Val_long (Max_long);
@@ -2470,7 +2470,7 @@ CAMLprim value ml_z_popcount(value arg)
     return Val_long(ml_z_count(r));
   }
 #endif
-  /* mpn_ version */  
+  /* mpn_ version */
   Z_MARK_SLOW;
   Z_ARG(arg);
   if (sign_arg) ml_z_raise_overflow();
@@ -2502,7 +2502,7 @@ CAMLprim value ml_z_hamdist(value arg1, value arg2)
   Z_ARG(arg2);
   if (sign_arg1 != sign_arg2) ml_z_raise_overflow();
   /* XXX TODO: case where arg1 & arg2 are both negative */
-  if (sign_arg1 || sign_arg2) 
+  if (sign_arg1 || sign_arg2)
     caml_invalid_argument("Z.hamdist: negative arguments");
   /* distance on common size */
   sz = (size_arg1 <= size_arg2) ? size_arg1 : size_arg2;
@@ -2546,7 +2546,7 @@ CAMLprim value ml_z_testbit(value arg, value index)
   if (sign_arg != 0) {
     /* If arg is negative, its 2-complement representation is
        bitnot(abs(arg) - 1).
-       If any of the limbs of abs(arg) below l_idx is nonzero, 
+       If any of the limbs of abs(arg) below l_idx is nonzero,
        the carry from the decrement dies before reaching l_idx,
        and we just test bitnot(limb).
        If all the limbs below l_idx are zero, the carry from the
@@ -2572,7 +2572,7 @@ void ml_z_mpz_set_z(mpz_t rop, value op)
   Z_CHECK(op);
   Z_ARG(op);
   if (size_op * Z_LIMB_BITS > INT_MAX)
-    caml_invalid_argument("Z: risk of overflow in mpz type");  
+    caml_invalid_argument("Z: risk of overflow in mpz type");
   mpz_realloc2(rop, size_op * Z_LIMB_BITS);
   rop->_mp_size = (sign_op >= 0) ? size_op : -size_op;
   ml_z_cpy_limb(rop->_mp_d, ptr_op, size_op);
@@ -2656,7 +2656,7 @@ CAMLprim value ml_z_divexact(value arg1, value arg2)
   }
 #endif
 }
- 
+
 CAMLprim value ml_z_powm(value base, value exp, value mod)
 {
   CAMLparam3(base,exp,mod);
@@ -2723,7 +2723,7 @@ CAMLprim value ml_z_pow(value base, value exp)
   intnat e = Long_val(exp);
   mp_size_t sz, ralloc;
   int cnt;
-  if (e < 0) 
+  if (e < 0)
     caml_invalid_argument("Z.pow: exponent must be non-negative");
   ml_z_mpz_init_set_z(mbase, base);
 
@@ -2752,7 +2752,7 @@ CAMLprim value ml_z_root(value a, value b)
   CAMLlocal1(r);
   mpz_t ma;
   intnat mb = Long_val(b);
-  if (mb < 0) 
+  if (mb < 0)
     caml_invalid_argument("Z.root: exponent must be non-negative");
   ml_z_mpz_init_set_z(ma, a);
   mpz_root(ma, ma, mb);
@@ -2916,7 +2916,7 @@ CAMLprim value ml_z_hash(value v)
    - 4-byte size in bytes
    - size-byte unsigned integer, in little endian order
  */
-static void ml_z_custom_serialize(value v, 
+static void ml_z_custom_serialize(value v,
                                   uintnat * wsize_32,
                                   uintnat * wsize_64)
 {
@@ -2924,7 +2924,7 @@ static void ml_z_custom_serialize(value v,
   Z_DECL(v);
   Z_CHECK(v);
   Z_ARG(v);
-  if ((mp_size_t)(uint32_t) size_v != size_v) 
+  if ((mp_size_t)(uint32_t) size_v != size_v)
     caml_failwith("Z.serialize: number is too large");
   nb = size_v * sizeof(mp_limb_t);
   caml_serialize_int_1(sign_v ? 1 : 0);
@@ -2943,7 +2943,7 @@ static void ml_z_custom_serialize(value v,
 #endif
   }
   *wsize_32 = 4 * (1 + (nb + 3) / 4);
-  *wsize_64 = 8 * (1 + (nb + 7) / 8);  
+  *wsize_64 = 8 * (1 + (nb + 7) / 8);
 #if Z_PERFORM_CHECK
   /* Add space for canary */
   *wsize_32 += 4;
@@ -2962,7 +2962,7 @@ static uintnat ml_z_custom_deserialize(void * dst)
   uint32_t sz = caml_deserialize_uint_4();
   uint32_t szw = (sz + sizeof(mp_limb_t) - 1) / sizeof(mp_limb_t);
   uint32_t i = 0;
-  mp_limb_t x; 
+  mp_limb_t x;
   /* all limbs but last */
   if (szw > 1) {
     for (; i < szw - 1; i++) {
@@ -3039,7 +3039,7 @@ CAMLprim value ml_z_mlgmpidl_of_mpz(value a)
 }
 
 /* stores the Z.t object into an existing Mpz.t one;
-   as we never allocate Mpz.t objects, we don't need any pointer to 
+   as we never allocate Mpz.t objects, we don't need any pointer to
    mlgmpidl's custom block ops, and so, can link the function even if
    mlgmpidl is not installed
  */
@@ -3062,7 +3062,7 @@ CAMLprim value ml_z_mlgmpidl_set_mpz(value r, value a)
 static void ml_z_dump_count()
 {
   printf("Z: %lu asm operations, %lu C operations, %lu slow (%lu%%)\n",
-         ml_z_ops_as, ml_z_ops, ml_z_slow, 
+         ml_z_ops_as, ml_z_ops, ml_z_slow,
          ml_z_ops ? (ml_z_slow*100/(ml_z_ops+ml_z_ops_as)) : 0);
 }
 #endif

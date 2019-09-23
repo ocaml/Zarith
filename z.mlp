@@ -154,7 +154,7 @@ let is_even x  = not (testbit_internal x 0)
 
 let signed_extract x o l =
   if o < 0 then invalid_arg "Z.signed_extract: negative bit offset";
-  if l < 1 then invalid_arg "Z.signed_extract: non-positive bit length";
+  if l < 1 then invalid_arg "Z.signed_extract: nonpositive bit length";
   if testbit x (o + l - 1)
   then lognot (extract (lognot x) o l)
   else extract x o l

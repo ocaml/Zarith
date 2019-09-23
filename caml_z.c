@@ -1255,11 +1255,14 @@ CAMLprim value ml_z_abs(value arg)
     Z_DECL(arg);
     value r;
     Z_ARG(arg);
-    r = ml_z_alloc(size_arg);
-    Z_REFRESH(arg);
-    ml_z_cpy_limb(Z_LIMB(r), ptr_arg, size_arg);
-    r = ml_z_reduce(r, size_arg, 0);
-    Z_CHECK(r);
+    if (sign_arg) {
+      r = ml_z_alloc(size_arg);
+      Z_REFRESH(arg);
+      ml_z_cpy_limb(Z_LIMB(r), ptr_arg, size_arg);
+      r = ml_z_reduce(r, size_arg, 0);
+      Z_CHECK(r);
+    }
+    else r = arg;
     CAMLreturn(r);
   }
 }

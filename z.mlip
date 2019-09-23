@@ -412,15 +412,14 @@ external hash: t -> int = "ml_z_hash" @NOALLOC
 
 external gcd: t -> t -> t = "ml_z_gcd"
 (** Greatest common divisor.
-    The result is always positive.
-    Raises a [Division_by_zero] is either argument is null.
+    The result is always non-negative.
+    We have [gcd(a,0) = gcd(0,a) = abs(a)], including [gcd(0,0) = 0].
 *)
 
 val gcdext: t -> t -> (t * t * t)
-(** [gcdext u v] returns [(g,s,t)]  where [g] is the greatest common divisor
+(** [gcdext u v] returns [(g,s,t)] where [g] is the greatest common divisor
     and [g=us+vt].
-    [g] is always positive.
-    Raises a [Division_by_zero] is either argument is null.
+    [g] is always non-negative.
 
     Note: the function is based on the GMP [mpn_gcdext] function. The exact choice of [s] and [t] such that [g=us+vt] is not specified, as it may vary from a version of GMP to another (it has changed notably in GMP 4.3.0 and 4.3.1).
  *)
@@ -428,8 +427,8 @@ val gcdext: t -> t -> (t * t * t)
 val lcm: t -> t -> t
 (**
     Least common multiple.
-    The result is always positive.
-    Raises a [Division_by_zero] is either argument is null.
+    The result is always non-negative.
+    We have [lcm(a,0) = lcm(0,a) = 0].
  *)
 
 external powm: t -> t -> t -> t = "ml_z_powm"

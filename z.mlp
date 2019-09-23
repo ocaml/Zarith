@@ -124,13 +124,24 @@ let erem a b =
    if sign r >= 0 then r else add r (abs b)
 
 let gcdext u v =
-  let g,s,z = gcdext_intern u v in
-  if z then g, s, div (sub g (mul u s)) v
-  else g, div (sub g (mul v s)) u, s
+  match sign u, sign v with
+  (* special cases: one argument is null *)
+  |  0,  0 -> zero, zero, zero
+  |  0,  1 -> v, zero, one
+  |  0, -1 -> neg v, zero, minus_one
+  |  1,  0 -> u, one, zero
+  | -1,  0 -> neg u, minus_one, zero
+  | _ ->
+     (* general case *)
+     let g,s,z = gcdext_intern u v in
+     if z then g, s, div (sub g (mul u s)) v
+     else g, div (sub g (mul v s)) u, s
 
 let lcm u v =
-  let g = gcd u v in
-  abs (mul (divexact u g) v)
+  if u = zero || v = zero then zero
+  else
+    let g = gcd u v in
+    abs (mul (divexact u g) v)
 
 external testbit_internal: t -> int -> bool = "ml_z_testbit" @NOALLOC
 let testbit x n =

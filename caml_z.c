@@ -1758,8 +1758,8 @@ CAMLprim value ml_z_gcd(value arg1, value arg2)
     mp_size_t sz, pos1, pos2, limb1, limb2, bit1, bit2, pos, limb, bit, i;
     Z_DECL(arg1); Z_DECL(arg2);
     Z_ARG(arg1);  Z_ARG(arg2);
-    if (!size_arg1) r = arg2;
-    else if (!size_arg2) r = arg1;
+    if (!size_arg1) r = sign_arg2 ? ml_z_neg(arg2) : arg2;
+    else if (!size_arg2) r = sign_arg1 ? ml_z_neg(arg1) : arg1;
     else {
       /* copy args to tmp storage & remove lower 0 bits */
       pos1 = mpn_scan1(ptr_arg1, 0);

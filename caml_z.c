@@ -883,7 +883,7 @@ CAMLprim value ml_z_extract(value arg, value off, value len)
   o = Long_val(off);
   l = Long_val(len);
   if (o < 0) caml_invalid_argument("Z.extract: negative bit offset");
-  if (l <= 0) caml_invalid_argument("Z.extract: non-positive bit length");
+  if (l <= 0) caml_invalid_argument("Z.extract: nonpositive bit length");
 #if Z_USE_NATINT
   /* Fast path */
   if (Is_long(arg)) {
@@ -2726,7 +2726,7 @@ CAMLprim value ml_z_pow(value base, value exp)
   mp_size_t sz, ralloc;
   int cnt;
   if (e < 0)
-    caml_invalid_argument("Z.pow: exponent must be non-negative");
+    caml_invalid_argument("Z.pow: exponent must be nonnegative");
   ml_z_mpz_init_set_z(mbase, base);
 
   /* Safe overapproximation of the size of the result.
@@ -2752,10 +2752,14 @@ CAMLprim value ml_z_root(value a, value b)
 {
   CAMLparam2(a,b);
   CAMLlocal1(r);
+  Z_DECL(a);
   mpz_t ma;
   intnat mb = Long_val(b);
-  if (mb < 0)
-    caml_invalid_argument("Z.root: exponent must be non-negative");
+  if (mb <= 0)
+    caml_invalid_argument("Z.root: exponent must be positive");
+  Z_ARG(a);
+  if (!(mb & 1) && sign_a)
+    caml_invalid_argument("Z.root: even root of a negative number");
   ml_z_mpz_init_set_z(ma, a);
   mpz_root(ma, ma, mb);
   r = ml_z_from_mpz(ma);

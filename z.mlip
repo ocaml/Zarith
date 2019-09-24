@@ -488,8 +488,9 @@ external sqrt_rem: t -> (t * t) = "ml_z_sqrt_rem"
  *)
 
 external root: t -> int -> t = "ml_z_root"
-(** [root base n] computes the [n]-th root of [exp].
-    [n] must be nonnegative.
+(** [root x n] computes the [n]-th root of [x].
+    [n] must be positive and, if [n] is even, then [x] must be nonnegative.
+    Otherwise, an [Invalid_argument] is raised.
  *)
 
 external perfect_power: t -> bool = "ml_z_perfect_power"

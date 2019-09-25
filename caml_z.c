@@ -2663,7 +2663,11 @@ CAMLprim value ml_z_powm(value base, value exp, value mod)
 {
   CAMLparam3(base,exp,mod);
   CAMLlocal1(r);
+  Z_DECL(mod);
   mpz_t mbase, mexp, mmod;
+  Z_ARG(mod);
+  if (!size_mod)
+    ml_z_raise_divide_by_zero();
   ml_z_mpz_init_set_z(mbase, base);
   ml_z_mpz_init_set_z(mexp, exp);
   ml_z_mpz_init_set_z(mmod, mod);

@@ -2671,8 +2671,12 @@ CAMLprim value ml_z_powm(value base, value exp, value mod)
     /* we need to check whether base is invertible to avoid a division by zero
        in mpz_powm, so we can as well use the computed inverse
      */
-    if (!mpz_invert(mbase, mbase, mmod))
+    if (!mpz_invert(mbase, mbase, mmod)) {
+      mpz_clear(mbase);
+      mpz_clear(mexp);
+      mpz_clear(mmod);
       ml_z_raise_divide_by_zero();
+    }
     mpz_neg(mexp, mexp);
   }
   mpz_powm(mbase, mbase, mexp, mmod);
@@ -2693,10 +2697,18 @@ CAMLprim value ml_z_powm_sec(value base, value exp, value mod)
   ml_z_mpz_init_set_z(mbase, base);
   ml_z_mpz_init_set_z(mexp, exp);
   ml_z_mpz_init_set_z(mmod, mod);
-  if (mpz_sgn(mexp) <= 0)
+  if (mpz_sgn(mexp) <= 0) {
+    mpz_clear(mbase);
+    mpz_clear(mexp);
+    mpz_clear(mmod);
     caml_invalid_argument("Z.powm_sec: exponent must be positive");
-  if (! mpz_odd_p(mmod))
+  }
+  if (! mpz_odd_p(mmod)) {
+    mpz_clear(mbase);
+    mpz_clear(mexp);
+    mpz_clear(mmod);
     caml_invalid_argument("Z.powm_sec: modulus must be odd");
+  }
   mpz_powm_sec(mbase, mbase, mexp, mmod);
   r = ml_z_from_mpz(mbase);
   mpz_clear(mbase);
@@ -2739,9 +2751,10 @@ CAMLprim value ml_z_pow(value base, value exp)
   if (sz < 0) sz = -sz;
   cnt = sz > 0 ? ml_z_clz(mbase->_mp_d[sz - 1]) : 0;
   ralloc = (sz * GMP_NUMB_BITS - cnt + GMP_NAIL_BITS) * e / GMP_NUMB_BITS + 5;
-  if (ralloc > INT_MAX)
+  if (ralloc > INT_MAX) {
+    mpz_clear(mbase);
     caml_invalid_argument("Z.pow: risk of overflow in mpz type");
-
+  }
   mpz_pow_ui(mbase, mbase, e);
   r = ml_z_from_mpz(mbase);
   mpz_clear(mbase);
@@ -2819,8 +2832,11 @@ CAMLprim value ml_z_invert(value base, value mod)
   mpz_t mbase, mmod;
   ml_z_mpz_init_set_z(mbase, base);
   ml_z_mpz_init_set_z(mmod, mod);
-  if (!mpz_invert(mbase, mbase, mmod))
+  if (!mpz_invert(mbase, mbase, mmod)) {
+    mpz_clear(mbase);
+    mpz_clear(mmod);
     ml_z_raise_divide_by_zero();
+  }
   r = ml_z_from_mpz(mbase);
   mpz_clear(mbase);
   mpz_clear(mmod);

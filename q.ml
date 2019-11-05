@@ -94,18 +94,88 @@ let of_float d =
   if e >= 0 then of_bigint (Z.shift_left m e)
   else make_real m (Z.shift_left Z.one (-e))
 
+(* The current implementation supports plain decimals, decimal points,
+   scientific notation ('e' or 'E' for base 10 litteral and 'p' or 'P'
+   for base 16), and fraction of integers (eg. 1/2). In particular it
+   accepts any numeric litteral -without underscores ('_')- accepted
+   by OCaml's lexer.
+   Restrictions:
+   - does not handle '_' as their removal should probably be common to
+     Z.of_string and Q.of_string
+   - exponents in scientific notation should fit on an integer
+   - scientific notation only available in hexa and decimal (as in OCaml) *)
 let of_string s =
-  try
-    let i  = String.index s '/' in
-    make
-      (Z.of_substring s ~pos:0 ~len:i)
-      (Z.of_substring s ~pos:(i+1) ~len:(String.length s-i-1))
-  with Not_found ->
-    if s = "inf" || s = "+inf" then inf
-    else if s = "-inf" then minus_inf
-    else if s = "undef" then undef
-    else of_bigint (Z.of_string s)
-
+  (* splits a (non-empty) string into a sign and the rest of the string *)
+  let split_sign s =
+    match s.[0] with
+    | ('-' | '+') as c -> c,(String.sub s 1 (String.length s-1))
+    | _ -> '+',s
+  in
+  (* splits a (non-empty) string into a base converted to int and the
+     rest of the string *)
+  let split_base s =
+    if String.length s < 2 then 10,s
+    else
+      match String.sub s 0 2 with
+      | "0x" -> 16,String.sub s 2 (String.length s-2)
+      | "0o" -> 8,String.sub s 2 (String.length s-2)
+      | "0b" -> 2,String.sub s 2 (String.length s-2)
+      | _ -> 10,s
+  in
+  (* plain decimals handling *)
+  let default b s = of_bigint (Z.of_string_base b s) in
+  (* point decimals handling. Also shifts the '.' char to the right by
+     [shift] characters and complete with some '0' if needed. [shift]
+     is alwayas 0 except when called from scientific_notation *)
+  let of_decimal_point b s shift =
+    try
+      let i =  String.index s '.' in
+      let size_dec = String.length s-i-1 in
+      let rmv_dot = (String.sub s 0 i)^(String.sub s (i+1) size_dec) in
+      if size_dec > shift then
+        make (Z.of_string_base b rmv_dot) (Z.pow (Z.of_int b) (size_dec-shift))
+      else
+        default b (rmv_dot^(String.make (shift-size_dec) '0'))
+    with Not_found -> default b (s^String.make shift '0')
+  in
+  let of_scientific_notation s =
+    let sign,s' = split_sign s in
+    let b,s = split_base s' in
+    let i = ref 0 in
+    try
+      String.iter
+        (fun c ->
+          incr i;
+          match c with
+          | 'e' | 'E' ->
+             if b=10 then raise Exit
+             else if b = 16 then ()
+             else invalid_arg "Q.of_string: scientific notations have \
+                               to be in decimal or hexadecimal"
+          | 'p' | 'P' -> if b=16 then raise Exit else invalid_arg "Q.of_string"
+          | _ -> ()) s;
+      (* not a scientific notation *)
+      if sign='+' then of_decimal_point b s 0 else of_decimal_point b ("-"^s) 0
+    with
+    | Exit ->
+       let m_part = String.sub s 0 (!i-1) in
+       let e = Z.of_string_base b (String.sub s !i (String.length s- !i)) in
+       if sign='+' then of_decimal_point b m_part (Z.to_int e)
+       else of_decimal_point b ("-"^m_part) (Z.to_int e)
+  in
+  let of_ratio s =
+    try
+      let i  = String.index s '/' in
+      make
+        (Z.of_substring s 0 i)
+        (Z.of_substring s (i+1) (String.length s-i-1))
+    with Not_found -> of_scientific_notation s
+  in
+  if s = "" then zero
+  else if s = "inf" || s = "+inf" then inf
+  else if s = "-inf" then minus_inf
+  else if s = "undef" then undef
+  else of_ratio s
 
 (* queries *)
 (* ------- *)

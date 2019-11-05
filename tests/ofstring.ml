@@ -60,7 +60,7 @@ let test_of_string_Z () =
 
   round_trip_Z ();
 
- fail "Z.of_string" Z.of_string "0b2";
+  fail "Z.of_string" Z.of_string "0b2";
   fail "Z.of_string" Z.of_string "0o8";
   fail "Z.of_string" Z.of_string "0xg";
   fail "Z.of_string" Z.of_string "0xG";
@@ -95,3 +95,100 @@ let test_of_string_Z () =
   done
 
 let _ = test_of_string_Z ()
+
+let test_of_string_Q () =
+  let round_trip_Q () =
+    let round_trip fmt x=
+      let os = Q.of_string (Z.to_string x) in
+      let ob = Q.of_bigint x in
+      if Q.equal os ob then
+        true
+      else begin
+          Format.printf "%a not equal to %a\n" Q.pp_print os Q.pp_print ob;
+          false
+        end
+    in
+    let formats = [
+      "%i"; "%#b"; "%#o"; "%#x"; "%#X";
+      "%+i"; "%#+b"; "%#+o"; "%#+x"; "%#+X";
+      "%+0i"; "%#+0b"; "%#+0o"; "%#+0x"; "%#+0X";
+    ] in
+    let numbers =
+      let (+) = Z.add in
+      let  l = [p30; p62; p30 + p62; p300; p120; p121] in
+      (l @ (List.map Z.neg l))
+    in
+    List.iter
+      (fun fmt ->
+         assert
+           (
+             List.for_all
+               (fun x -> round_trip fmt x)
+               numbers
+           )
+      )
+      formats
+  in
+  let fail d f x =
+    try
+      let s = f x in
+      Printf.printf "%s should fail on %s. Got %s\n" d x (Q.to_string s)
+    with _ -> ()
+  in
+  let succ d f x y =
+    try
+      let z = f x in
+      if Q.equal z  y
+      then ()
+      else
+        Printf.printf
+          "%s(%s) returned %s, expected %s\n"
+          d
+          x
+          (Q.to_string z)
+          (Q.to_string y)
+    with exc ->
+      Printf.printf "%s failed. Expected %s. Got %s\n" d (Q.to_string y)
+                    (Printexc.to_string exc)
+  in
+
+  round_trip_Q ();
+
+  fail "Q.of_string" Q.of_string "0b2";
+  fail "Q.of_string" Q.of_string "0o8";
+  fail "Q.of_string" Q.of_string "0xg";
+  fail "Q.of_string" Q.of_string "0xG";
+  fail "Q.of_string" Q.of_string "0A";
+  succ "Q.of_string" Q.of_string "" Q.zero;
+  succ "Q.of_string" Q.of_string "+" Q.zero;
+  succ "Q.of_string" Q.of_string "-" Q.zero;
+  succ "Q.of_string" Q.of_string "0x" Q.zero;
+  succ "Q.of_string" Q.of_string "0b" Q.zero;
+
+  fail "Q.of_string" Q.of_string "0b2";
+  fail "Q.of_string" Q.of_string "0o8";
+  fail "Q.of_string" Q.of_string "0xg";
+  fail "Q.of_string" Q.of_string "0xG";
+  fail "Q.of_string" Q.of_string "0A";
+  fail "Q.of_string" Q.of_string "-0b0.1e1";
+  fail "Q.of_string" Q.of_string "-0o0.1E1";
+  fail "Q.of_string" Q.of_string "-0b0.1P1";
+  fail "Q.of_string" Q.of_string "-0o0.1p1";
+  fail "Q.of_string" Q.of_string "-0.1P1";
+  fail "Q.of_string" Q.of_string "-0.1p1";
+  succ "Q.of_string" Q.of_string "0x1e2" (Q.of_int 482);
+  succ "Q.of_string" Q.of_string "1e2" (Q.of_int 100);
+  succ "Q.of_string" Q.of_string "+" Q.zero;
+  succ "Q.of_string" Q.of_string "-+" Q.zero;
+  succ "Q.of_string" Q.of_string "-1" Q.minus_one;
+  succ "Q.of_string" Q.of_string "+0xFF.8" (Q.of_float 255.5);
+  succ "Q.of_string" Q.of_string "+0xff.8" (Q.of_float 255.5);
+  succ "Q.of_string" Q.of_string "-0xFF.8" (Q.of_float (-255.5));
+  succ "Q.of_string" Q.of_string "-0xff.8" (Q.of_float (-255.5));
+  succ "Q.of_string" Q.of_string "-0.1e1" (Q.minus_one);
+  succ "Q.of_string" Q.of_string "-0.1E1" (Q.minus_one);
+  succ "Q.of_string" Q.of_string "-0x0.1P1" (Q.minus_one);
+  succ "Q.of_string" Q.of_string "-0x0.1p1" (Q.minus_one);
+  succ "Q.of_string" Q.of_string "6.674e-11" (Q.of_string "0.00000000006674")
+
+let _ = test_of_string_Q ()

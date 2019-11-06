@@ -158,10 +158,10 @@ let of_string s =
       if sign='+' then of_decimal_point b s 0 else of_decimal_point b ("-"^s) 0
     with
     | Exit ->
-       let m_part = String.sub s 0 (!i-1) in
+       let m = String.sub s 0 (!i-1) in
        let e = Z.of_string_base b (String.sub s !i (String.length s- !i)) in
-       if sign='+' then of_decimal_point b m_part (Z.to_int e)
-       else of_decimal_point b ("-"^m_part) (Z.to_int e)
+       if sign='+' then of_decimal_point b m (Z.to_int e)
+       else of_decimal_point b ("-"^m) (Z.to_int e)
   in
   let of_ratio s =
     try

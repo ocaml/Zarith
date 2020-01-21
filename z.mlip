@@ -192,6 +192,20 @@ external divexact: t -> t -> t = divexact@ASM
     Can raise a [Division_by_zero].
 *)
 
+external divisible: t -> t -> bool = "ml_z_divisible"
+(** [divisible a b] returns [true] if [a] is exactly divisible by [b].
+    Unlike the other division functions, [b = 0] is accepted 
+    (only 0 is considered divisible by 0).
+*)
+
+external congruent: t -> t -> t -> bool = "ml_z_congruent"
+(** [congruent a b c] returns [true] if [a] is congruent to [b] modulo [c].
+    Unlike the other division functions, [c = 0] is accepted 
+    (only equal numbers are considered equal congruent 0).
+*)
+
+
+
 
 (** {1 Bit-level operations} *)
 
@@ -465,6 +479,57 @@ external nextprime: t -> t = "ml_z_nextprime"
     The result is only prime with very high probability.
  *)
 
+external jacobi: t -> t -> int = "ml_z_jacobi"
+(** [jacobi a b] returns the Jacobi symbol [(a/b)]. *)
+
+external legendre: t -> t -> int = "ml_z_legendre"
+(** [legendre a b] returns the Legendre symbol [(a/b)]. *)
+
+external kronecker: t -> t -> int = "ml_z_kronecker"
+(** [kronecker a b] returns the Kronecker symbol [(a/b)]. *)
+
+external remove: t -> t -> t * int = "ml_z_remove"
+(** [remove a b] returns [a] after removing all the occurences of the
+    factor [b]. 
+    Also returns how many occurrences were removed.
+ *)
+
+external fac: int -> t = "ml_z_fac"
+(** [fac n] returns the factorial of [n] ([n!]).
+    Raises an [Invaid_argument] if [n] is non-positive.
+*)
+  
+external fac2: int -> t = "ml_z_fac2"
+(** [fac2 n] returns the double factorial of [n] ([n!!]).
+    Raises an [Invaid_argument] if [n] is non-positive.
+*)
+  
+ external facM: int -> int -> t = "ml_z_facM"
+(** [facM n m] returns the [m]-th factorial of [n].
+    Raises an [Invaid_argument] if [n] or [m] is non-positive.
+*)
+
+external primorial: int -> t = "ml_z_primorial"
+(** [primorial n] returns the product of all positive prime numbers less
+    than or equal to [n].
+    Raises an [Invaid_argument] if [n] is non-positive.
+*)
+
+external bin: t -> int -> t = "ml_z_bin"
+(** [bin n k] returns the binomial coefficient [n] over [k].
+    Raises an [Invaid_argument] if [k] is non-positive.
+*)
+
+external fib: int -> t = "ml_z_fib"
+(** [fib n] returns the [n]-th Fibonacci number.
+    Raises an [Invaid_argument] if [n] is non-positive.
+*)
+
+external lucnum: int -> t = "ml_z_lucnum"
+(** [lucnum n] returns the [n]-th Lucas number.
+    Raises an [Invaid_argument] if [n] is non-positive.
+*)
+
 
 (** {1 Powers} *)
 
@@ -489,6 +554,13 @@ external sqrt_rem: t -> (t * t) = "ml_z_sqrt_rem"
 
 external root: t -> int -> t = "ml_z_root"
 (** [root x n] computes the [n]-th root of [x].
+    [n] must be positive and, if [n] is even, then [x] must be nonnegative.
+    Otherwise, an [Invalid_argument] is raised.
+ *)
+
+external rootrem: t -> int -> t * t = "ml_z_rootrem"
+(** [rootrem x n] computes the [n]-th root of [x] and the remainder
+    [x-root**n].
     [n] must be positive and, if [n] is even, then [x] must be nonnegative.
     Otherwise, an [Invalid_argument] is raised.
  *)

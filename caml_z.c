@@ -2784,6 +2784,33 @@ CAMLprim value ml_z_root(value a, value b)
   CAMLreturn(r);
 }
 
+CAMLprim value ml_z_rootrem(value a, value b)
+{
+  CAMLparam2(a,b);
+  CAMLlocal3(r1,r2,r3);
+  Z_DECL(a);
+  mpz_t ma, mr1, mr2;
+  intnat mb = Long_val(b);
+  if (mb <= 0)
+    caml_invalid_argument("Z.rootrem: exponent must be positive");
+  Z_ARG(a);
+  if (!(mb & 1) && sign_a)
+    caml_invalid_argument("Z.rootrem: even root of a negative number");
+  ml_z_mpz_init_set_z(ma, a);
+  mpz_init(mr1);
+  mpz_init(mr2);
+  mpz_rootrem(mr1, mr2, ma, mb);
+  r1 = ml_z_from_mpz(mr1);
+  r2 = ml_z_from_mpz(mr2);
+  r3 = caml_alloc_small(2, 0);
+  Field(r3,0) = r1;
+  Field(r3,1) = r2;
+  mpz_clear(ma);
+  mpz_clear(mr1);
+  mpz_clear(mr2);
+  CAMLreturn(r3);
+}
+
 CAMLprim value ml_z_perfect_power(value a)
 {
   CAMLparam1(a);
@@ -2847,24 +2874,206 @@ CAMLprim value ml_z_invert(value base, value mod)
   CAMLreturn(r);
 }
 
+CAMLprim value ml_z_divisible(value a, value b)
+{
+  CAMLparam2(a,b);
+  mpz_t ma, mb;
+  int r;
+  ml_z_mpz_init_set_z(ma, a);
+  ml_z_mpz_init_set_z(mb, b);
+  r = mpz_divisible_p(ma, mb);
+  mpz_clear(ma);
+  mpz_clear(mb);
+  CAMLreturn(Val_bool(r));
+}
+
+CAMLprim value ml_z_congruent(value a, value b, value c)
+{
+  CAMLparam3(a,b,c);
+  mpz_t ma, mb, mc;
+  int r;
+  ml_z_mpz_init_set_z(ma, a);
+  ml_z_mpz_init_set_z(mb, b);
+  ml_z_mpz_init_set_z(mc, c);
+  r = mpz_congruent_p(ma, mb, mc);
+  mpz_clear(ma);
+  mpz_clear(mb);
+  mpz_clear(mc);
+  CAMLreturn(Val_bool(r));
+}
+
+CAMLprim value ml_z_jacobi(value a, value b)
+{
+  CAMLparam2(a,b);
+  mpz_t ma, mb;
+  int r;
+  ml_z_mpz_init_set_z(ma, a);
+  ml_z_mpz_init_set_z(mb, b);
+  r = mpz_jacobi(ma, mb);
+  mpz_clear(ma);
+  mpz_clear(mb);
+  CAMLreturn(Val_int(r));
+}
+
+CAMLprim value ml_z_legendre(value a, value b)
+{
+  CAMLparam2(a,b);
+  mpz_t ma, mb;
+  int r;
+  ml_z_mpz_init_set_z(ma, a);
+  ml_z_mpz_init_set_z(mb, b);
+  r = mpz_legendre(ma, mb);
+  mpz_clear(ma);
+  mpz_clear(mb);
+  CAMLreturn(Val_int(r));
+}
+
+CAMLprim value ml_z_kronecker(value a, value b)
+{
+  CAMLparam2(a,b);
+  mpz_t ma, mb;
+  int r;
+  ml_z_mpz_init_set_z(ma, a);
+  ml_z_mpz_init_set_z(mb, b);
+  r = mpz_kronecker(ma, mb);
+  mpz_clear(ma);
+  mpz_clear(mb);
+  CAMLreturn(Val_int(r));
+}
+
+CAMLprim value ml_z_remove(value a, value b)
+{
+  CAMLparam2(a,b);
+  CAMLlocal1(r);
+  mpz_t ma, mb, mr;
+  int i;
+  ml_z_mpz_init_set_z(ma, a);
+  ml_z_mpz_init_set_z(mb, b);
+  mpz_init(mr);
+  i = mpz_remove(mr, ma, mb);
+  r = caml_alloc_small(2, 0);
+  Field(r,0) = ml_z_from_mpz(mr);
+  Field(r,1) = Val_int(i);
+  mpz_clear(ma);
+  mpz_clear(mb);
+  mpz_clear(mr);
+  CAMLreturn(r);
+}
+
+CAMLprim value ml_z_fac(value a)
+{
+  CAMLparam1(a);
+  CAMLlocal1(r);
+  mpz_t mr;
+  intnat ma = Long_val(a);
+  if (ma < 0)
+    caml_invalid_argument("Z.fac: non-positive argument");
+  mpz_init(mr);
+  mpz_fac_ui(mr, ma);
+  r = ml_z_from_mpz(mr);
+  mpz_clear(mr);
+  CAMLreturn(r);
+}
+
+CAMLprim value ml_z_fac2(value a)
+{
+  CAMLparam1(a);
+  CAMLlocal1(r);
+  mpz_t mr;
+  intnat ma = Long_val(a);
+  if (ma < 0)
+    caml_invalid_argument("Z.fac2: non-positive argument");
+  mpz_init(mr);
+  mpz_2fac_ui(mr, ma);
+  r = ml_z_from_mpz(mr);
+  mpz_clear(mr);
+  CAMLreturn(r);
+}
+
+CAMLprim value ml_z_facM(value a, value b)
+{
+  CAMLparam2(a,b);
+  CAMLlocal1(r);
+  mpz_t mr;
+  intnat ma = Long_val(a), mb = Long_val(b);
+  if (ma < 0 || mb < 0)
+    caml_invalid_argument("Z.facM: non-positive argument");
+  mpz_init(mr);
+  mpz_mfac_uiui(mr, ma, mb);
+  r = ml_z_from_mpz(mr);
+  mpz_clear(mr);
+  CAMLreturn(r);
+}
+
+CAMLprim value ml_z_primorial(value a)
+{
+  CAMLparam1(a);
+  CAMLlocal1(r);
+  mpz_t mr;
+  intnat ma = Long_val(a);
+  if (ma < 0)
+    caml_invalid_argument("Z.primorial: non-positive argument");
+  mpz_init(mr);
+  mpz_primorial_ui(mr, ma);
+  r = ml_z_from_mpz(mr);
+  mpz_clear(mr);
+  CAMLreturn(r);
+}
+
+CAMLprim value ml_z_bin(value a, value b)
+{
+  CAMLparam2(a,b);
+  CAMLlocal1(r);
+  mpz_t ma;
+  intnat mb = Long_val(b);
+  if (mb < 0)
+    caml_invalid_argument("Z.bin: non-positive argument");
+  ml_z_mpz_init_set_z(ma, a);
+  mpz_bin_ui(ma, ma, mb);
+  r = ml_z_from_mpz(ma);
+  mpz_clear(ma);
+  CAMLreturn(r);
+}
+
+CAMLprim value ml_z_fib(value a)
+{
+  CAMLparam1(a);
+  CAMLlocal1(r);
+  mpz_t mr;
+  intnat ma = Long_val(a);
+  if (ma < 0)
+    caml_invalid_argument("Z.fib: non-positive argument");
+  mpz_init(mr);
+  mpz_fib_ui(mr, ma);
+  r = ml_z_from_mpz(mr);
+  mpz_clear(mr);
+  CAMLreturn(r);
+}
+
+CAMLprim value ml_z_lucnum(value a)
+{
+  CAMLparam1(a);
+  CAMLlocal1(r);
+  mpz_t mr;
+  intnat ma = Long_val(a);
+  if (ma < 0)
+    caml_invalid_argument("Z.lucnum: non-positive argument");
+  mpz_init(mr);
+  mpz_lucnum_ui(mr, ma);
+  r = ml_z_from_mpz(mr);
+  mpz_clear(mr);
+  CAMLreturn(r);
+}
+
+
+
 /* XXX should we support the following?
-   mpz_divisible_p
-   mpz_congruent_p
-   mpz_powm_sec
-   mpz_rootrem
-   mpz_jacobi
-   mpz_legendre
-   mpz_kronecker
-   mpz_remove
-   mpz_fac_ui
-   mpz_bin_ui
-   mpz_fib_ui
-   mpz_lucnum_ui
    mpz_scan0, mpz_scan1
    mpz_setbit, mpz_clrbit, mpz_combit, mpz_tstbit
    mpz_odd_p, mpz_even_p
    random numbers
 */
+
 
 
 /*---------------------------------------------------

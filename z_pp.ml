@@ -5,8 +5,7 @@ let usage = "Usage: './z_pp architecture"
 
 let () =
   Arg.parse
-    ["-noalloc", Arg.Set noalloc, "noalloc attribute available";
-     "-ov", Arg.Set_string version, "ocaml compiler version"]
+    ["-ov", Arg.Set_string version, "ocaml compiler version"]
     (fun name -> archname := name)
     usage;
   if !archname = ""
@@ -14,8 +13,6 @@ let () =
       print_endline usage;
       exit 1
     end
-
-let noalloc_str = if !noalloc then "[@@noalloc]" else "\"noalloc\""
 
 let asmfilename = "caml_z_" ^ !archname ^ ".S"
 
@@ -57,7 +54,6 @@ let treat_file =
       while true do
 	let line_in = input_line input in
         let line_in = Str.(global_replace (regexp "@VERSION") (Printf.sprintf "%S" !version) line_in) in
-        let line_in = Str.(global_replace (regexp "@NOALLOC") noalloc_str line_in) in
 	let line_out =
 	  if Str.string_match rASM line_in 0
 	  then

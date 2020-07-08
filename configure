@@ -208,7 +208,7 @@ else
   ccopt="-O3 -Wall -Wextra $CFLAGS"
 fi
 
-case "$("$ocamlc" -config | tr -d '\r' | sed -ne '/^system:/s/.*: //p')" in
+case "$($ocamlc -config | tr -d '\r' | sed -ne '/^system:/s/.*: //p')" in
   win32|win64)
     # MSVC
     objsuffix='obj'
@@ -254,7 +254,7 @@ fi
 # directories
 
 if test "$ocamllibdir" = "auto"
-then ocamllibdir="$(ocamlc -where | tr -d '\r')"
+then ocamllibdir="$($ocamlc -where | tr -d '\r')"
 fi
 
 if test ! -f "$ocamllibdir/caml/mlvalues.h"
@@ -293,7 +293,7 @@ fi
 # detect OCaml's word-size
 
 echo "print_int (Sys.word_size);;" > tmp.ml
-wordsize="$(ocaml tmp.ml)"
+wordsize="$($ocaml tmp.ml)"
 echo "OCaml's word size is $wordsize"
 rm -f tmp.ml
 
@@ -335,7 +335,7 @@ if test "$gmp" != 'OK'; then echo "cannot find GMP nor MPIR"; exit 2; fi
 
 # OCaml version
 
-ocamlver="$(ocamlc -version)"
+ocamlver="$($ocamlc -version)"
 
 # OCaml version 4.07 or later is required
 

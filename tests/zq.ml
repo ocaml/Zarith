@@ -568,17 +568,20 @@ let test_Z() =
   Printf.printf "sqrt 2\n = %a\n" pr (I.sqrt p2);
   Printf.printf "sqrt 2^120\n = %a\n" pr (I.sqrt p120);
   Printf.printf "sqrt 2^121\n = %a\n" pr (I.sqrt p121);
+  (*
   Printf.printf "sqrt_rem 0\n = %a\n" pr2 (I.sqrt_rem I.zero);
   Printf.printf "sqrt_rem 1\n = %a\n" pr2 (I.sqrt_rem I.one);
   Printf.printf "sqrt_rem 2\n = %a\n" pr2 (I.sqrt_rem p2);
   Printf.printf "sqrt_rem 2^120\n = %a\n" pr2 (I.sqrt_rem p120);
   Printf.printf "sqrt_rem 2^121\n = %a\n" pr2 (I.sqrt_rem p121);
+   *)
   Printf.printf "popcount 0\n = %i\n" (I.popcount I.zero);
   Printf.printf "popcount 1\n = %i\n" (I.popcount I.one);
   Printf.printf "popcount 2\n = %i\n" (I.popcount p2);
   Printf.printf "popcount max_int32\n = %i\n" (I.popcount maxi32);
   Printf.printf "popcount 2^120\n = %i\n" (I.popcount p120);
   Printf.printf "popcount (2^120-1)\n = %i\n" (I.popcount (I.pred p120));
+  (*
   Printf.printf "hamdist 0 0\n = %i\n" (I.hamdist I.zero I.zero);
   Printf.printf "hamdist 0 1\n = %i\n" (I.hamdist I.zero I.one);
   Printf.printf "hamdist 0 2^300\n = %i\n" (I.hamdist I.zero p300);
@@ -586,6 +589,7 @@ let test_Z() =
   Printf.printf "hamdist 2^120 (2^120-1)\n = %i\n" (I.hamdist p120 (I.pred p120));
   Printf.printf "hamdist 2^120 2^300\n = %i\n" (I.hamdist p120 p300);
   Printf.printf "hamdist (2^120-1) (2^300-1)\n = %i\n" (I.hamdist (I.pred p120) (I.pred p300));
+   *)
   (* always 0 when not using custom blocks *)
   Printf.printf "hash(2^120)\n = %i\n" (Hashtbl.hash p120);
   Printf.printf "hash(2^121)\n = %i\n" (Hashtbl.hash p121);
@@ -713,9 +717,12 @@ let test_Z() =
      b,1,1; b,1,5; b,1,32; b,1,63; b,1,64; b,1,127; b,1,128;
      b,69,12;
      c,0,1; c,0,64; c,128,1; c,128,5; c,131,32; c,175,63; c,277,123] in
+(*
   List.iter chk_extract extract_testdata;
   List.iter chk_signed_extract extract_testdata;
+ *)
 
+  (*
   chk_bits I.zero;
   chk_bits p2;
   chk_bits (I.neg p2);
@@ -734,18 +741,21 @@ let test_Z() =
   chk_bits mini64;
   chk_bits maxni;
   chk_bits minni;
+   *)
 
+  (*
   List.iter chk_testbit [
     I.zero; I.one; I.of_int (-42);
     I.of_string "31415926535897932384626433832795028841971693993751058209749445923078164062862089986";
     I.neg (I.shift_left (I.of_int 123456) 64);
   ];
-
+   
   List.iter chk_numbits_tz [
     I.zero; I.one; I.of_int (-42);
     I.shift_left (I.of_int 9999) 77;
     I.neg (I.shift_left (I.of_int 123456) 64);
   ];
+   *)
   ()
 
 

@@ -58,6 +58,7 @@ where options include:
   -noasm               disable platform-specific asm code
   -gmp                 use GMP library (default if found)
   -mpir                use MPIR library instead of GMP
+  -tommath             use TomMath library instead of GMP
   -perf                enable performance statistics
   -prefixnonocaml      add for non ocaml tool, e.g. -prefixnonocaml x86_64-w64-mingw32-
 
@@ -99,6 +100,8 @@ while : ; do
             gmp='gmp';;
         -mpir|--mpir)
             gmp='mpir';;
+        -tommath|--tommath)
+            gmp='tommath';;
         -perf|--perf)
             perf='yes';;
         -prefixnonocaml|--prefixnonocaml)
@@ -363,8 +366,9 @@ if test "$arch" != 'none'; then
 fi
 
 
-# check GMP, MPIR
+# check GMP, MPIR, TomMath
 
+csrc="caml_z.c"
 if test "$gmp" = 'gmp' -o "$gmp" = 'auto'; then
     checkinc gmp.h
     if test $? -eq 1; then
@@ -387,7 +391,19 @@ if test "$gmp" = 'mpir' -o "$gmp" = 'auto'; then
         fi
     fi
 fi
-if test "$gmp" != 'OK'; then echo "cannot find GMP nor MPIR"; exit 2; fi
+if test "$gmp" = 'tommath' -o "$gmp" = 'auto'; then
+    checkinc tommath.h
+    if test $? -eq 1; then
+        checklib tommath
+        if test $? -eq 1; then 
+            gmp='OK'
+            cclib="$cclib -ltommath"
+            ccdef="-DHAS_TOMMATH $ccdef"
+            csrc="caml_z_tommath.c"
+        fi
+    fi
+fi
+if test "$gmp" != 'OK'; then echo "cannot find GMP nor MPIR nor TomMath"; exit 2; fi
 
 
 # OCaml version
@@ -447,6 +463,7 @@ OCAMLDOC=$ocamldoc
 OCAMLFLAGS=$mlflags
 OCAMLOPTFLAGS=$mloptflags
 OCAMLINC=$mlinc
+CSRC=$csrc
 CFLAGS=$ccinc $ccdef $ccopt
 ASFLAGS=$ccdef $asopt
 LIBS=$cclib

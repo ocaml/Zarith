@@ -31,7 +31,6 @@ endif
 # project files
 ###############
 
-CSRC = caml_z.c
 SSRC = $(wildcard caml_z_$(ARCH).S)
 MLSRC = z.ml q.ml big_int_Z.ml
 MLISRC = z.mli q.mli big_int_Z.mli
@@ -139,7 +138,7 @@ $(AUTOGEN): z.mlp z.mlip $(SSRC) z_pp.pl
 	$(OCAMLOPT) $(OCAMLOPTFLAGS) $(OCAMLINC) -c $<
 
 %.$(OBJSUFFIX): %.c
-	$(OCAMLC) -ccopt "$(CFLAGS)" -c $<
+	$(OCAMLC) -ccopt "$(CFLAGS) -g" -c $<
 
 clean:
 	/bin/rm -rf *.$(OBJSUFFIX) *.$(LIBSUFFIX) *.$(DLLSUFFIX) *.cmi *.cmo *.cmx *.cmxa *.cmxs *.cma  *.cmt *.cmti *~ \#* depend test $(AUTOGEN) tmp.c depend

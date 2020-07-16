@@ -276,7 +276,7 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
   /* process the string */
   const char *d = String_val(v) + ofs;
   const char *end = d + len;
-  ssize_t i, sz;
+  ptrdiff_t i, sz;
   int sign = 0;
   intnat base = Long_val(b);
   /* We allow [d] to advance beyond [end] while parsing the prefix:
@@ -1365,7 +1365,7 @@ CAMLprim value ml_z_shift_right_trunc(value arg, value count)
 
 /* Helper function for numbits: number of leading 0 bits in x */
 
-#ifdef _LONG_LONG_LIMB
+#ifdef ARCH_SIXTYFOUR
 #define BUILTIN_CLZ __builtin_clzll
 #else
 #define BUILTIN_CLZ __builtin_clzl
@@ -1376,10 +1376,10 @@ CAMLprim value ml_z_shift_right_trunc(value arg, value count)
 #define ml_z_clz BUILTIN_CLZ
 #else
 /* Portable C implementation - Hacker's Delight fig 5.12 */
-int ml_z_clz(mp_limb_t x)
+int ml_z_clz(uintnat x)
 {
   int n;
-  mp_limb_t y;
+  unintnat y;
 #ifdef ARCH_SIXTYFOUR
   n = 64;
   y = x >> 32;  if (y != 0) { n = n - 32; x = y; }
@@ -1415,7 +1415,7 @@ CAMLprim value ml_z_numbits(value arg)
 
 /* Helper function for trailing_zeros: number of trailing 0 bits in x */
 
-#ifdef _LONG_LONG_LIMB
+#ifdef ARCH_SIXTYFOUR
 #define BUILTIN_CTZ __builtin_ctzll
 #else
 #define BUILTIN_CTZ __builtin_ctzl
@@ -1426,10 +1426,10 @@ CAMLprim value ml_z_numbits(value arg)
 #define ml_z_ctz BUILTIN_CTZ
 #else
 /* Portable C implementation - Hacker's Delight fig 5.21 */
-int ml_z_ctz(mp_limb_t x)
+int ml_z_ctz(uintnat x)
 {
   int n;
-  mp_limb_t y;
+  uintnat y;
   CAMLassert (x != 0);
 #ifdef ARCH_SIXTYFOUR
   n = 63;

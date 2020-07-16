@@ -26,7 +26,7 @@ $v = `grep version META`;
 ($ver) = $v =~ /version\s*=\s*(\S+)/;
 
 $ov = `ocamlc -version`;
-($major,$minor,$extra) = split(/\./, $ov, 3);
+($major,$minor,undef) = split(/\./, $ov, 3);
 if ($major > 4 || ($major == 4 && $minor >= 3)) {
     $noalloc = "[\@\@noalloc]";
 } else {

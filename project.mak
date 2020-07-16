@@ -120,7 +120,7 @@ endif
 #######
 
 $(AUTOGEN): z.mlp z.mlip $(SSRC) z_pp.pl
-	./z_pp.pl $(ARCH)
+	perl z_pp.pl $(ARCH)
 
 %.cmi: %.mli
 	$(OCAMLC) $(OCAMLFLAGS) $(OCAMLINC) -c $<

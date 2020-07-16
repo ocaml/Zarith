@@ -1379,7 +1379,7 @@ CAMLprim value ml_z_shift_right_trunc(value arg, value count)
 int ml_z_clz(uintnat x)
 {
   int n;
-  unintnat y;
+  uintnat y;
 #ifdef ARCH_SIXTYFOUR
   n = 64;
   y = x >> 32;  if (y != 0) { n = n - 32; x = y; }

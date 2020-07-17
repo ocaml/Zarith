@@ -122,6 +122,12 @@ static mp_int z_max_int64,  z_min_int64;
 #define Z_BASE2_LENGTH_OP 30
 #endif
 
+#ifdef _MSC_VER
+#define UNUSED_PARAM
+#else
+#define UNUSED_PARAM __attribute__((unused))
+#endif
+
 #define Z_MP(x) ((mp_int*)Data_custom_val((x)))
 
 #define Z_ISZERO(x) (Is_long((x)) ? Long_val((x)) == 0 : mp_iszero(Z_MP((x))))
@@ -404,7 +410,7 @@ CAMLprim value ml_z_format(value f, value v)
   CAMLparam2(f,v);
   Z_DECL(v);
   char* buf, *dst;
-  int sz = 0;
+  size_t sz = 0;
   size_t i, max_size, size_dst = 0;
   value r;
   const char* fmt = String_val(f);
@@ -510,17 +516,17 @@ CAMLprim value ml_z_format(value f, value v)
   CAMLreturn(r);
 }
 
-CAMLprim value ml_z_extract(value arg, value off, value len)
+CAMLprim value ml_z_extract(UNUSED_PARAM value arg, UNUSED_PARAM value off, UNUSED_PARAM  value len)
 {
   caml_failwith("Z.extract: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_to_bits(value arg)
+CAMLprim value ml_z_to_bits(UNUSED_PARAM value arg)
 {
   caml_failwith("Z.to_bits: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_of_bits(value arg)
+CAMLprim value ml_z_of_bits(UNUSED_PARAM value arg)
 {
   caml_failwith("Z.of_bits: not implemented in LibTomMath backend");
 }
@@ -1066,7 +1072,7 @@ CAMLprim value ml_z_sqrt(value arg)
   CAMLreturn(r);
 }
 
-CAMLprim value ml_z_sqrt_rem(value arg)
+CAMLprim value ml_z_sqrt_rem(UNUSED_PARAM value arg)
 {
   caml_failwith("Z.sqrt_rem: not implemented in LibTomMath backend");
 }
@@ -1508,7 +1514,7 @@ CAMLprim value ml_z_popcount(value arg)
   }
 }
 
-CAMLprim value ml_z_hamdist(value arg1, value arg2)
+CAMLprim value ml_z_hamdist(UNUSED_PARAM value arg1, UNUSED_PARAM value arg2)
 {
   caml_failwith("Z.hamdist: not implemented in LibTomMath backend");
 }
@@ -1550,12 +1556,12 @@ CAMLprim value ml_z_divexact(value arg1, value arg2)
   return ml_z_div(arg1,arg2);
 }
 
-CAMLprim value ml_z_powm(value base, value exp, value mod)
+CAMLprim value ml_z_powm(UNUSED_PARAM value base, UNUSED_PARAM value exp, UNUSED_PARAM value mod)
 {
   caml_failwith("Z.powm: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_powm_sec(value base, value exp, value mod)
+CAMLprim value ml_z_powm_sec(UNUSED_PARAM value base, UNUSED_PARAM value exp, UNUSED_PARAM value mod)
 {
   caml_failwith("Z.powm_sec: not implemented in LibTomMath backend");
 }
@@ -1570,7 +1576,7 @@ CAMLprim value ml_z_pow(value base, value exp)
     caml_invalid_argument("Z.pow: exponent must be nonnegative");
   Z_ARG(base);
   r = ml_z_alloc();
-  if (mp_expt_u32(mp_base, e, Z_MP(r)) != MP_OKAY) {
+  if (mp_expt_n(mp_base, e, Z_MP(r)) != MP_OKAY) {
     Z_END_ARG(base);
     mp_clear(Z_MP(r));
     caml_failwith("Z.pow: internal error");     
@@ -1580,102 +1586,102 @@ CAMLprim value ml_z_pow(value base, value exp)
   CAMLreturn(r);
 }
 
-CAMLprim value ml_z_root(value a, value b)
+CAMLprim value ml_z_root(UNUSED_PARAM value a, UNUSED_PARAM value b)
 {
   caml_failwith("Z.root: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_rootrem(value a, value b)
+CAMLprim value ml_z_rootrem(UNUSED_PARAM value a, UNUSED_PARAM value b)
 {
   caml_failwith("Z.rootrem: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_perfect_power(value a)
+CAMLprim value ml_z_perfect_power(UNUSED_PARAM value a)
 {
   caml_failwith("Z.perfect_power: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_perfect_square(value a)
+CAMLprim value ml_z_perfect_square(UNUSED_PARAM value a)
 {
   caml_failwith("Z.perfect_square: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_probab_prime(value a, int b)
+CAMLprim value ml_z_probab_prime(UNUSED_PARAM value a, UNUSED_PARAM int b)
 {
   caml_failwith("Z.probab_prime: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_nextprime(value a)
+CAMLprim value ml_z_nextprime(UNUSED_PARAM value a)
 {
   caml_failwith("Z.nextprime: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_invert(value base, value mod)
+CAMLprim value ml_z_invert(UNUSED_PARAM value base, UNUSED_PARAM value mod)
 {
   caml_failwith("Z.invert: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_divisible(value a, value b)
+CAMLprim value ml_z_divisible(UNUSED_PARAM value a, UNUSED_PARAM value b)
 {
   caml_failwith("Z.divisible: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_congruent(value a, value b, value c)
+CAMLprim value ml_z_congruent(UNUSED_PARAM value a, UNUSED_PARAM value b, UNUSED_PARAM value c)
 {
   caml_failwith("Z.congruent: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_jacobi(value a, value b)
+CAMLprim value ml_z_jacobi(UNUSED_PARAM value a, UNUSED_PARAM value b)
 {
   caml_failwith("Z.jacobi: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_legendre(value a, value b)
+CAMLprim value ml_z_legendre(UNUSED_PARAM value a, UNUSED_PARAM value b)
 {
   caml_failwith("Z.legendre: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_kronecker(value a, value b)
+CAMLprim value ml_z_kronecker(UNUSED_PARAM value a, UNUSED_PARAM value b)
 {
   caml_failwith("Z.kronecker: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_remove(value a, value b)
+CAMLprim value ml_z_remove(UNUSED_PARAM value a, UNUSED_PARAM value b)
 {
   caml_failwith("Z.remove: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_fac(value a)
+CAMLprim value ml_z_fac(UNUSED_PARAM value a)
 {
   caml_failwith("Z.fac: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_fac2(value a)
+CAMLprim value ml_z_fac2(UNUSED_PARAM value a)
 {
   caml_failwith("Z.fac2: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_facM(value a, value b)
+CAMLprim value ml_z_facM(UNUSED_PARAM value a, UNUSED_PARAM value b)
 {
   caml_failwith("Z.facM: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_primorial(value a)
+CAMLprim value ml_z_primorial(UNUSED_PARAM value a)
 {
   caml_failwith("Z.primorial: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_bin(value a, value b)
+CAMLprim value ml_z_bin(UNUSED_PARAM value a, UNUSED_PARAM value b)
 {
   caml_failwith("Z.bin: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_fib(value a)
+CAMLprim value ml_z_fib(UNUSED_PARAM value a)
 {
   caml_failwith("Z.fib: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_lucnum(value a)
+CAMLprim value ml_z_lucnum(UNUSED_PARAM value a)
 {
   caml_failwith("Z.lucnum: not implemented in LibTomMath backend");
 }

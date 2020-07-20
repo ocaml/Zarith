@@ -1799,7 +1799,7 @@ static uintnat ml_z_custom_deserialize(void * dst)
   if (!buf) caml_raise_out_of_memory();
   for (i = 0; i < nb; i++) 
     buf[i] = caml_deserialize_uint_1();
-  if (mp_to_sbin((mp_int*)dst, buf, nb, NULL) != MP_OKAY) {
+  if (mp_from_sbin((mp_int*)dst, buf, nb) != MP_OKAY) {
     free(buf);
     ml_z_raise_out_of_memory();
   }

@@ -1,6 +1,6 @@
-WORDSIZE:=$(shell echo 'print_int Sys.word_size' | ocaml -stdin)
+WORDSIZE:=$(shell echo print_int Sys.word_size | ocaml -stdin)
+BACKEND:=$(shell echo print_string Z.backend | ocaml -I .. zarith.cma -stdin)
 STDLIBDIR:=$(shell ocamlc -where)
-BACKEND:=$(shell grep BACKEND ../Makefile | sed s/BACKEND=//)
 ifeq ($(wildcard $(STDLIBDIR)/big_int.cmi),)
 HAS_NUM=false
 NUMS_CMA=

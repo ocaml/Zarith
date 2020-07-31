@@ -33,6 +33,10 @@ if ($major > 4 || ($major == 4 && $minor >= 3)) {
     $noalloc = "\"noalloc\"";
 }
 
+# backend, from Makefile
+$b = `grep BACKEND Makefile`;
+($backend) = $b =~ /BACKEND\s*=\s*(\S+)/;
+
 # scan assembly
 
 $ASM = "caml_z_${ARGV[0]}.S";
@@ -71,6 +75,7 @@ sub doml {
             $l =~ s/$f\@ASM/$r/g;
         }
         $l =~ s/\@VERSION/$ver/;
+        $l =~ s/\@BACKEND/\"$backend\"/;
         $l =~ s/\@NOALLOC/$noalloc/;
         print O "$l";
     }

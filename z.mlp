@@ -251,3 +251,4 @@ module Compare = struct
 end
 
 let version = @VERSION
+let backend = @BACKEND

@@ -1,5 +1,6 @@
 WORDSIZE:=$(shell echo 'print_int Sys.word_size' | ocaml -stdin)
 STDLIBDIR:=$(shell ocamlc -where)
+BACKEND:=$(shell grep BACKEND ../Makefile | sed s/BACKEND=//)
 ifeq ($(wildcard $(STDLIBDIR)/big_int.cmi),)
 HAS_NUM=false
 NUMS_CMA=
@@ -11,12 +12,12 @@ NUMS_CMXA=nums.cmxa
 endif
 
 test:: zq.exe
-	@echo "Testing zq (native)..."
-	@if ./zq.exe | cmp -s zq.output$(WORDSIZE) - ; then echo "zq: passed"; else echo "zq: FAILED"; exit 2; fi
+	@echo "Testing zq (native) for $(BACKEND)..."
+	@if ./zq.exe | cmp -s zq.output-$(BACKEND)-$(WORDSIZE) - ; then echo "zq: passed"; else echo "zq: FAILED"; exit 2; fi
 
 test:: zq.byt
-	@echo "Testing zq (bytecode)..."
-	@if ocamlrun -I .. ./zq.byt | cmp -s zq.output$(WORDSIZE) - ; then echo "zq: passed"; else echo "zq: FAILED"; exit 2; fi
+	@echo "Testing zq (bytecode) for $(BACKEND)..."
+	@if ocamlrun -I .. ./zq.byt | cmp -s zq.output-$(BACKEND)-$(WORDSIZE) - ; then echo "zq: passed"; else echo "zq: FAILED"; exit 2; fi
 
 ifeq ($(HAS_NUM),true)
 test:: bi.exe

@@ -373,7 +373,8 @@ if test "$gmp" = 'gmp' -o "$gmp" = 'auto'; then
     checkinc gmp.h
     if test $? -eq 1; then
         checklib gmp
-        if test $? -eq 1; then 
+        if test $? -eq 1; then
+            backend='GMP'
             gmp='OK'
             cclib="$cclib -lgmp"
             ccdef="-DHAS_GMP $ccdef"
@@ -385,6 +386,7 @@ if test "$gmp" = 'mpir' -o "$gmp" = 'auto'; then
     if test $? -eq 1; then
         checklib mpir
         if test $? -eq 1; then 
+            backend='MPIR'
             gmp='OK'
             cclib="$cclib -lmpir"
             ccdef="-DHAS_MPIR $ccdef"
@@ -396,6 +398,7 @@ if test "$gmp" = 'tommath' -o "$gmp" = 'auto'; then
     if test $? -eq 1; then
         checklib tommath
         if test $? -eq 1; then 
+            backend='LibTomMath'
             gmp='OK'
             cclib="$cclib -ltommath"
             ccdef="-DHAS_TOMMATH $ccdef"
@@ -477,6 +480,7 @@ OBJSUFFIX=$objsuffix
 HASOCAMLOPT=$hasocamlopt
 HASDYNLINK=$hasdynlink
 HASBINANNOT=$hasbinannot
+BACKEND=$backend
 
 include project.mak
 EOF
@@ -488,6 +492,7 @@ cat <<EOF
 
 detected configuration:
 
+  backend               $backend
   native-code:          $hasocamlopt
   dynamic linking:      $hasdynlink
   asm path:             $arch

@@ -713,6 +713,12 @@ end
 val version: string
 (** Library version (this file refers to version [@VERSION]). *)
 
+val backend: string
+(** Backend implementing large integer operations.
+    Can be GMP, MPIR, LibTomMath.
+    This file refers to [@BACKEND].
+  *)
+
 (**/**)
 
 (** For internal use in module [Q]. *)

@@ -331,11 +331,18 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
       }
       r = Val_long(ret * (sign ? -1 : 1));
   } else {
+    // copy the substring
+    char* dd = (char*)malloc(sz + 1);
+    if (!dd) caml_raise_out_of_memory();
+    memcpy(dd, d, sz);
+    dd[sz] = 0;
     r = ml_z_alloc();
-    if (mp_read_radix(Z_MP(r), d, base) != MP_OKAY) {
+    if (mp_read_radix(Z_MP(r), dd, base) != MP_OKAY) {
+      free(dd);
       mp_clear(Z_MP(r));
       caml_invalid_argument("Z.of_substring_base: invalid string");
     }
+    free(dd);
     if (sign) {
       if (mp_neg(Z_MP(r), Z_MP(r)) != MP_OKAY) {
         mp_clear(Z_MP(r));
@@ -416,7 +423,7 @@ CAMLprim value ml_z_format(value f, value v)
   const char* fmt = String_val(f);
   int base = 10;     /* base */
   int cas = 0;       /* uppercase X / lowercase x */
-  size_t width = 0;
+  ptrdiff_t width = 0;
   int alt = 0;       /* alternate # */
   int dir = 0;       /* right / left adjusted */
   char sign = 0;     /* sign char */
@@ -480,7 +487,7 @@ CAMLprim value ml_z_format(value f, value v)
       if (dst[i] >= 'A')
         dst[i] += ('a' - 'A');
   }
-  
+
   /* add prefix, sign & padding */
   if (pad == ' ') {
     if (dir) {
@@ -488,7 +495,7 @@ CAMLprim value ml_z_format(value f, value v)
       for (i = strlen(prefix); i > 0; i--, size_dst++)
         *(--dst) = prefix[i-1];
       if (sign) { *(--dst) = sign; size_dst++; }
-      for (; size_dst < width; size_dst++)
+      for (; (ptrdiff_t)size_dst < width; size_dst++)
         dst[size_dst] = pad;
     }
     else {
@@ -496,13 +503,13 @@ CAMLprim value ml_z_format(value f, value v)
       for (i = strlen(prefix); i > 0; i--, size_dst++)
         *(--dst) = prefix[i-1];
       if (sign) { *(--dst) = sign; size_dst++; }
-      for (; size_dst < width; size_dst++) *(--dst) = pad;
+      for (; (ptrdiff_t)size_dst < width; size_dst++) *(--dst) = pad;
     }
   }
   else {
     /* right alignment, non-space padding */
     width -= strlen(prefix) + (sign ? 1 : 0);
-    for (; size_dst < width; size_dst++) *(--dst) = pad;
+    for (; (ptrdiff_t)size_dst < width; size_dst++) *(--dst) = pad;
     for (i = strlen(prefix); i > 0; i--, size_dst++)
       *(--dst) = prefix[i-1];
     if (sign) { *(--dst) = sign; size_dst++; }
@@ -1414,7 +1421,7 @@ CAMLprim value ml_z_numbits(value arg)
   }
   else {
     if (mp_iszero(Z_MP(arg))) return Val_long(0);
-    return Val_long(mp_count_bits(Z_MP(arg)) + 1);
+    return Val_long(mp_count_bits(Z_MP(arg)));
   }
 }
 

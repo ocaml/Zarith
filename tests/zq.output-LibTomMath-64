@@ -826,11 +826,11 @@ popcount (2^120-1)
  = 120
 Failure: Z.hamdist: not implemented in LibTomMath backend
 hash(2^120)
- = 900619431
+ = 691199303
 hash(2^121)
- = 324032971
+ = 382412560
 hash(2^300)
- = 49167343
+ = 61759632
 2^120 = 2^300
  = false
 2^120 = 2^120

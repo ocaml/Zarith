@@ -1736,28 +1736,59 @@ int ml_z_custom_compare(value arg1, value arg2)
 
 static intnat ml_z_custom_hash(value v)
 {
-  /* TODO: the hash depends on the platform */
   if (Is_long(v)) {
+    intnat n = Long_val(v);
+    intnat a = n >= 0 ? n : -n;
+    uint32_t h;
 #ifdef ARCH_SIXTYFOUR
-    return caml_hash_mix_uint32((uint32_t)v, (uint32_t)(v >> 32));
+    h = caml_hash_mix_uint32((uint32_t)a, (uint32_t)(a >> 32));
 #else
-    return v;
+    h = a;
 #endif
+    if (n < 0) h++;
+    return h;
   }
   else {
-    uint32_t r = 0;
-    int i;
+    uint32_t acc = 0;
     mp_digit* p;
-    if (mp_isneg(Z_MP(v))) r = 1;
-    for (i=0, p=Z_MP(v)->dp; i < Z_MP(v)->used; i++, p++) {
-#ifdef MP_64BIT
-      r = caml_hash_mix_uint32(r, (uint32_t)*p);
-      r = caml_hash_mix_uint32(r, (uint32_t)((*p) >> 32));
-#else
-      r = caml_hash_mix_uint32(r, (uint32_t)*p);
-#endif
+    uint32_t word = 0; // 32-bit word in construction
+    int bits = 0;      // actual bits in word
+    size_t nb = 0;        // nb words
+    size_t i;
+
+    for (p = Z_MP(v)->dp, i = Z_MP(v)->used; i > 0; p++, i--) {
+      // eat a new digit
+      mp_digit d = *p;
+      word |= (uint32_t)d << bits;
+      bits += MP_DIGIT_BIT;
+      if (bits >= 32) {
+        // word complete
+        nb++;
+        acc = caml_hash_mix_uint32(acc, word);
+        // remaining bits in d
+        bits -= 32;
+        d >>= MP_DIGIT_BIT - bits;
+        while (bits >= 32 && (d || i > 1)) {
+          // additional words
+          nb++;
+          acc = caml_hash_mix_uint32(acc, d);
+          bits -= 32;
+          d >>= 32;
+        }
+        word = d;
+      }
     }
-    return r;
+    if (bits > 0 && word) {
+      // last piece of digit
+      nb++;
+      acc = caml_hash_mix_uint32(acc, word);
+    }
+    /* ensure an even number of words (compatibility with 64-bit GMP) */
+    if (nb % 2 != 0) {
+      acc = caml_hash_mix_uint32(acc, 0);
+    }
+    if (mp_isneg(Z_MP(v))) acc++;
+    return acc;
   }
 }
 

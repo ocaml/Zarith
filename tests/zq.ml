@@ -16,6 +16,11 @@
 *)
 
 
+let failure_harness f =
+  try f ()
+  with Failure f -> Printf.printf "Failure: %s\n" f
+
+
 (* testing Z *)
 
 module I = Z
@@ -89,11 +94,13 @@ let maxni = I.of_nativeint Nativeint.max_int
 let minni = I.of_nativeint Nativeint.min_int
 
 let chk_bits x =
-  Printf.printf "to_bits %a\n =" pr x;
-  String.iter (fun c -> Printf.printf " %02x" (Char.code c)) (I.to_bits x);
-  Printf.printf "\n";
-  assert(I.equal (I.abs x) (I.of_bits (I.to_bits x)));
-  assert((I.to_bits x) = (I.to_bits (I.neg x)));
+  failure_harness (fun () ->
+      Printf.printf "to_bits %a\n =" pr x;
+      String.iter (fun c -> Printf.printf " %02x" (Char.code c)) (I.to_bits x);
+      Printf.printf "\n";
+      assert(I.equal (I.abs x) (I.of_bits (I.to_bits x)));
+      assert((I.to_bits x) = (I.to_bits (I.neg x)));
+    );
   Printf.printf "marshal round trip %a\n =" pr x;
   let y = Marshal.(from_string (to_string x []) 0) in
   Printf.printf " %a\n" prmarshal (y, x)
@@ -149,10 +156,6 @@ let chk_testbit x =
   if !ok
   then Printf.printf "(passed)\n"
   else Printf.printf "(FAILED)\n"
-
-let failure_harness f =
-  try f ()
-  with Failure f -> Printf.printf "Failure: %s\n" f
 
 let test_Z() =
   Printf.printf "0\n = %a\n" pr I.zero;

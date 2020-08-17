@@ -950,6 +950,76 @@ format %#-10o -2^30 = /-0o10000000000/
 Failure: Z.extract: not implemented in LibTomMath backend
 to_bits 0
  =Failure: Z.to_bits: not implemented in LibTomMath backend
+marshal round trip 0
+ = OK
+to_bits 2
+ =Failure: Z.to_bits: not implemented in LibTomMath backend
+marshal round trip 2
+ = OK
+to_bits -2
+ =Failure: Z.to_bits: not implemented in LibTomMath backend
+marshal round trip -2
+ = OK
+to_bits 1073741824
+ =Failure: Z.to_bits: not implemented in LibTomMath backend
+marshal round trip 1073741824
+ = OK
+to_bits -1073741824
+ =Failure: Z.to_bits: not implemented in LibTomMath backend
+marshal round trip -1073741824
+ = OK
+to_bits 4611686018427387904
+ =Failure: Z.to_bits: not implemented in LibTomMath backend
+marshal round trip 4611686018427387904
+ = OK
+to_bits -4611686018427387904
+ =Failure: Z.to_bits: not implemented in LibTomMath backend
+marshal round trip -4611686018427387904
+ = OK
+to_bits 2037035976334486086268445688409378161051468393665936250636140449354381299763336706183397376
+ =Failure: Z.to_bits: not implemented in LibTomMath backend
+marshal round trip 2037035976334486086268445688409378161051468393665936250636140449354381299763336706183397376
+ = OK
+to_bits 1329227995784915872903807060280344576
+ =Failure: Z.to_bits: not implemented in LibTomMath backend
+marshal round trip 1329227995784915872903807060280344576
+ = OK
+to_bits 2658455991569831745807614120560689152
+ =Failure: Z.to_bits: not implemented in LibTomMath backend
+marshal round trip 2658455991569831745807614120560689152
+ = OK
+to_bits 4611686018427387903
+ =Failure: Z.to_bits: not implemented in LibTomMath backend
+marshal round trip 4611686018427387903
+ = OK
+to_bits -4611686018427387904
+ =Failure: Z.to_bits: not implemented in LibTomMath backend
+marshal round trip -4611686018427387904
+ = OK
+to_bits 2147483647
+ =Failure: Z.to_bits: not implemented in LibTomMath backend
+marshal round trip 2147483647
+ = OK
+to_bits -2147483648
+ =Failure: Z.to_bits: not implemented in LibTomMath backend
+marshal round trip -2147483648
+ = OK
+to_bits 9223372036854775807
+ =Failure: Z.to_bits: not implemented in LibTomMath backend
+marshal round trip 9223372036854775807
+ = OK
+to_bits -9223372036854775808
+ =Failure: Z.to_bits: not implemented in LibTomMath backend
+marshal round trip -9223372036854775808
+ = OK
+to_bits 9223372036854775807
+ =Failure: Z.to_bits: not implemented in LibTomMath backend
+marshal round trip 9223372036854775807
+ = OK
+to_bits -9223372036854775808
+ =Failure: Z.to_bits: not implemented in LibTomMath backend
+marshal round trip -9223372036854775808
+ = OK
 testbit 0 Failure: Z.extract: not implemented in LibTomMath backend
 numbits / trailing_zeros 0 (passed)
 numbits / trailing_zeros 1 (passed)

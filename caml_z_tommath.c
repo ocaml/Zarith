@@ -1734,6 +1734,49 @@ int ml_z_custom_compare(value arg1, value arg2)
 #define caml_hash_mix_uint32(h,n) ((h) * 65599 + (n))
 #endif
 
+#if 1 /* Select the ml_z_custom_hash implementation */
+
+/*
+  This version of hash does not give the same result as the GMP one.
+  Moreover, the hash value depends on MP_DIGIT_BIT.
+  However, it is simple and fast, and so, enabled by default.
+*/
+
+static intnat ml_z_custom_hash(value v)
+{
+  if (Is_long(v)) {
+#ifdef ARCH_SIXTYFOUR
+    return caml_hash_mix_uint32((uint32_t)v, (uint32_t)(v >> 32));
+#else
+    return v;
+#endif
+  }
+  else {
+    uint32_t r = 0;
+    int i;
+    mp_digit* p;
+    if (mp_isneg(Z_MP(v))) r = 1;
+    for (i=0, p=Z_MP(v)->dp; i < Z_MP(v)->used; i++, p++) {
+#ifdef MP_64BIT
+      r = caml_hash_mix_uint32(r, (uint32_t)*p);
+      r = caml_hash_mix_uint32(r, (uint32_t)((*p) >> 32));
+#else
+      r = caml_hash_mix_uint32(r, (uint32_t)*p);
+#endif
+    }
+    return r;
+  }
+}
+
+#else
+
+/*
+  This version of hash gives the same result as the GMP one and
+  does not depend on the value of MP_DIGIT_BITS.
+  However, it is complex, slower and not much tested.
+  It is currently disabled by #if
+*/
+
 static intnat ml_z_custom_hash(value v)
 {
   if (Is_long(v)) {
@@ -1791,6 +1834,8 @@ static intnat ml_z_custom_hash(value v)
     return acc;
   }
 }
+
+#endif
 
 CAMLprim value ml_z_hash(value v)
 {

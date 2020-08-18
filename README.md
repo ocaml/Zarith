@@ -117,7 +117,8 @@ INRIA Rocquencourt (Institut national de recherche en informatique, France).
 Source files        | Description
 --------------------|-----------------------------------------
   configure         | configuration script
-  caml_z.c          | C implementation of all functions
+  caml_z.c          | C implementation of all functions using GMP/MPIR
+  caml_z_tommath.c  | C implementation using LibTomMath
   caml_z_*.S        | asm implementation for a few functions
   z_pp.pl           | script to generate z.ml[i] from z.ml[i]p
   z.ml[i]p          | templates used to generate z.ml[i]p
@@ -131,3 +132,20 @@ Note: `z_pp.pl` simply scans the asm file (if any) to see which functions have
 an asm implementation. It then fixes the external statements in .mlp and 
 .mlip accordingly.
 The argument to `z_pp.pl` is the suffix `*` of the `caml_z_*.S` to use (guessed by configure).
+
+
+## BACK-END COMPATIBILITY
+
+Zarith supports several back-ends to implement multi-word integers: GMP, MPIR, and LibTomMath.
+GMP is the default.
+The `configure` script will try them in the following order: GMP, MPIR, LibTomMath.
+The choice of back-end can be overridden with the `-gmp`, `-mpir`, and `-tommath` configure options.
+
+GMP and MPIR support all functions and should give identical results.
+The hashing function is notably identical and the marshalling format is compatible for GMP and MPIR, and for 32-bit and 64-bit.
+
+LibTomMath support is experimental.
+Not all functions are implemented. 
+Unsupported functions raise a `Failure` exception.
+The hashing function is different from the GMP/MPIR one, and the hashed value actually depends on the digit bit-size used by LibTomMath (which can be queried with `digit_bits ()`).
+Additionally, the marshaling format is incompatible with the GMP/MPIR one, although is independent from the digit bit-size.

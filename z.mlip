@@ -420,6 +420,10 @@ external hash: t -> int = "ml_z_hash" @NOALLOC
     function.
     The result is consistent with equality: if [a] = [b], then [hash a] =
     [hash b].
+
+    Currently, the value depend on the backend (GMP or LibTomMath).
+    Moreover, the GMP backend gives the same result on 32-bit and 64-bit,
+    but the LibTomMath result depends on the bit-size of limbs/digits.
  *)
 
 (** {1 Elementary number theory} *)

@@ -1,5 +1,6 @@
 WORDSIZE:=$(shell echo print_int Sys.word_size | ocaml -stdin)
 BACKEND:=$(shell echo print_string Z.backend | ocaml -I .. zarith.cma -stdin)
+DIGITSIZE:=$(shell echo print_int \(Z.digit_bits \(\)\) | ocaml -I .. zarith.cma -stdin)
 STDLIBDIR:=$(shell ocamlc -where)
 ifeq ($(wildcard $(STDLIBDIR)/big_int.cmi),)
 HAS_NUM=false
@@ -12,12 +13,12 @@ NUMS_CMXA=nums.cmxa
 endif
 
 test:: zq.exe
-	@echo "Testing zq (native) for $(BACKEND)..."
-	@if ./zq.exe | cmp -s zq.output-$(BACKEND)-$(WORDSIZE) - ; then echo "zq: passed"; else echo "zq: FAILED"; exit 2; fi
+	@echo "Testing zq (native) for $(WORDSIZE)-bit OCaml, $(BACKEND) backend with $(DIGITSIZE)-bit limbs/digits..."
+	@if ./zq.exe | cmp -s zq.output-$(BACKEND)-$(WORDSIZE)-$(DIGITSIZE) - ; then echo "zq: passed"; else echo "zq: FAILED"; exit 2; fi
 
 test:: zq.byt
-	@echo "Testing zq (bytecode) for $(BACKEND)..."
-	@if ocamlrun -I .. ./zq.byt | cmp -s zq.output-$(BACKEND)-$(WORDSIZE) - ; then echo "zq: passed"; else echo "zq: FAILED"; exit 2; fi
+	@echo "Testing zq (bytecode) for $(WORDSIZE)-bit OCaml, $(BACKEND) backend with $(DIGITSIZE)-bit limbs/digits..."
+	@if ocamlrun -I .. ./zq.byt | cmp -s zq.output-$(BACKEND)-$(WORDSIZE)-$(DIGITSIZE) - ; then echo "zq: passed"; else echo "zq: FAILED"; exit 2; fi
 
 ifeq ($(HAS_NUM),true)
 test:: bi.exe

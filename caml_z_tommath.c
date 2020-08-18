@@ -1907,3 +1907,8 @@ CAMLprim value ml_z_init()
   caml_register_custom_operations(&ml_z_custom_ops);
   return Val_unit;
 }
+
+CAMLprim value ml_z_digit_bits()
+{
+  return Val_long(MP_DIGIT_BIT);
+}

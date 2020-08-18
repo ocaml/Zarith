@@ -719,6 +719,12 @@ val backend: string
     This file refers to [@BACKEND].
   *)
 
+external digit_bits: unit -> int = "ml_z_digit_bits"
+(** Number of useful bits in each individual word (so-called 'limb' or 'digit').
+    Can be 32 or 64 for GMP, and 28 or 60 for LibTomMath.
+  *)
+
+
 (**/**)
 
 (** For internal use in module [Q]. *)

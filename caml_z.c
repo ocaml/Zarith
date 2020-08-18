@@ -3329,6 +3329,11 @@ CAMLprim value ml_z_init()
   return Val_unit;
 }
 
+CAMLprim value ml_z_digit_bits()
+{
+  return Val_long(sizeof(mp_limb_t) * 8);
+}
+
 #ifdef __cplusplus
 }
 #endif

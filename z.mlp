@@ -252,3 +252,4 @@ end
 
 let version = @VERSION
 let backend = @BACKEND
+external digit_bits: unit -> int = "ml_z_digit_bits"

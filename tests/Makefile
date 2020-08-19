@@ -14,11 +14,11 @@ endif
 
 test:: zq.exe
 	@echo "Testing zq (native) for $(WORDSIZE)-bit OCaml, $(BACKEND) backend with $(DIGITSIZE)-bit limbs/digits..."
-	@if ./zq.exe | cmp -s zq.output-$(BACKEND)-$(WORDSIZE)-$(DIGITSIZE) - ; then echo "zq: passed"; else echo "zq: FAILED"; exit 2; fi
+	@if ./zq.exe | diff -u zq.output-$(BACKEND)-$(WORDSIZE)-$(DIGITSIZE) - ; then echo "zq: passed"; else echo "zq: FAILED"; exit 2; fi
 
 test:: zq.byt
 	@echo "Testing zq (bytecode) for $(WORDSIZE)-bit OCaml, $(BACKEND) backend with $(DIGITSIZE)-bit limbs/digits..."
-	@if ocamlrun -I .. ./zq.byt | cmp -s zq.output-$(BACKEND)-$(WORDSIZE)-$(DIGITSIZE) - ; then echo "zq: passed"; else echo "zq: FAILED"; exit 2; fi
+	@if ocamlrun -I .. ./zq.byt | diff -u zq.output-$(BACKEND)-$(WORDSIZE)-$(DIGITSIZE) - ; then echo "zq: passed"; else echo "zq: FAILED"; exit 2; fi
 
 ifeq ($(HAS_NUM),true)
 test:: bi.exe
@@ -28,7 +28,7 @@ endif
 
 test:: pi.exe
 	@echo "Testing pi..."
-	@if ./pi.exe 500 | cmp -s pi.output - ; then echo "pi: passed"; else echo "pi: FAILED"; exit 2; fi
+	@if ./pi.exe 500 | diff -u pi.output - ; then echo "pi: passed"; else echo "pi: FAILED"; exit 2; fi
 
 test:: tofloat.exe
 	@echo "Testing tofloat..."

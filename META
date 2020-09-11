@@ -1,11 +1,11 @@
 description = "Arbitrary precision integers"
 requires = ""
-version = "1.9.1"
+version = "1.10"
 archive(byte) = "zarith.cma"
 archive(native) = "zarith.cmxa"
 
 package "top" (
-  version = "1.9.1"
+  version = "1.10"
   description = "ZArith toplevel support"
   requires = "zarith"
   archive(byte) = "zarith_top.cma"

@@ -185,7 +185,7 @@ val erem: t -> t -> t
     [a = b * ediv a b + erem a b].  Raises [Division_by_zero] if [b = 0].
  *)
 
-external divexact: t -> t -> t = divexact@ASM
+val divexact: t -> t -> t
 (** [divexact a b] divides [a] by [b], only producing correct result when the
     division is exact, i.e., when [b] evenly divides [a].
     It should be faster than general division.

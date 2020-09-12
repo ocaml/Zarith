@@ -104,6 +104,19 @@ let rem x y =
 
 external div_rem: t -> t -> (t * t) = "ml_z_div_rem"
 
+external c_divexact: t -> t -> t = "ml_z_divexact"
+
+let divexact x y =
+  if is_small_int y then
+    if unsafe_to_int y = -1 then
+      neg x
+    else if is_small_int x then
+      unsafe_of_int (unsafe_to_int x / unsafe_to_int y)
+    else
+      c_divexact x y
+  else
+    c_divexact x y
+
 external c_succ: t -> t = "ml_z_succ"
 
 let succ x =
@@ -227,7 +240,6 @@ external extract: t -> int -> int -> t = "ml_z_extract"
 external powm: t -> t -> t -> t = "ml_z_powm"
 external pow: t -> int -> t = "ml_z_pow"
 external powm_sec: t -> t -> t -> t = "ml_z_powm_sec"
-external divexact: t -> t -> t = divexact@ASM
 external root: t -> int -> t = "ml_z_root"
 external rootrem: t -> int -> t * t = "ml_z_rootrem"
 external invert: t -> t -> t = "ml_z_invert"

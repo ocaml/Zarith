@@ -77,6 +77,13 @@ extern "C" {
  */
 #define Z_FAST_PATH  1
 #define Z_USE_NATINT 1
+
+/* Whether the fast path (arguments and result are small integers)
+   has already be handled in OCaml, so that there is no need to
+   re-test for it in C functions.
+   Applies to: neg, abs, add, sub, mul, div, rem, succ, pred,
+   logand, logor, logxor, lognot, shifts, divexact.
+*/
 #define Z_FAST_PATH_IN_OCAML 1
 
 /* Sanity checks. */
@@ -2666,7 +2673,7 @@ CAMLprim value ml_z_divexact(value arg1, value arg2)
   Z_DECL(arg1); Z_DECL(arg2);
   Z_MARK_OP;
   Z_CHECK(arg1); Z_CHECK(arg2);
-#if Z_FAST_PATH
+#if Z_FAST_PATH && !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg1) && Is_long(arg2)) {
     /* fast path */
     intnat a1 = Long_val(arg1);

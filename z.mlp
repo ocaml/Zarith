@@ -23,9 +23,6 @@ exception Overflow
 external init: unit -> unit = "ml_z_init"
 let _ = init ()
 
-external install_frametable: unit -> unit = install_frametable@ASM
-let _ =  install_frametable ()
-
 let _ = Callback.register_exception "ml_z_overflow" Overflow
 
 external is_small_int: t -> bool = "%obj_is_int"

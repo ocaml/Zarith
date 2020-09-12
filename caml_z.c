@@ -3368,12 +3368,6 @@ static void ml_z_dump_count()
 }
 #endif
 
-CAMLprim value ml_z_install_frametable()
-{
-  /* nothing to do for bytecode version */
-  return Val_unit;
-}
-
 CAMLprim value ml_z_init()
 {
   ml_z_2p32 = ldexp(1., 32);

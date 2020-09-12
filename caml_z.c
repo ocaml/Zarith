@@ -60,6 +60,13 @@ extern "C" {
 #include <float.h>
 #endif
 
+/* The "__has_builtin" special macro from Clang */
+#ifdef __has_builtin
+#define HAS_BUILTIN(x) __has_builtin(x)
+#else
+#define HAS_BUILTIN(x) 0
+#endif
+
 /*---------------------------------------------------
   CONFIGURATION
   ---------------------------------------------------*/
@@ -1400,36 +1407,9 @@ CAMLprim value ml_z_sub(value arg1, value arg2)
 
 CAMLprim value ml_z_mul_overflows(value vx, value vy)
 {
-  /* Asm implementations for some platforms */
-#if defined(__GNUC__) && defined(__x86_64__)
+#if HAS_BUILTIN(__builtin_mul_overflow) || __GNUC__ >= 5
   intnat z;
-  unsigned char o;
-  asm("imulq %1, %3; seto %0"
-      : "=q" (o), "=r" (z)
-      : "1" (vx - 1), "r" (vy >> 1)
-      : "cc");
-  return Val_int(o);
-#elif defined(__GNUC__) && defined(__i386__)
-  intnat z;
-  unsigned char o;
-  asm("imull %1, %3; seto %0"
-      : "=q" (o), "=r" (z)
-      : "1" (vx - 1), "rm" (vy >> 1)
-      : "cc");
-  return Val_int(o);
-#elif defined(__GNUC__) && defined(__arm__)
-  intnat zlo, zhi;
-  asm("smull %0, %1, %2, %3"
-      : "=r" (zlo), "=r" (zhi)
-      : "r" (vx - 1), "r" (vy >> 1));
-  return Val_bool(zhi != (zlo >> 31));
-#elif defined(__GNUC__) && defined(__PPC__)
-  intnat z, o;
-  asm("mullwo %1, %2, %3; mfxer %0; rlwinm %0, %0, 3, 30, 30"
-      : "=r" (o), "=r" (z)
-      : "r" (vx - 1), "r" (vy >> 1)
-      : "cc");
-  return o | 1;
+  return Val_bool(__builtin_mul_overflow(vx - 1, vy >> 1, &z));
 #else
   /* Portable C code */
   intnat x = Long_val(vx);
@@ -1473,7 +1453,7 @@ CAMLprim value ml_z_mul(value arg1, value arg2)
 #if Z_FAST_PATH && !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg1) && Is_long(arg2) &&
       ml_z_mul_overflows(arg1, arg2) == Val_false) {
-    return Val_long(a1 * a2);
+    return Val_long(Long_val(a1) * Long_val(a2));
   }
 #endif
   /* mpn_ version */

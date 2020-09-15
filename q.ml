@@ -348,6 +348,14 @@ let  div_2exp x n =
   else make_real x.num (Z.shift_left x.den n)
 
 
+type supported_base =
+  | B2 | B8 | B10 | B16
+
+let int_of_base = function
+  | B2 -> 2
+  | B8 -> 8
+  | B10 -> 10
+  | B16 -> 16
 
 (* The current implementation supports plain decimals, decimal points,
    scientific notation ('e' or 'E' for base 10 litteral and 'p' or 'P'
@@ -372,13 +380,13 @@ let of_string =
   in
   (* return the base and the next offset to read *)
   let parse_base s i =
-    if String.length s < i + 2 then 10,i
+    if String.length s < i + 2 then B10,i
     else
       match s.[i],s.[i+1] with
-      | '0',('x'|'X') -> 16, i + 2
-      | '0',('o'|'O') -> 8, i + 2
-      | '0',('b'|'B') -> 2, i + 2
-      | _ -> 10,i
+      | '0',('x'|'X') -> B16, i + 2
+      | '0',('o'|'O') -> B8, i + 2
+      | '0',('b'|'B') -> B2, i + 2
+      | _ -> B10,i
   in
   (* [find_in_string s ~pos ~last pred] find the first index in the string between [pos]
      (inclusive) and [last] (exclusive) that satisfy the predicate [pred] *)
@@ -392,26 +400,19 @@ let of_string =
     in
     loop s ~pos ~last p
   in
+  let find_exponent_mark = function
+    | B10 -> (function 'e' | 'E' -> true | _ -> false)
+    | B16 -> (function 'p' | 'P' -> true | _ -> false)
+    | B8 | B2 -> (fun _ -> false)
+  in
   let of_scientific_notation s =
     let i = 0 in
     let j = String.length s in
     let sign,i = parse_sign s i in
     let base,i = parse_base s i in
-    (* shift_right_factor correspond to the shift to apply when we move the decimal point
-       one position to the left.
-       0x1.1p1 = 0x11p-3 = 0x0.11p5
-       1.1e1   = 11e0    = 0.11e2
-    *)
-    let exponent_pow, exponent_pred, shift_right_factor =
-      match base with
-      | 10 -> 10, (function 'e' | 'E' -> true | _ -> false), 1
-      | 16 -> 2, (function 'p' | 'P' -> true | _ -> false), 4
-      | 8 | 2 -> 1, (fun _ -> false), 1
-      | _ -> assert false
-    in
     (* shift left due to the exponent *)
     let shift_left, j =
-      match find_in_string s ~pos:i ~last:j exponent_pred with
+      match find_in_string s ~pos:i ~last:j (find_exponent_mark base) with
       | None -> 0, j
       | Some ei ->
         let pos = ei + 1 in
@@ -420,24 +421,44 @@ let of_string =
     in
     (* shift right due to the radix *)
     let z, shift_right =
-      match find_in_string s ~pos:i ~last:j ((=) '.') with
-      | None -> Z.of_substring_base base s ~pos:i ~len:(j - i), 0
-      | Some k ->
-        let frac_len = j - k - 1 in
-        (* We should only consider actual digits to perform the shift. This will remain
-           correct if we ever accept underscores in the middle of the string *)
-        let num_digits = ref 0 in
-        for h = k + 1 to j - 1 do
-          match s.[h] with
-          | '0' .. '9' | 'A' .. 'F' | 'a' .. 'f' ->
-            incr num_digits
-          | _ -> ()
-        done;
-        let shift = !num_digits * shift_right_factor in
-        let without_dot = String.sub s i (k-i) ^ (String.sub s (k+1) frac_len) in
-        Z.of_string_base base without_dot, shift
+      match base with
+      | B2 | B8 -> Z.of_substring_base (int_of_base base) s ~pos:i ~len:(j - i), 0
+      | B10 | B16 ->
+        match find_in_string s ~pos:i ~last:j ((=) '.') with
+        | None -> Z.of_substring_base (int_of_base base) s ~pos:i ~len:(j - i), 0
+        | Some k ->
+          (* shift_right_factor correspond to the shift to apply when we move the decimal
+             point one position to the left.
+
+             0x1.1p1 = 0x11p-3 = 0x0.11p5
+             1.1e1 = 11e0 = 0.11e2 *)
+          let shift_right_factor =
+            match base with
+            | B10 -> 1
+            | B16 -> 4
+            | B2 | B8 -> assert false
+          in
+          let frac_len = j - k - 1 in
+          (* We should only consider actual digits to perform the shift. This will remain
+             correct if we ever accept underscores in the middle of the string *)
+          let num_digits = ref 0 in
+          for h = k + 1 to j - 1 do
+            match s.[h] with
+            | '0' .. '9' | 'A' .. 'F' | 'a' .. 'f' ->
+              incr num_digits
+            | _ -> ()
+          done;
+          let shift = !num_digits * shift_right_factor in
+          let without_dot = String.sub s i (k-i) ^ (String.sub s (k+1) frac_len) in
+          Z.of_string_base (int_of_base base) without_dot, shift
     in
     let shift = shift_left - shift_right in
+    let exponent_pow =
+      match base with
+      | B10 -> 10
+      | B16 -> 2
+      | B8 | B2 -> 1
+    in
     let pow = Z.pow (Z.of_int exponent_pow) (Int.abs shift) in
     let abs =
       if shift <= 0 then

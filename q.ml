@@ -362,7 +362,7 @@ let  div_2exp x n =
 let of_string =
   (* return a boolean (true for negative) and the next offset to read *)
   let parse_sign s i =
-    if String.length s <= i
+    if String.length s < i + 1
     then false, i
     else
       match s.[i] with
@@ -412,9 +412,10 @@ let of_string =
     (* shift left due to the exponent *)
     let shift_left, j =
       match find_in_string s ~pos:i ~last:j exponent_pred with
-      | None -> 0, String.length s
+      | None -> 0, j
       | Some ei ->
-        let ez = Z.of_substring_base 10 s ~pos:(ei+1) ~len:(String.length s - ei - 1) in
+        let pos = ei + 1 in
+        let ez = Z.of_substring_base 10 s ~pos ~len:(j - pos) in
         Z.to_int ez, ei
     in
     (* shift right due to the radix *)

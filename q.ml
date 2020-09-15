@@ -94,89 +94,6 @@ let of_float d =
   if e >= 0 then of_bigint (Z.shift_left m e)
   else make_real m (Z.shift_left Z.one (-e))
 
-(* The current implementation supports plain decimals, decimal points,
-   scientific notation ('e' or 'E' for base 10 litteral and 'p' or 'P'
-   for base 16), and fraction of integers (eg. 1/2). In particular it
-   accepts any numeric litteral -without underscores ('_')- accepted
-   by OCaml's lexer.
-   Restrictions:
-   - does not handle '_' as their removal should probably be common to
-     Z.of_string and Q.of_string
-   - exponents in scientific notation should fit on an integer
-   - scientific notation only available in hexa and decimal (as in OCaml) *)
-let of_string s =
-  (* splits a (non-empty) string into a sign and the rest of the string *)
-  let split_sign s =
-    match s.[0] with
-    | ('-' | '+') as c -> c,(String.sub s 1 (String.length s-1))
-    | _ -> '+',s
-  in
-  (* splits a (non-empty) string into a base converted to int and the
-     rest of the string *)
-  let split_base s =
-    if String.length s < 2 then 10,s
-    else
-      match String.sub s 0 2 with
-      | "0x" -> 16,String.sub s 2 (String.length s-2)
-      | "0o" -> 8,String.sub s 2 (String.length s-2)
-      | "0b" -> 2,String.sub s 2 (String.length s-2)
-      | _ -> 10,s
-  in
-  (* plain decimals handling *)
-  let default b s = of_bigint (Z.of_string_base b s) in
-  (* point decimals handling. Also shifts the '.' char to the right by
-     [shift] characters and complete with some '0' if needed. [shift]
-     is alwayas 0 except when called from scientific_notation *)
-  let of_decimal_point b s shift =
-    try
-      let i =  String.index s '.' in
-      let size_dec = String.length s-i-1 in
-      let rmv_dot = (String.sub s 0 i)^(String.sub s (i+1) size_dec) in
-      if size_dec > shift then
-        make (Z.of_string_base b rmv_dot) (Z.pow (Z.of_int b) (size_dec-shift))
-      else
-        default b (rmv_dot^(String.make (shift-size_dec) '0'))
-    with Not_found -> default b (s^String.make shift '0')
-  in
-  let of_scientific_notation s =
-    let sign,s' = split_sign s in
-    let b,s = split_base s' in
-    let i = ref 0 in
-    try
-      String.iter
-        (fun c ->
-          incr i;
-          match c with
-          | 'e' | 'E' ->
-             if b=10 then raise Exit
-             else if b = 16 then ()
-             else invalid_arg "Q.of_string: scientific notations have \
-                               to be in decimal or hexadecimal"
-          | 'p' | 'P' -> if b=16 then raise Exit else invalid_arg "Q.of_string"
-          | _ -> ()) s;
-      (* not a scientific notation *)
-      if sign='+' then of_decimal_point b s 0 else of_decimal_point b ("-"^s) 0
-    with
-    | Exit ->
-       let m = String.sub s 0 (!i-1) in
-       let e = Z.of_string_base b (String.sub s !i (String.length s- !i)) in
-       if sign='+' then of_decimal_point b m (Z.to_int e)
-       else of_decimal_point b ("-"^m) (Z.to_int e)
-  in
-  let of_ratio s =
-    try
-      let i  = String.index s '/' in
-      make
-        (Z.of_substring s 0 i)
-        (Z.of_substring s (i+1) (String.length s-i-1))
-    with Not_found -> of_scientific_notation s
-  in
-  if s = "" then zero
-  else if s = "inf" || s = "+inf" then inf
-  else if s = "-inf" then minus_inf
-  else if s = "undef" then undef
-  else of_ratio s
-
 (* queries *)
 (* ------- *)
 
@@ -429,6 +346,114 @@ let  mul_2exp x n =
 let  div_2exp x n =
   if x.den == Z.zero then x
   else make_real x.num (Z.shift_left x.den n)
+
+
+
+(* The current implementation supports plain decimals, decimal points,
+   scientific notation ('e' or 'E' for base 10 litteral and 'p' or 'P'
+   for base 16), and fraction of integers (eg. 1/2). In particular it
+   accepts any numeric litteral -without underscores ('_')- accepted
+   by OCaml's lexer.
+   Restrictions:
+   - does not handle '_' as their removal should probably be common to
+     Z.of_string and Q.of_string
+   - exponents in scientific notation should fit on an integer
+   - scientific notation only available in hexa and decimal (as in OCaml) *)
+let of_string =
+  (* return a boolean (true for negative) and the next offset to read *)
+  let parse_sign s i =
+    if String.length s <= i
+    then false, i
+    else
+      match s.[i] with
+      | '-' -> true , i + 1
+      | '+' -> false, i + 1
+      | _ -> false ,i
+  in
+  (* return the base and the next offset to read *)
+  let parse_base s i =
+    if String.length s < i + 2 then 10,i
+    else
+      match s.[i],s.[i+1] with
+      | '0',('x'|'X') -> 16, i + 2
+      | '0',('o'|'O') -> 8, i + 2
+      | '0',('b'|'B') -> 2, i + 2
+      | _ -> 10,i
+  in
+  (* [find_in_string s ~pos ~last pred] find the first index in the string between [pos]
+     (inclusive) and [last] (exclusive) that satisfy the predicate [pred] *)
+  let find_in_string s ~pos ~last p =
+    let rec loop s ~pos:i ~last p =
+      if i = last
+      then None
+      else if p s.[i]
+      then Some i
+      else loop s ~pos:(i + 1) ~last p
+    in
+    loop s ~pos ~last p
+  in
+  let of_scientific_notation s =
+    let i = 0 in
+    let j = String.length s in
+    let sign,i = parse_sign s i in
+    let base,i = parse_base s i in
+    (* shift_right_factor correspond to the shift to apply when we move the decimal point
+       one position to the left.
+       0x1.1p1 = 0x11p-3 = 0x0.11p5
+       1.1e1   = 11e0    = 0.11e2
+    *)
+    let exponent_pow, exponent_pred, shift_right_factor =
+      match base with
+      | 10 -> 10, (function 'e' | 'E' -> true | _ -> false), 1
+      | 16 -> 2, (function 'p' | 'P' -> true | _ -> false), 4
+      | 8 | 2 -> 1, (fun _ -> false), 1
+      | _ -> assert false
+    in
+    (* shift left due to the exponent *)
+    let shift_left, j =
+      match find_in_string s ~pos:i ~last:j exponent_pred with
+      | None -> 0, String.length s
+      | Some ei ->
+        let ez = Z.of_substring_base 10 s ~pos:(ei+1) ~len:(String.length s - ei - 1) in
+        Z.to_int ez, ei
+    in
+    (* shift right due to the radix *)
+    let z, shift_right =
+      match find_in_string s ~pos:i ~last:j ((=) '.') with
+      | None -> Z.of_substring_base base s ~pos:i ~len:(j - i), 0
+      | Some k ->
+        let frac_len = j - k - 1 in
+        let shift = frac_len * shift_right_factor in
+        let without_dot = String.sub s i (k-i) ^ (String.sub s (k+1) frac_len) in
+        Z.of_string_base base without_dot, shift
+    in
+    let shift = shift_left - shift_right in
+    let pow = Z.pow (Z.of_int exponent_pow) (Int.abs shift) in
+    let abs =
+      if shift <= 0 then
+        make z pow
+      else
+        of_bigint (Z.mul z pow)
+    in
+    if sign
+    then neg abs
+    else abs
+  in
+  let of_ratio s =
+    let i  = String.index s '/' in
+    make
+      (Z.of_substring s 0 i)
+      (Z.of_substring s (i+1) (String.length s-i-1))
+  in
+  function
+  | "" -> zero
+  | "inf" | "+inf" -> inf
+  | "-inf" -> minus_inf
+  | "undef" -> undef
+  | s ->
+    if String.contains s '/' then of_ratio s
+    else of_scientific_notation s
+
 
 
 (* printing *)

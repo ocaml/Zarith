@@ -424,7 +424,16 @@ let of_string =
       | None -> Z.of_substring_base base s ~pos:i ~len:(j - i), 0
       | Some k ->
         let frac_len = j - k - 1 in
-        let shift = frac_len * shift_right_factor in
+        (* We should only consider actual digits to perform the shift. This will remain
+           correct if we ever accept underscores in the middle of the string *)
+        let num_digits = ref 0 in
+        for h = k + 1 to j - 1 do
+          match s.[h] with
+          | '0' .. '9' | 'A' .. 'F' | 'a' .. 'f' ->
+            incr num_digits
+          | _ -> ()
+        done;
+        let shift = !num_digits * shift_right_factor in
         let without_dot = String.sub s i (k-i) ^ (String.sub s (k+1) frac_len) in
         Z.of_string_base base without_dot, shift
     in

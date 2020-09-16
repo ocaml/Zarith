@@ -369,8 +369,8 @@ let int_of_base = function
    - scientific notation only available in hexa and decimal (as in OCaml) *)
 let of_string =
   (* return a boolean (true for negative) and the next offset to read *)
-  let parse_sign s i =
-    if String.length s < i + 1
+  let parse_sign s i j =
+    if j < i + 1
     then false, i
     else
       match s.[i] with
@@ -379,14 +379,15 @@ let of_string =
       | _ -> false ,i
   in
   (* return the base and the next offset to read *)
-  let parse_base s i =
-    if String.length s < i + 2 then B10,i
+  let parse_base s i j =
+    if j < i + 2
+    then B10, i
     else
       match s.[i],s.[i+1] with
       | '0',('x'|'X') -> B16, i + 2
       | '0',('o'|'O') -> B8, i + 2
       | '0',('b'|'B') -> B2, i + 2
-      | _ -> B10,i
+      | _ -> B10, i
   in
   (* [find_in_string s ~pos ~last pred] find the first index in the string between [pos]
      (inclusive) and [last] (exclusive) that satisfy the predicate [pred] *)
@@ -408,8 +409,8 @@ let of_string =
   let of_scientific_notation s =
     let i = 0 in
     let j = String.length s in
-    let sign,i = parse_sign s i in
-    let base,i = parse_base s i in
+    let sign,i = parse_sign s i j in
+    let base,i = parse_base s i j in
     (* shift left due to the exponent *)
     let shift_left, j =
       match find_in_string s ~pos:i ~last:j (find_exponent_mark base) with
@@ -459,22 +460,15 @@ let of_string =
       | B16 -> 2
       | B8 | B2 -> 1
     in
-    let pow = Z.pow (Z.of_int exponent_pow) (Int.abs shift) in
     let abs =
-      if shift <= 0 then
-        make z pow
+      if shift < 0 then
+        make z (Z.pow (Z.of_int exponent_pow) (~- shift))
       else
-        of_bigint (Z.mul z pow)
+        of_bigint (Z.mul z (Z.pow (Z.of_int exponent_pow) shift))
     in
     if sign
     then neg abs
     else abs
-  in
-  let of_ratio s =
-    let i  = String.index s '/' in
-    make
-      (Z.of_substring s 0 i)
-      (Z.of_substring s (i+1) (String.length s-i-1))
   in
   function
   | "" -> zero
@@ -482,8 +476,13 @@ let of_string =
   | "-inf" -> minus_inf
   | "undef" -> undef
   | s ->
-    if String.contains s '/' then of_ratio s
-    else of_scientific_notation s
+    try
+      let i  = String.index s '/' in
+      make
+        (Z.of_substring s 0 i)
+        (Z.of_substring s (i+1) (String.length s-i-1))
+    with Not_found ->
+      of_scientific_notation s
 
 
 

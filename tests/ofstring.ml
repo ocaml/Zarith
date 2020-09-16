@@ -152,7 +152,7 @@ let test_of_string_Q () =
                     (Printexc.to_string exc)
   in
   let z_and_float_agree s =
-    let a = float_of_string s |> Q.of_float in
+    let a = Q.of_float (float_of_string s) in
     let b = Q.of_string s in
     if Q.equal a b
     then ()
@@ -205,10 +205,10 @@ let test_of_string_Q () =
   succ "Q.of_string" Q.of_string "+0xff.8" (Q.of_float 255.5);
   succ "Q.of_string" Q.of_string "-0xFF.8" (Q.of_float (-255.5));
   succ "Q.of_string" Q.of_string "-0xff.8" (Q.of_float (-255.5));
-  succ "Q.of_string" Q.of_string "-0.1e1" (float_of_string "-0.1e1" |> Q.of_float) ;
-  succ "Q.of_string" Q.of_string "-0.1E1" (float_of_string "-0.1E1" |> Q.of_float) ;
-  succ "Q.of_string" Q.of_string "-0x0.1P1" (float_of_string "-0x0.1P1" |> Q.of_float) ;
-  succ "Q.of_string" Q.of_string "-0x0.1p1" (float_of_string "-0x0.1p1" |> Q.of_float) ;
+  succ "Q.of_string" Q.of_string "-0.1e1" (Q.of_float (float_of_string "-0.1e1")) ;
+  succ "Q.of_string" Q.of_string "-0.1E1" (Q.of_float (float_of_string "-0.1E1")) ;
+  succ "Q.of_string" Q.of_string "-0x0.1P1" (Q.of_float (float_of_string "-0x0.1P1")) ;
+  succ "Q.of_string" Q.of_string "-0x0.1p1" (Q.of_float (float_of_string "-0x0.1p1")) ;
   succ "Q.of_string" Q.of_string "6.674e-11" (Q.of_string "0.00000000006674") ;
 
   z_and_float_agree "-0x0.1p1" ;

@@ -11,3 +11,5 @@ depend
 z.ml
 z.mli
 z_features.h
+_build
+.merlin

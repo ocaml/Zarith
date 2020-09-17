@@ -1,0 +1,25 @@
+(executables
+ (names fact ofstring pi zq)
+ (modules fact ofstring pi zq)
+ (flags -w -27)
+ (libraries zarith))
+
+(executables
+ (names bi fib tak)
+ (modules bi fib tak)
+ (flags -w -35)
+ (libraries num zarith))
+
+(executable
+ (name tofloat)
+ (modules tofloat)
+ (flags -w -35)
+ (foreign_stubs
+  (language c)
+  (names setround))
+ (libraries zarith))
+
+(rule
+ (alias runtest)
+ (action
+  (run ./tofloat.exe)))

@@ -299,7 +299,7 @@ let to_float x =
       Int64.to_float (Z.to_int64 p) /. Int64.to_float (Z.to_int64 q)
     else begin
       let negat =
-        if Z.lt p Z.zero then -1 else 1
+        if Z.sign p < 0 then -1 else 1
       in
       (* p is in [2^(np-1), 2^np)
          q is in [2^(nq-1), 2^nq)
@@ -308,8 +308,8 @@ let to_float x =
       (* Scaling p/q by 2^n *)
       let (p', q') =
         if n >= 0
-        then p, Z.shift_left q n
-        else Z.shift_left p (-n), q
+        then (p, Z.shift_left q n)
+        else (Z.shift_left p (-n), q)
       in
       let (p', n) =
         if Z.geq (Z.abs p') q'
@@ -355,7 +355,7 @@ let to_float x =
         let quo =
           if Z.sign rem = 0
           then quo
-          else Z.(lor) Z.one quo (* round to odd *)
+          else Z.logor Z.one quo (* round to odd *)
         in
         (* The FPU rounding mode affects the Z.to_float that comes next,
            making the rounding computed according to the current FPU rounding

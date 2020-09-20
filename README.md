@@ -3,7 +3,7 @@
 ## OVERVIEW
 
 This library implements arithmetic and logical operations over
-arbitrary-precision integers.  
+arbitrary-precision integers.
 
 The module is simply named `Z`.  Its interface is similar to that of
 the `Int32`, `Int64` and `Nativeint` modules from the OCaml standard
@@ -11,17 +11,17 @@ library, with some additional functions.  See the file `z.mlip` for
 documentation.
 
 The implementation uses GMP (the GNU Multiple Precision arithmetic
-library) to compute over big integers. 
-However, small integers are represented as unboxed Caml integers, to save 
-space and improve performance. Big integers are allocated in the Caml heap, 
-bypassing GMP's memory management and achieving better GC behavior than e.g. 
+library) to compute over big integers.
+However, small integers are represented as unboxed Caml integers, to save
+space and improve performance. Big integers are allocated in the Caml heap,
+bypassing GMP's memory management and achieving better GC behavior than e.g.
 the MLGMP library.
 Computations on small integers use a special, faster path (coded in assembly
 for some platforms and functions) eschewing calls to GMP, while computations
 on large intergers use the low-level MPN functions from GMP.
 
-Arbitrary-precision integers can be compared correctly using OCaml's 
-polymorphic comparison operators (`=`, `<`, `>`, etc.). 
+Arbitrary-precision integers can be compared correctly using OCaml's
+polymorphic comparison operators (`=`, `<`, `>`, etc.).
 This requires OCaml version 3.12.1 or later, though.
 
 Additional features include:
@@ -60,12 +60,12 @@ or, if you install to a system location but are not an administrator
 ```
    sudo make install
 ```
-If Findlib is detected, it is used to install files. 
-Otherwise, the files are copied to a `zarith/` subdirectory of the directory 
+If Findlib is detected, it is used to install files.
+Otherwise, the files are copied to a `zarith/` subdirectory of the directory
 given by `ocamlc -where`.
 
 The libraries are named `zarith.cmxa` and `zarith.cma`, and the Findlib module
-is named `zarith`. 
+is named `zarith`.
 
 Compiling and linking with the library requires passing the `-I +zarith`
 option to `ocamlc` / `ocamlopt`, or the `-package zarith` option to `ocamlfind`.
@@ -89,8 +89,8 @@ The documentation for the latest release is hosted on [GitHub Pages](https://ant
 ## LICENSE
 
 This Library is distributed under the terms of the GNU Library General
-Public License version 2, with a special exception allowing unconstrained 
-static linking. 
+Public License version 2, with a special exception allowing unconstrained
+static linking.
 See LICENSE file for details.
 
 
@@ -98,7 +98,7 @@ See LICENSE file for details.
 
 * Antoine Miné, Université Pierre et Marie Curie, formerly ENS Paris.
 * Xavier Leroy, INRIA Paris-Rocquencourt.
-* Pascal Cuoq, CEA LIST.
+* Pascal Cuoq, TrustInSoft.
 * Christophe Troestler (toplevel module)
 
 
@@ -128,6 +128,6 @@ Source files        | Description
   tests/            | simple regression tests and benchmarks
 
 Note: `z_pp.pl` simply scans the asm file (if any) to see which functions have
-an asm implementation. It then fixes the external statements in .mlp and 
+an asm implementation. It then fixes the external statements in .mlp and
 .mlip accordingly.
 The argument to `z_pp.pl` is the suffix `*` of the `caml_z_*.S` to use (guessed by configure).

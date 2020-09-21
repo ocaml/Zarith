@@ -151,6 +151,18 @@ let test_of_string_Q () =
       Printf.printf "%s failed. Expected %s. Got %s\n" d (Q.to_string y)
                     (Printexc.to_string exc)
   in
+  let z_and_float_agree s =
+    let a = Q.of_float (float_of_string s) in
+    let b = Q.of_string s in
+    if Q.equal a b
+    then ()
+    else
+      Printf.printf
+        "Q.of_string (%s) returned %s, expected %s\n"
+        s
+        (Q.to_string b)
+        (Q.to_string a)
+  in
 
   round_trip_Q ();
 
@@ -163,7 +175,15 @@ let test_of_string_Q () =
   succ "Q.of_string" Q.of_string "+" Q.zero;
   succ "Q.of_string" Q.of_string "-" Q.zero;
   succ "Q.of_string" Q.of_string "0x" Q.zero;
+  succ "Q.of_string" Q.of_string "0X" Q.zero;
+  succ "Q.of_string" Q.of_string "0o" Q.zero;
+  succ "Q.of_string" Q.of_string "0O" Q.zero;
   succ "Q.of_string" Q.of_string "0b" Q.zero;
+  succ "Q.of_string" Q.of_string "0B" Q.zero;
+  succ "Q.of_string" Q.of_string "0b101" (Q.of_string "5");
+  succ "Q.of_string" Q.of_string "0B101" (Q.of_string "5");
+  succ "Q.of_string" Q.of_string "0o101" (Q.of_string "65");
+  succ "Q.of_string" Q.of_string "0O101" (Q.of_string "65");
 
   fail "Q.of_string" Q.of_string "0b2";
   fail "Q.of_string" Q.of_string "0o8";
@@ -185,10 +205,15 @@ let test_of_string_Q () =
   succ "Q.of_string" Q.of_string "+0xff.8" (Q.of_float 255.5);
   succ "Q.of_string" Q.of_string "-0xFF.8" (Q.of_float (-255.5));
   succ "Q.of_string" Q.of_string "-0xff.8" (Q.of_float (-255.5));
-  succ "Q.of_string" Q.of_string "-0.1e1" (Q.minus_one);
-  succ "Q.of_string" Q.of_string "-0.1E1" (Q.minus_one);
-  succ "Q.of_string" Q.of_string "-0x0.1P1" (Q.minus_one);
-  succ "Q.of_string" Q.of_string "-0x0.1p1" (Q.minus_one);
-  succ "Q.of_string" Q.of_string "6.674e-11" (Q.of_string "0.00000000006674")
+  succ "Q.of_string" Q.of_string "-0.1e1" (Q.of_float (float_of_string "-0.1e1")) ;
+  succ "Q.of_string" Q.of_string "-0.1E1" (Q.of_float (float_of_string "-0.1E1")) ;
+  succ "Q.of_string" Q.of_string "-0x0.1P1" (Q.of_float (float_of_string "-0x0.1P1")) ;
+  succ "Q.of_string" Q.of_string "-0x0.1p1" (Q.of_float (float_of_string "-0x0.1p1")) ;
+  succ "Q.of_string" Q.of_string "6.674e-11" (Q.of_string "0.00000000006674") ;
+
+  z_and_float_agree "-0x0.1p1" ;
+  z_and_float_agree "-0x0.1P1" ;
+  z_and_float_agree "-0x0.1p10" ;
+  z_and_float_agree "-0x0.1p10"
 
 let _ = test_of_string_Q ()

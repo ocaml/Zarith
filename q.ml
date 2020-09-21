@@ -298,26 +298,78 @@ let to_float x =
          correctly-rounded result. *)
       Int64.to_float (Z.to_int64 p) /. Int64.to_float (Z.to_int64 q)
     else begin
-      (* |p| is in [2^(np-1), 2^np)
+      let negat =
+        if Z.sign p < 0 then -1 else 1
+      in
+      (* p is in [2^(np-1), 2^np)
          q is in [2^(nq-1), 2^nq)
-         hence |p/q| is in (2^(np-nq-1), 2^(np-nq+1)).
-         We define n such that |p/q*2^n| is in [2^54, 2^56).
-         >= 2^54 so that the round to odd technique applies.
-         < 2^56 so that the integral part is representable as an int64. *)
-      let n = 55 - (np - nq) in
+         We define n,p',q' such that p'/q'*2^n=p/q and |p'/q'| is in [1, 2). *)
+      let n = np - nq in
       (* Scaling p/q by 2^n *)
       let (p', q') =
         if n >= 0
-        then (Z.shift_left p n, q)
-        else (p, Z.shift_left q (-n)) in
+        then (p, Z.shift_left q n)
+        else (Z.shift_left p (-n), q)
+      in
+      let (p', n) =
+        if Z.geq (Z.abs p') q'
+        then (p', n)
+        else (Z.shift_left p' 1, pred n)
+      in
+      (* If we divided p' by q' now, the resulting quotient would
+         have one significant digit. *)
+      let p' = Z.shift_left p' 54 in
+      (* When we divide p' by q' next, the resulting quotient will
+         have 55 significant digits. The strategy is:
+         - First, compute the quotient with 55 significant digits in
+           round-to-odd, and
+         - Second, round that number to the number of effective
+           significant digits we desire for the result, which is 53
+           for a normal result and less than 53 for a subnormal result.
+         We cannot afford an intermediate rounding at 53 significant digits
+         if the end-result is subnormal. See
+         https://github.com/ocaml/Zarith/issues/29 *)
       (* Euclidean division of p' by q' *)
       let (quo, rem) = Z.ediv_rem p' q' in
-      (* quo is the integral part of p/q*2^n
-         rem/q' is the fractional part. *)
-      (* Round quo to float *)
-      let f = Z.round_to_float quo (Z.sign rem = 0) in
-      (* Apply exponent *)
-      ldexp f (-n)
+      if n <= -1080
+      then
+        (* The end result is +0.0 or -0.0 (depending on negat)
+           or perhaps the next floating-point number of the same
+           sign (depending on the current rounding mode. *)
+        ldexp (float_of_int negat) (-1080)
+      else
+        let offset =
+          if n <= -1023
+          then
+            (* The end result will be subnormal, add an offset
+               to make the rounding happen directly at the place
+               where it should happend.
+               quo has the form:       1xxxx...
+               we add:               1000000...
+               so as to end up with: 101xxxx... *)
+            Z.shift_left (Z.of_int negat) (55 + (-1023 - n))
+          else
+            Z.zero
+        in
+        let quo = Z.add offset quo in
+        let quo =
+          if Z.sign rem = 0
+          then quo
+          else Z.logor Z.one quo (* round to odd *)
+        in
+        (* The FPU rounding mode affects the Z.to_float that comes next,
+           making the rounding computed according to the current FPU rounding
+           mode. *)
+        let f = Z.to_float quo in
+        (* The subtraction that comes next is exact, so that the rounding
+           mode does not change what it does. *)
+        let f = f -. (Z.to_float offset)
+        in
+        (* ldexp is also exact and unaffected by the rounding mode.
+           We have made sure that if the end result is going to be subnormal,
+           then f has exactly the correct number of significant digits for
+           no rounding to happen here. *)
+        ldexp f (n - 54)
     end
 
 (* operations *)

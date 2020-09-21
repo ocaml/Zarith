@@ -583,7 +583,7 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
   /* process the string */
   const char *d = String_val(v) + ofs;
   const char *end = d + len;
-  mp_size_t i, sz, sz2;
+  mp_size_t i, j, sz, sz2;
   mp_limb_t sign = 0;
   intnat base = Long_val(b);
   /* We allow [d] to advance beyond [end] while parsing the prefix:
@@ -624,6 +624,8 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
       intnat ret = 0;
       for (i = 0; i < sz; i++) {
         int digit = 0;
+        /* skip underscores but leading ones */
+        if (i > 0 && d[i] == '_') continue;
         if (d[i] >= '0' && d[i] <= '9') digit = d[i] - '0';
         else if (d[i] >= 'a' && d[i] <= 'f') digit = d[i] - 'a' + 10;
         else if (d[i] >= 'A' && d[i] <= 'F') digit = d[i] - 'A' + 10;
@@ -637,22 +639,23 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
 #endif
   {
      /* converts to sequence of digits */
-    char* dd = (char*)malloc(sz+1);
-    strncpy(dd,d,sz);
-    /* make sure that dd is nul terminated */
-    dd[sz] = 0;
-    for (i = 0; i < sz; i++) {
-      if (dd[i] >= '0' && dd[i] <= '9') dd[i] -= '0';
-      else if (dd[i] >= 'a' && dd[i] <= 'f') dd[i] -= 'a' - 10;
-      else if (dd[i] >= 'A' && dd[i] <= 'F') dd[i] -= 'A' - 10;
+    char* digits = (char*)malloc(sz+1);
+    for (i = 0, j = 0; i < sz; i++, j++) {
+      /* skip underscores but leading ones */
+      if (i > 0 && d[i] == '_') {j--;continue;};
+      if (d[i] >= '0' && d[i] <= '9') digits[j] = d[i] - '0';
+      else if (d[i] >= 'a' && d[i] <= 'f') digits[j] = d[i] - 'a' + 10;
+      else if (d[i] >= 'A' && d[i] <= 'F') digits[j] = d[i] - 'A' + 10;
       else caml_invalid_argument("Z.of_substring_base: invalid digit");
-      if (dd[i] >= base)
+      if (digits[j] >= base)
         caml_invalid_argument("Z.of_substring_base: invalid digit");
     }
-    r = ml_z_alloc(1 + sz / (2 * sizeof(mp_limb_t)));
-    sz2 = mpn_set_str(Z_LIMB(r), (unsigned char*)dd, sz, base);
+    /* make sure that digits is nul terminated */
+    digits[j] = 0;
+    r = ml_z_alloc(1 + j / (2 * sizeof(mp_limb_t)));
+    sz2 = mpn_set_str(Z_LIMB(r), (unsigned char*)digits, j, base);
     r = ml_z_reduce(r, sz2, sign);
-    free(dd);
+    free(digits);
   }
   Z_CHECK(r);
   CAMLreturn(r);

@@ -360,7 +360,7 @@ let int_of_base = function
 (* The current implementation supports plain decimals, decimal points,
    scientific notation ('e' or 'E' for base 10 litteral and 'p' or 'P'
    for base 16), and fraction of integers (eg. 1/2). In particular it
-   accepts any numeric litteral -without underscores ('_')- accepted
+   accepts any numeric literal -without underscores ('_')- accepted
    by OCaml's lexer.
    Restrictions:
    - does not handle '_' as their removal should probably be common to

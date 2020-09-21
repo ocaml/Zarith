@@ -357,6 +357,15 @@ let int_of_base = function
   | B10 -> 10
   | B16 -> 16
 
+(* [find_in_string s ~pos ~last pred] find the first index in the string between [pos]
+   (inclusive) and [last] (exclusive) that satisfy the predicate [pred] *)
+let rec find_in_string s ~pos ~last p =
+  if pos = last
+  then None
+  else if p s.[pos]
+    then Some pos
+    else find_in_string s ~pos:(pos + 1) ~last p
+
 (* The current implementation supports plain decimals, decimal points,
    scientific notation ('e' or 'E' for base 10 litteral and 'p' or 'P'
    for base 16), and fraction of integers (eg. 1/2). In particular it
@@ -388,18 +397,6 @@ let of_string =
       | '0',('o'|'O') -> B8, i + 2
       | '0',('b'|'B') -> B2, i + 2
       | _ -> B10, i
-  in
-  (* [find_in_string s ~pos ~last pred] find the first index in the string between [pos]
-     (inclusive) and [last] (exclusive) that satisfy the predicate [pred] *)
-  let find_in_string s ~pos ~last p =
-    let rec loop s ~pos:i ~last p =
-      if i = last
-      then None
-      else if p s.[i]
-      then Some i
-      else loop s ~pos:(i + 1) ~last p
-    in
-    loop s ~pos ~last p
   in
   let find_exponent_mark = function
     | B10 -> (function 'e' | 'E' -> true | _ -> false)

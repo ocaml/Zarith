@@ -640,15 +640,21 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
   {
      /* converts to sequence of digits */
     char* digits = (char*)malloc(sz+1);
-    for (i = 0, j = 0; i < sz; i++, j++) {
+    for (i = 0, j = 0; i < sz; i++) {
       /* skip underscores but leading ones */
-      if (i > 0 && d[i] == '_') {j--;continue;};
+      if (i > 0 && d[i] == '_') continue;
       if (d[i] >= '0' && d[i] <= '9') digits[j] = d[i] - '0';
       else if (d[i] >= 'a' && d[i] <= 'f') digits[j] = d[i] - 'a' + 10;
       else if (d[i] >= 'A' && d[i] <= 'F') digits[j] = d[i] - 'A' + 10;
-      else caml_invalid_argument("Z.of_substring_base: invalid digit");
-      if (digits[j] >= base)
+      else {
+        free(digits);
         caml_invalid_argument("Z.of_substring_base: invalid digit");
+      }
+      if (digits[j] >= base) {
+        free(digits);
+        caml_invalid_argument("Z.of_substring_base: invalid digit");
+      }
+      j++;
     }
     /* make sure that digits is nul terminated */
     digits[j] = 0;

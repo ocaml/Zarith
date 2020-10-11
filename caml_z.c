@@ -607,6 +607,10 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
   }
   if (base < 2 || base > 16)
     caml_invalid_argument("Z.of_substring_base: base must be between 2 and 16");
+  /* we do not allow leading underscore */
+  if (*d == '_')
+    caml_invalid_argument("Z.of_substring_base: invalid digit");
+  while (*d == '0' || *d == '_') d++;
   /* sz is the length of the substring that has not been consumed above. */
   sz = end - d;
   for(i = 0; i < sz; i++){
@@ -628,8 +632,7 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
       intnat ret = 0;
       for (i = 0; i < sz; i++) {
         int digit = 0;
-        /* skip underscores but leading ones */
-        if (i > 0 && d[i] == '_') continue;
+        if (d[i] == '_') continue;
         if (d[i] >= '0' && d[i] <= '9') digit = d[i] - '0';
         else if (d[i] >= 'a' && d[i] <= 'f') digit = d[i] - 'a' + 10;
         else if (d[i] >= 'A' && d[i] <= 'F') digit = d[i] - 'A' + 10;
@@ -645,8 +648,7 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
      /* converts to sequence of digits */
     char* digits = (char*)malloc(num_digits+1);
     for (i = 0, j = 0; i < sz; i++) {
-      /* skip underscores but leading ones */
-      if (i > 0 && d[i] == '_') continue;
+      if (d[i] == '_') continue;
       if (d[i] >= '0' && d[i] <= '9') digits[j] = d[i] - '0';
       else if (d[i] >= 'a' && d[i] <= 'f') digits[j] = d[i] - 'a' + 10;
       else if (d[i] >= 'A' && d[i] <= 'F') digits[j] = d[i] - 'A' + 10;

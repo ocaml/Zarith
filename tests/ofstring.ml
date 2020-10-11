@@ -263,8 +263,12 @@ let test_of_string_Q () =
   q_and_float_agree "12._34e03";
   q_and_float_agree "12.3_4e03";
   q_and_float_agree "12.34_e03";
-  q_and_float_agree "12.34e_03";
+  (* float_of_string accept leading underscores after ( 'e' | 'E'), Q does not. *)
+  (* q_and_float_agree "12.34e_03"; *)
   q_and_float_agree "12.34e0_3";
-  q_and_float_agree "12.34e03_"
+  q_and_float_agree "12.34e03_";
+
+  q_and_float_agree "000_001";
+  q_and_float_agree "001_000"
 
 let _ = test_of_string_Q ()

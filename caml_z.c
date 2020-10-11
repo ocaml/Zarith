@@ -607,7 +607,6 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
   }
   if (base < 2 || base > 16)
     caml_invalid_argument("Z.of_substring_base: base must be between 2 and 16");
-  while (*d == '0') d++;
   /* sz is the length of the substring that has not been consumed above. */
   sz = end - d;
   for(i = 0; i < sz; i++){

@@ -583,7 +583,7 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
   /* process the string */
   const char *d = String_val(v) + ofs;
   const char *end = d + len;
-  mp_size_t i, j, sz, sz2;
+  mp_size_t i, j, sz, sz2, num_digits = 0;
   mp_limb_t sign = 0;
   intnat base = Long_val(b);
   /* We allow [d] to advance beyond [end] while parsing the prefix:
@@ -610,16 +610,21 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
   while (*d == '0') d++;
   /* sz is the length of the substring that has not been consumed above. */
   sz = end - d;
+  for(i = 0; i < sz; i++){
+    /* underscores are going to be ignored below. Assuming the string
+       is well formatted, this will give us the exact number of digits */
+    if(d[i] != '_') num_digits++;
+  }
 #if Z_USE_NATINT
   if (sz <= 0) {
     /* "+", "-", "0x" are parsed as 0. */
     r = Val_long(0);
   }
   /* Process common case (fits into a native integer) */
-  else if ((base == 10 && sz <= Z_BASE10_LENGTH_OP)
-        || (base == 16 && sz <= Z_BASE16_LENGTH_OP)
-        || (base == 8  && sz <= Z_BASE8_LENGTH_OP)
-        || (base == 2  && sz <= Z_BASE2_LENGTH_OP)) {
+  else if ((base == 10 && num_digits <= Z_BASE10_LENGTH_OP)
+        || (base == 16 && num_digits <= Z_BASE16_LENGTH_OP)
+        || (base == 8  && num_digits <= Z_BASE8_LENGTH_OP)
+        || (base == 2  && num_digits <= Z_BASE2_LENGTH_OP)) {
       Z_MARK_OP;
       intnat ret = 0;
       for (i = 0; i < sz; i++) {
@@ -639,7 +644,7 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
 #endif
   {
      /* converts to sequence of digits */
-    char* digits = (char*)malloc(sz+1);
+    char* digits = (char*)malloc(num_digits+1);
     for (i = 0, j = 0; i < sz; i++) {
       /* skip underscores but leading ones */
       if (i > 0 && d[i] == '_') continue;

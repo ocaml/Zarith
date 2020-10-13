@@ -603,6 +603,12 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
       if (*d == 'o' || *d == 'O') { base = 8; d++; }
       else if (*d == 'x' || *d == 'X') { base = 16; d++; }
       else if (*d == 'b' || *d == 'B') { base = 2; d++; }
+      else {
+        /* The leading zero is not part of a base prefix. This is an
+           important distinction for the check below looking at
+           leading underscore
+         */
+        d--; }
     }
   }
   if (base < 2 || base > 16)

@@ -113,6 +113,8 @@ let test_of_string_Z () =
   z_and_int_agree "1_23";
   z_and_int_agree "12_3";
   z_and_int_agree "123_";
+  z_and_int_agree "0x_123";
+  z_and_int_agree "0_123";
 
   let s = Z.format "%#b" p120 in
   let n = String.length s in

@@ -583,7 +583,7 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
   /* process the string */
   const char *d = String_val(v) + ofs;
   const char *end = d + len;
-  mp_size_t i, sz, sz2;
+  mp_size_t i, j, sz, sz2, num_digits = 0;
   mp_limb_t sign = 0;
   intnat base = Long_val(b);
   /* We allow [d] to advance beyond [end] while parsing the prefix:
@@ -607,23 +607,32 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
   }
   if (base < 2 || base > 16)
     caml_invalid_argument("Z.of_substring_base: base must be between 2 and 16");
-  while (*d == '0') d++;
+  /* we do not allow leading underscore */
+  if (*d == '_')
+    caml_invalid_argument("Z.of_substring_base: invalid digit");
+  while (*d == '0' || *d == '_') d++;
   /* sz is the length of the substring that has not been consumed above. */
   sz = end - d;
+  for(i = 0; i < sz; i++){
+    /* underscores are going to be ignored below. Assuming the string
+       is well formatted, this will give us the exact number of digits */
+    if(d[i] != '_') num_digits++;
+  }
 #if Z_USE_NATINT
   if (sz <= 0) {
     /* "+", "-", "0x" are parsed as 0. */
     r = Val_long(0);
   }
   /* Process common case (fits into a native integer) */
-  else if ((base == 10 && sz <= Z_BASE10_LENGTH_OP)
-        || (base == 16 && sz <= Z_BASE16_LENGTH_OP)
-        || (base == 8  && sz <= Z_BASE8_LENGTH_OP)
-        || (base == 2  && sz <= Z_BASE2_LENGTH_OP)) {
+  else if ((base == 10 && num_digits <= Z_BASE10_LENGTH_OP)
+        || (base == 16 && num_digits <= Z_BASE16_LENGTH_OP)
+        || (base == 8  && num_digits <= Z_BASE8_LENGTH_OP)
+        || (base == 2  && num_digits <= Z_BASE2_LENGTH_OP)) {
       Z_MARK_OP;
       intnat ret = 0;
       for (i = 0; i < sz; i++) {
         int digit = 0;
+        if (d[i] == '_') continue;
         if (d[i] >= '0' && d[i] <= '9') digit = d[i] - '0';
         else if (d[i] >= 'a' && d[i] <= 'f') digit = d[i] - 'a' + 10;
         else if (d[i] >= 'A' && d[i] <= 'F') digit = d[i] - 'A' + 10;
@@ -637,22 +646,28 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
 #endif
   {
      /* converts to sequence of digits */
-    char* dd = (char*)malloc(sz+1);
-    strncpy(dd,d,sz);
-    /* make sure that dd is nul terminated */
-    dd[sz] = 0;
-    for (i = 0; i < sz; i++) {
-      if (dd[i] >= '0' && dd[i] <= '9') dd[i] -= '0';
-      else if (dd[i] >= 'a' && dd[i] <= 'f') dd[i] -= 'a' - 10;
-      else if (dd[i] >= 'A' && dd[i] <= 'F') dd[i] -= 'A' - 10;
-      else caml_invalid_argument("Z.of_substring_base: invalid digit");
-      if (dd[i] >= base)
+    char* digits = (char*)malloc(num_digits+1);
+    for (i = 0, j = 0; i < sz; i++) {
+      if (d[i] == '_') continue;
+      if (d[i] >= '0' && d[i] <= '9') digits[j] = d[i] - '0';
+      else if (d[i] >= 'a' && d[i] <= 'f') digits[j] = d[i] - 'a' + 10;
+      else if (d[i] >= 'A' && d[i] <= 'F') digits[j] = d[i] - 'A' + 10;
+      else {
+        free(digits);
         caml_invalid_argument("Z.of_substring_base: invalid digit");
+      }
+      if (digits[j] >= base) {
+        free(digits);
+        caml_invalid_argument("Z.of_substring_base: invalid digit");
+      }
+      j++;
     }
-    r = ml_z_alloc(1 + sz / (2 * sizeof(mp_limb_t)));
-    sz2 = mpn_set_str(Z_LIMB(r), (unsigned char*)dd, sz, base);
+    /* make sure that digits is nul terminated */
+    digits[j] = 0;
+    r = ml_z_alloc(1 + j / (2 * sizeof(mp_limb_t)));
+    sz2 = mpn_set_str(Z_LIMB(r), (unsigned char*)digits, j, base);
     r = ml_z_reduce(r, sz2, sign);
-    free(dd);
+    free(digits);
   }
   Z_CHECK(r);
   CAMLreturn(r);

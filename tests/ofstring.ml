@@ -57,6 +57,30 @@ let test_of_string_Z () =
     with _ ->
       Printf.printf "%s failed. Expected %s\n" d (Z.to_string y)
   in
+  let z_and_int_agree s =
+    let f = try Some (int_of_string s) with _ -> None in
+    let z = try Some (Z.of_string s) with _ -> None in
+    match f,z with
+    | None, None -> ()
+    | Some i, Some z ->
+      if not (Z.equal (Z.of_int i) z)
+      then
+        Printf.printf
+          "Z.of_string (%s) returned %s, expected %s\n"
+          s
+          (Z.to_string z)
+          (string_of_int i)
+    | Some i, None ->
+      Printf.printf
+        "Z.of_string (%s) failed, expected %s\n"
+        s
+        (string_of_int i)
+    | None, Some z ->
+      Printf.printf
+        "Z.of_string (%s) returned %s, failure expected"
+        s
+        (Z.to_string z)
+  in
 
   round_trip_Z ();
 
@@ -84,6 +108,11 @@ let test_of_string_Z () =
   succ "Z.of_substring" (Z.of_substring ~pos:1 ~len:1)"00b1" Z.zero;
   succ "Z.of_substring" (Z.of_substring ~pos:1 ~len:2)"00b1" Z.zero;
   succ "Z.of_substring" (Z.of_substring ~pos:1 ~len:3)"00b1" Z.one;
+
+  z_and_int_agree "_123";
+  z_and_int_agree "1_23";
+  z_and_int_agree "12_3";
+  z_and_int_agree "123_";
 
   let s = Z.format "%#b" p120 in
   let n = String.length s in
@@ -151,18 +180,31 @@ let test_of_string_Q () =
       Printf.printf "%s failed. Expected %s. Got %s\n" d (Q.to_string y)
                     (Printexc.to_string exc)
   in
-  let z_and_float_agree s =
-    let a = Q.of_float (float_of_string s) in
-    let b = Q.of_string s in
-    if Q.equal a b
-    then ()
-    else
-      Printf.printf
+  let q_and_float_agree s =
+    let f = try Some (float_of_string s) with _ -> None in
+    let q = try Some (Q.of_string s) with _ -> None in
+    match f,q with
+    | None, None -> ()
+    | Some f, Some q ->
+      if not (Q.equal (Q.of_float f) q)
+      then
+        Printf.printf
         "Q.of_string (%s) returned %s, expected %s\n"
         s
-        (Q.to_string b)
-        (Q.to_string a)
+        (Q.to_string q)
+        (string_of_float f)
+    | Some f, None ->
+      Printf.printf
+        "Q.of_string (%s) failed, expected %s\n"
+        s
+        (string_of_float f)
+    | None, Some q ->
+      Printf.printf
+        "Q.of_string (%s) returned %s, failure expected"
+        s
+        (Q.to_string q)
   in
+
 
   round_trip_Q ();
 
@@ -211,9 +253,22 @@ let test_of_string_Q () =
   succ "Q.of_string" Q.of_string "-0x0.1p1" (Q.of_float (float_of_string "-0x0.1p1")) ;
   succ "Q.of_string" Q.of_string "6.674e-11" (Q.of_string "0.00000000006674") ;
 
-  z_and_float_agree "-0x0.1p1" ;
-  z_and_float_agree "-0x0.1P1" ;
-  z_and_float_agree "-0x0.1p10" ;
-  z_and_float_agree "-0x0.1p10"
+  q_and_float_agree "-0x0.1p1" ;
+  q_and_float_agree "-0x0.1P1" ;
+  q_and_float_agree "-0x0.1p10" ;
+  q_and_float_agree "-0x0.1p10" ;
+
+  q_and_float_agree "1_2.34e03";
+  q_and_float_agree "12_.34e03";
+  q_and_float_agree "12._34e03";
+  q_and_float_agree "12.3_4e03";
+  q_and_float_agree "12.34_e03";
+  (* float_of_string accept leading underscores after ( 'e' | 'E'), Q does not. *)
+  (* q_and_float_agree "12.34e_03"; *)
+  q_and_float_agree "12.34e0_3";
+  q_and_float_agree "12.34e03_";
+
+  q_and_float_agree "000_001";
+  q_and_float_agree "001_000"
 
 let _ = test_of_string_Q ()

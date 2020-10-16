@@ -36,20 +36,8 @@ test:: ofstring.exe
 	@echo "Testing ofstring..."
 	@./ofstring.exe
 
-ifeq ($(HAS_NUM),true)
-bench:: fib.exe
-	@for k in int natint Z bigint num; do echo "Benchmarking fib $$k"; time ./fib.exe $$k 45 > /dev/null; done
-endif
-
-bench:: fact.exe
-	@echo "Benchmarking fact 10"; time ./fact.exe 10 100000000 > /dev/null
-	@echo "Benchmarking fact 40"; time ./fact.exe 40 10000000 > /dev/null
-	@echo "Benchmarking fact 200"; time ./fact.exe 200 1000000 > /dev/null
-
-ifeq ($(HAS_NUM),true)
-bench:: tak.exe
-	@for k in int natint Z bigint num; do echo "Benchmarking tak $$k"; time ./tak.exe $$k 5000 > /dev/null; done
-endif
+bench:: timings.exe
+	./timings.exe
 
 bench:: pi.exe
 	@echo "Benchmarking pi"; time ./pi.exe 10000 > /dev/null

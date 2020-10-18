@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Install packages
-      run: apt install ocaml-nox libgmp-dev
+      run: sudo apt-get install ocaml-nox libgmp-dev
     - name: Checkout
       uses: actions/checkout@v2
     - name: configure tree

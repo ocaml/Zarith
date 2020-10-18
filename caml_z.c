@@ -58,6 +58,7 @@ extern "C" {
 
 #ifdef _MSC_VER
 #include <float.h>
+#include <intrin.h>
 #endif
 
 /* The "__has_builtin" special macro from Clang */
@@ -1417,6 +1418,18 @@ CAMLprim value ml_z_mul_overflows(value vx, value vy)
 #if HAS_BUILTIN(__builtin_mul_overflow) || __GNUC__ >= 5
   intnat z;
   return Val_bool(__builtin_mul_overflow(vx - 1, vy >> 1, &z));
+#elif defined(__GNUC__) && defined(__x86_64__)
+  intnat z;
+  unsigned char o;
+  asm("imulq %1, %3; seto %0"
+      : "=q" (o), "=r" (z)
+      : "1" (vx - 1), "r" (vy >> 1)
+      : "cc");
+  return Val_int(o);
+#elif defined(_MSC_VER) && defined(_M_X64)
+  intnat hi, lo;
+  lo = _mul128(vx - 1, vy >> 1, &hi);
+  return Val_bool(hi != lo >> 63);
 #else
   /* Portable C code */
   intnat x = Long_val(vx);

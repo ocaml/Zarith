@@ -4,6 +4,7 @@
 *.cmxs
 *.cmti
 *.exe
+*.byt
 *.o
 *.so
 Makefile

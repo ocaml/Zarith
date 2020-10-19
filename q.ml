@@ -485,17 +485,27 @@ let of_string =
             | B16 -> 4
             | B2 | B8 -> assert false
           in
-          let frac_len = j - k - 1 in
           (* We should only consider actual digits to perform the shift. *)
           let num_digits = ref 0 in
           for h = k + 1 to j - 1 do
             match s.[h] with
             | '0' .. '9' | 'A' .. 'F' | 'a' .. 'f' ->
               incr num_digits
-            | _ -> ()
+            | '_' -> ()
+            | _ ->
+              (* '-' and '+' could wrongly be accepted by Z.of_string_base *)
+              invalid_arg "Q.of_string: invalid digit"
           done;
+          let first_digit_after_dot =
+            match find_in_string s ~pos:(k+1) ~last:j ((<>) '_') with
+            | None -> j
+            | Some x -> x
+          in
           let shift = !num_digits * shift_right_factor in
-          let without_dot = String.sub s i (k-i) ^ (String.sub s (k+1) frac_len) in
+          let without_dot =
+            String.sub s i (k-i)
+            ^ (String.sub s first_digit_after_dot (j - first_digit_after_dot))
+          in
           Z.of_string_base (int_of_base base) without_dot, shift
     in
     let shift = shift_left - shift_right in

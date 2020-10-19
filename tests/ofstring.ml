@@ -188,7 +188,7 @@ let test_of_string_Q () =
     match f,q with
     | None, None -> ()
     | Some f, Some q ->
-      if not (Q.equal (Q.of_float f) q)
+      if not ((Q.to_float q) = f)
       then
         Printf.printf
         "Q.of_string (%s) returned %s, expected %s\n"
@@ -271,6 +271,20 @@ let test_of_string_Q () =
   q_and_float_agree "12.34e03_";
 
   q_and_float_agree "000_001";
-  q_and_float_agree "001_000"
+  q_and_float_agree "001_000";
+
+  (* underscores right after dot are accepted. *)
+  q_and_float_agree "1._001";
+  q_and_float_agree "._001";
+  (* float_of_string doesn't accept strings without digits, Q and Z do (e.g. "+", "-", "0x", "." *)
+  (* q_and_float_agree "."; *)
+  (* q_and_float_agree "._"; *)
+
+
+  q_and_float_agree "0.x00a";
+  q_and_float_agree ".-001";
+
+  ()
+
 
 let _ = test_of_string_Q ()

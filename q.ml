@@ -412,7 +412,7 @@ let int_of_base = function
 (* [find_in_string s ~pos ~last pred] find the first index in the string between [pos]
    (inclusive) and [last] (exclusive) that satisfy the predicate [pred] *)
 let rec find_in_string s ~pos ~last p =
-  if pos = last
+  if pos >= last
   then None
   else if p s.[pos]
     then Some pos
@@ -421,11 +421,8 @@ let rec find_in_string s ~pos ~last p =
 (* The current implementation supports plain decimals, decimal points,
    scientific notation ('e' or 'E' for base 10 litteral and 'p' or 'P'
    for base 16), and fraction of integers (eg. 1/2). In particular it
-   accepts any numeric literal -without underscores ('_')- accepted
-   by OCaml's lexer.
+   accepts any numeric literal accepted by OCaml's lexer.
    Restrictions:
-   - does not handle '_' as their removal should probably be common to
-     Z.of_string and Q.of_string
    - exponents in scientific notation should fit on an integer
    - scientific notation only available in hexa and decimal (as in OCaml) *)
 let of_string =
@@ -488,18 +485,27 @@ let of_string =
             | B16 -> 4
             | B2 | B8 -> assert false
           in
-          let frac_len = j - k - 1 in
-          (* We should only consider actual digits to perform the shift. This will remain
-             correct if we ever accept underscores in the middle of the string *)
+          (* We should only consider actual digits to perform the shift. *)
           let num_digits = ref 0 in
           for h = k + 1 to j - 1 do
             match s.[h] with
             | '0' .. '9' | 'A' .. 'F' | 'a' .. 'f' ->
               incr num_digits
-            | _ -> ()
+            | '_' -> ()
+            | _ ->
+              (* '-' and '+' could wrongly be accepted by Z.of_string_base *)
+              invalid_arg "Q.of_string: invalid digit"
           done;
+          let first_digit_after_dot =
+            match find_in_string s ~pos:(k+1) ~last:j ((<>) '_') with
+            | None -> j
+            | Some x -> x
+          in
           let shift = !num_digits * shift_right_factor in
-          let without_dot = String.sub s i (k-i) ^ (String.sub s (k+1) frac_len) in
+          let without_dot =
+            String.sub s i (k-i)
+            ^ (String.sub s first_digit_after_dot (j - first_digit_after_dot))
+          in
           Z.of_string_base (int_of_base base) without_dot, shift
     in
     let shift = shift_left - shift_right in

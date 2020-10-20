@@ -273,6 +273,8 @@ let test_of_string_Q () =
   q_and_float_agree "000_001";
   q_and_float_agree "001_000";
 
+  q_and_float_agree "123.";
+
   (* underscores right after dot are accepted. *)
   q_and_float_agree "1._001";
   q_and_float_agree "._001";

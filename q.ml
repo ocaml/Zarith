@@ -412,7 +412,7 @@ let int_of_base = function
 (* [find_in_string s ~pos ~last pred] find the first index in the string between [pos]
    (inclusive) and [last] (exclusive) that satisfy the predicate [pred] *)
 let rec find_in_string s ~pos ~last p =
-  if pos = last
+  if pos >= last
   then None
   else if p s.[pos]
     then Some pos

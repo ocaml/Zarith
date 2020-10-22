@@ -656,7 +656,7 @@ external (/>): t -> t -> t = "ml_z_cdiv"
 external (/<): t -> t -> t = "ml_z_fdiv"
 (** Flooring division [fdiv]. *)
 
-external (/|): t -> t -> t = divexact@ASM
+external (/|): t -> t -> t = "ml_z_divexact"
 (** Exact division [div_exact]. *)
 
 val (mod): t -> t -> t

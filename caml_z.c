@@ -1765,7 +1765,9 @@ CAMLprim value ml_z_gcd(value arg1, value arg2)
       intnat r = a1 % a2;
       a1 = a2; a2 = r;
     }
-    return Val_long(a1);
+    /* If arg1 = arg2 = min_int, the result a1 is -min_int, not representable
+       as a tagged integer; fall through the slow case, then. */
+    if (a1 <= Z_MAX_INT) return Val_long(a1);
   }
 #endif
   /* mpn_ version */

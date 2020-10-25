@@ -2310,7 +2310,7 @@ CAMLprim value ml_z_shift_right_trunc(value arg, value count)
     /* fast path */
     if (c1) return Val_long(0);
     if (arg >= 1) return (arg >> c2) | 1;
-    else return 2 - (((2 - arg) >> c2) | 1);
+    else return Val_long(- ((- Long_val(arg)) >> c2));
   }
 #endif
   Z_ARG(arg);

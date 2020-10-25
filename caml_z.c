@@ -1066,11 +1066,22 @@ CAMLprim value ml_z_compare(value arg1, value arg2)
   Z_MARK_OP;
   Z_CHECK(arg1); Z_CHECK(arg2);
 #if Z_FAST_PATH
-  if (Is_long(arg1) && Is_long(arg2)) {
-    /* fast path */
-    if (arg1 > arg2) return Val_long(1);
-    else if (arg1 < arg2) return Val_long(-1);
-    else return Val_long(0);
+  /* Value-equal small integers are equal.
+     Pointer-equal big integers are equal as well. */
+  if (arg1 == arg2) return Val_long(0);
+  if (Is_long(arg2)) {
+    if (Is_long(arg1)) {
+      return arg1 > arg2 ? Val_long(1) : Val_long(-1);
+    } else {
+      /* Either arg1 is positive and arg1 > Z_MAX_INT >= arg2 -> result +1
+             or arg1 is negative and arg1 < Z_MIN_INT <= arg2 -> result -1 */
+      return Z_SIGN(arg1) ? Val_long(-1) : Val_long(1);
+    }
+  }
+  else if (Is_long(arg1)) {
+    /* Either arg2 is positive and arg2 > Z_MAX_INT >= arg1 -> result -1
+           or arg2 is negative and arg2 < Z_MIN_INT <= arg1 -> result +1 */
+    return Z_SIGN(arg2) ? Val_long(1) : Val_long(-1);
   }
 #endif
   /* mpn_ version */
@@ -1099,10 +1110,15 @@ CAMLprim value ml_z_equal(value arg1, value arg2)
   Z_MARK_OP;
   Z_CHECK(arg1); Z_CHECK(arg2);
 #if Z_FAST_PATH
-  if (Is_long(arg1) && Is_long(arg2)) {
-    /* fast path */
-    return (arg1 == arg2) ? Val_true : Val_false;
-  }
+  /* Value-equal small integers are equal.
+     Pointer-equal big integers are equal as well. */
+  if (arg1 == arg2) return Val_true;
+  /* If both arg1 and arg2 are small integers but failed the equality
+     test above, they are different.
+     If one of arg1/arg2 is a small integer and the other is a big integer,
+     they are different: one is in the range [Z_MIN_INT,Z_MAX_INT]
+     and the other is outside this range. */
+  if (Is_long(arg2) || Is_long(arg1)) return Val_false;
 #endif
   /* mpn_ version */
   Z_MARK_SLOW;
@@ -1123,9 +1139,11 @@ int ml_z_sgn(value arg)
   }
   else {
     Z_MARK_SLOW;
+#if !Z_USE_NATINT
+    /* In "use natint" mode, zero is a small integer, treated above */
     if (!Z_SIZE(arg)) return 0;
-    else if (Z_SIGN(arg)) return -1;
-    else return 1;
+#endif
+    if (Z_SIGN(arg)) return -1; else return 1;
   }
 }
 CAMLprim value ml_z_sign(value arg)

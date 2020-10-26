@@ -251,48 +251,56 @@ void ml_z_check(const char* fn, int line, const char* arg, value v)
 {
   mp_size_t sz;
 
-  if (Is_block(v)) {
-#if Z_CUSTOM_BLOCK
-    if (Custom_ops_val(v) != &ml_z_custom_ops) {
-      printf("ml_z_check: wrong custom block for %s at %s:%i.\n",
-             arg, fn, line);
-      exit(1);
-    }
-    sz = Wosize_val(v) - 1;
+  if (Is_long(v)) {
+#if Z_USE_NATINT
+    return;
 #else
-    sz = Wosize_val(v);
+    printf("ml_z_check: unexpected tagged integer for %s at %s:%i.\n", arg, fn, line);
+    exit(1);
 #endif
-    if (Z_SIZE(v) + 2 > sz) {
-      printf("ml_z_check: invalid block size (%i / %i) for %s at %s:%i.\n",
-             (int)Z_SIZE(v), (int)sz,
-             arg, fn, line);
-      exit(1);
-    }
-    if ((mp_size_t) Z_LIMB(v)[sz - 2] != (mp_size_t)(0xDEADBEEF ^ (sz - 2))) {
-      printf("ml_z_check: corrupted block for %s at %s:%i.\n",
-             arg, fn, line);
-      exit(1);
-    }
-    if (Z_SIZE(v) && Z_LIMB(v)[Z_SIZE(v)-1]) return;
-#if !Z_USE_NATINT
-    if (!Z_SIZE(v)) {
-      if (Z_SIGN(v)) {
-        printf("ml_z_check: invalid sign of 0 for %s at %s:%i.\n",
-               arg, fn, line);
-        exit(1);
-      }
-      return;
-    }
-    if (Z_SIZE(v) <= 1 && Z_LIMB(v)[0] <= Z_MAX_INT) {
-      printf("ml_z_check: unreduced argument for %s at %s:%i.\n", arg, fn, line);
-      ml_z_dump("offending argument: ", Z_LIMB(v), Z_SIZE(v));
-      exit(1);
-    }
+  }
+#if Z_CUSTOM_BLOCK
+  if (Custom_ops_val(v) != &ml_z_custom_ops) {
+    printf("ml_z_check: wrong custom block for %s at %s:%i.\n",
+           arg, fn, line);
+    exit(1);
+  }
+  sz = Wosize_val(v) - 1;
+#else
+  sz = Wosize_val(v);
 #endif
-    printf("ml_z_check failed for %s at %s:%i.\n", arg, fn, line);
+  if (Z_SIZE(v) + 2 > sz) {
+    printf("ml_z_check: invalid block size (%i / %i) for %s at %s:%i.\n",
+           (int)Z_SIZE(v), (int)sz,
+           arg, fn, line);
+    exit(1);
+  }
+  if ((mp_size_t) Z_LIMB(v)[sz - 2] != (mp_size_t)(0xDEADBEEF ^ (sz - 2))) {
+    printf("ml_z_check: corrupted block for %s at %s:%i.\n",
+           arg, fn, line);
+    exit(1);
+  }
+  if (Z_SIZE(v) && !Z_LIMB(v)[Z_SIZE(v)-1]) {
+    printf("ml_z_check: unreduced argument for %s at %s:%i.\n", arg, fn, line);
     ml_z_dump("offending argument: ", Z_LIMB(v), Z_SIZE(v));
     exit(1);
   }
+#if Z_USE_NATINT
+  if (Z_SIZE(v) == 0
+      || (Z_SIZE(v) <= 1
+          && (Z_LIMB(v)[0] <= Z_MAX_INT
+              || (Z_LIMB(v)[0] == -Z_MIN_INT && Z_SIGN(v))))) {
+    printf("ml_z_check: expected a tagged integer for %s at %s:%i.\n", arg, fn, line);
+    ml_z_dump("offending argument: ", Z_LIMB(v), Z_SIZE(v));
+    exit(1);
+  }
+#else
+  if (!Z_SIZE(v) && Z_SIGN(v)) {
+    printf("ml_z_check: invalid sign of 0 for %s at %s:%i.\n",
+           arg, fn, line);
+    exit(1);
+  }
+#endif
 }
 #endif
 
@@ -397,9 +405,14 @@ static value ml_z_reduce(value r, mp_size_t sz, intnat sign)
   while (sz > 0 && !Z_LIMB(r)[sz-1]) sz--;
 #if Z_USE_NATINT
   if (!sz) return Val_long(0);
-  if (sz <= 1 && Z_LIMB(r)[0] <= Z_MAX_INT) {
-    if (sign) return Val_long(-Z_LIMB(r)[0]);
-    else return Val_long(Z_LIMB(r)[0]);
+  if (sz <= 1) {
+    if (Z_LIMB(r)[0] <= Z_MAX_INT) {
+      if (sign) return Val_long(-Z_LIMB(r)[0]);
+      else return Val_long(Z_LIMB(r)[0]);
+    }
+    if (Z_LIMB(r)[0] == -Z_MIN_INT && sign) {
+      return Val_long(Z_MIN_INT);
+    }
   }
 #else
   if (!sz) sign = 0;
@@ -1771,7 +1784,9 @@ CAMLprim value ml_z_gcd(value arg1, value arg2)
       intnat r = a1 % a2;
       a1 = a2; a2 = r;
     }
-    return Val_long(a1);
+    /* If arg1 = arg2 = min_int, the result a1 is -min_int, not representable
+       as a tagged integer; fall through the slow case, then. */
+    if (a1 <= Z_MAX_INT) return Val_long(a1);
   }
 #endif
   /* mpn_ version */
@@ -2314,7 +2329,7 @@ CAMLprim value ml_z_shift_right_trunc(value arg, value count)
     /* fast path */
     if (c1) return Val_long(0);
     if (arg >= 1) return (arg >> c2) | 1;
-    else return 2 - (((2 - arg) >> c2) | 1);
+    else return Val_long(- ((- Long_val(arg)) >> c2));
   }
 #endif
   Z_ARG(arg);

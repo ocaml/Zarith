@@ -3145,11 +3145,22 @@ int ml_z_custom_compare(value arg1, value arg2)
   int r;
   Z_CHECK(arg1); Z_CHECK(arg2);
 #if Z_FAST_PATH
-  if (Is_long(arg1) && Is_long(arg2)) {
-    /* fast path */
-    if (arg1 > arg2) return 1;
-    else if (arg1 < arg2) return -1;
-    else return 0;
+  /* Value-equal small integers are equal.
+     Pointer-equal big integers are equal as well. */
+  if (arg1 == arg2) return 0;
+  if (Is_long(arg2)) {
+    if (Is_long(arg1)) {
+      return arg1 > arg2 ? 1 : -1;
+    } else {
+      /* Either arg1 is positive and arg1 > Z_MAX_INT >= arg2 -> result +1
+             or arg1 is negative and arg1 < Z_MIN_INT <= arg2 -> result -1 */
+      return Z_SIGN(arg1) ? -1 : 1;
+    }
+  }
+  else if (Is_long(arg1)) {
+    /* Either arg2 is positive and arg2 > Z_MAX_INT >= arg1 -> result -1
+           or arg2 is negative and arg2 < Z_MIN_INT <= arg1 -> result +1 */
+    return Z_SIGN(arg2) ? 1 : -1;
   }
 #endif
   r = 0;

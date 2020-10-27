@@ -36,7 +36,7 @@ SSRC = $(wildcard caml_z_$(ARCH).S)
 MLSRC = zarith_version.ml z.ml q.ml big_int_Z.ml
 MLISRC = zarith_version.mli z.mli q.mli big_int_Z.mli
 
-AUTOGEN = zarith_version.ml z.ml z.mli z_features.h
+AUTOGEN = zarith_version.ml
 
 CMIOBJ = $(MLISRC:%.mli=%.cmi)
 CMXOBJ = $(MLISRC:%.mli=%.cmx)
@@ -120,9 +120,6 @@ endif
 # rules
 #######
 
-$(AUTOGEN): z.mlp z.mlip $(SSRC) z_pp.pl
-	./z_pp.pl $(ARCH)
-
 zarith_version.ml: gen_zarith_version.ml META
 	$(OCAML) str.cma gen_zarith_version.ml > zarith_version.ml
 
@@ -153,7 +150,7 @@ depend: $(AUTOGEN)
 
 include depend
 
-$(CSRC:%.c=%.$(OBJSUFFIX)): z_features.h zarith.h
+$(CSRC:%.c=%.$(OBJSUFFIX)): zarith.h
 
 .PHONY: clean
 .PHONY: tests

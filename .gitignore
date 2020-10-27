@@ -12,3 +12,4 @@ depend
 z.ml
 z.mli
 z_features.h
+zarith_version.ml

@@ -20,11 +20,6 @@ use warnings "all";
 
 die "Usage: './z_pp.pl architecture'" unless $#ARGV==0;
 
-# version, from META file
-
-$v = `grep version META`;
-($ver) = $v =~ /version\s*=\s*(\S+)/;
-
 # scan assembly
 
 $ASM = "caml_z_${ARGV[0]}.S";
@@ -62,7 +57,6 @@ sub doml {
             }
             $l =~ s/$f\@ASM/$r/g;
         }
-        $l =~ s/\@VERSION/$ver/;
         print O "$l";
     }
     close F;

@@ -57,7 +57,6 @@ let treat_file =
       while true do
 	let line_in = input_line input in
         let line_in = Str.(global_replace (regexp "@VERSION") (Printf.sprintf "%S" !version) line_in) in
-        let line_in = Str.(global_replace (regexp "@NOALLOC") noalloc_str line_in) in
 	let line_out =
 	  if Str.string_match rASM line_in 0
 	  then

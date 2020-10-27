@@ -22,7 +22,6 @@ on large intergers use the low-level MPN functions from GMP.
 
 Arbitrary-precision integers can be compared correctly using OCaml's
 polymorphic comparison operators (`=`, `<`, `>`, etc.).
-This requires OCaml version 3.12.1 or later, though.
 
 Additional features include:
 * a module `Q` for rationals, built on top of `Z` (see `q.mli`)
@@ -30,7 +29,7 @@ Additional features include:
 
 ## REQUIREMENTS
 
-* OCaml, preferably version 3.12.1 or later.  (Earlier versions are usable but generic comparisons will misbehave.)
+* OCaml, version 4.03.0 or later.
 * Either the GMP library or the MPIR library, including development files.
 * GCC or Clang or a gcc-compatible C compiler and assembler (other compilers may work).
 * The Perl programming language.

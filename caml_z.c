@@ -934,6 +934,30 @@ CAMLprim value ml_z_extract(value arg, value off, value len)
       if (x >= 0) return Val_long(x);
       /* If x < 0, fall through slow path */
     }
+  } else if (l <= Z_BASE2_LENGTH_OP) {
+    Z_ARG(arg);
+    c1 = o / Z_LIMB_BITS;
+    c2 = o % Z_LIMB_BITS;
+    csz = size_arg - c1;
+    if (csz > 0) {
+      if (c2) {
+	x = ptr_arg[c1] >> c2;
+	if ((o + l > (intnat)Z_LIMB_BITS) && (csz > 1))
+	  x |= (ptr_arg[c1 + 1] << (Z_LIMB_BITS - c2));
+      } else x = ptr_arg[c1];
+    } else x = (intnat)0;
+    if (sign_arg) {
+      x = ~x;
+      if (csz > 0) {
+	/* carry (cr=0 if all shifted-out bits are 0) */
+	cr = ptr_arg[c1] & (((intnat)1 << c2) - 1);
+	for (i = 0; !cr && i < c1; i++)
+	  cr = ptr_arg[i];
+	if (!cr) x += 1;
+      }
+    }
+    x &= (((intnat)1 << l) - 1);
+    return Val_long(x);
   }
 #endif
   Z_MARK_SLOW;

@@ -13,7 +13,7 @@ Release 1.10 (2020-09-11)
 - Fix #62: raise division by 0 for 0-modulo in powm
 - Fix #59: improved abs for negative arguments
 - Fix #58: gcd, lcm, gcdext now behave as gmp for negative arguments
-- Fix #57: clean compile with sage strings [hhugo]
+- Fix #57: clean compile with safe strings [hhugo]
 
 Release 1.9.1 (2019-08-28) (bugfix):
 - Fix configure issue for non-bash sh introduced in #45

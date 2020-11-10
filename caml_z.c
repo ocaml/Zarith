@@ -251,48 +251,56 @@ void ml_z_check(const char* fn, int line, const char* arg, value v)
 {
   mp_size_t sz;
 
-  if (Is_block(v)) {
-#if Z_CUSTOM_BLOCK
-    if (Custom_ops_val(v) != &ml_z_custom_ops) {
-      printf("ml_z_check: wrong custom block for %s at %s:%i.\n",
-             arg, fn, line);
-      exit(1);
-    }
-    sz = Wosize_val(v) - 1;
+  if (Is_long(v)) {
+#if Z_USE_NATINT
+    return;
 #else
-    sz = Wosize_val(v);
+    printf("ml_z_check: unexpected tagged integer for %s at %s:%i.\n", arg, fn, line);
+    exit(1);
 #endif
-    if (Z_SIZE(v) + 2 > sz) {
-      printf("ml_z_check: invalid block size (%i / %i) for %s at %s:%i.\n",
-             (int)Z_SIZE(v), (int)sz,
-             arg, fn, line);
-      exit(1);
-    }
-    if ((mp_size_t) Z_LIMB(v)[sz - 2] != (mp_size_t)(0xDEADBEEF ^ (sz - 2))) {
-      printf("ml_z_check: corrupted block for %s at %s:%i.\n",
-             arg, fn, line);
-      exit(1);
-    }
-    if (Z_SIZE(v) && Z_LIMB(v)[Z_SIZE(v)-1]) return;
-#if !Z_USE_NATINT
-    if (!Z_SIZE(v)) {
-      if (Z_SIGN(v)) {
-        printf("ml_z_check: invalid sign of 0 for %s at %s:%i.\n",
-               arg, fn, line);
-        exit(1);
-      }
-      return;
-    }
-    if (Z_SIZE(v) <= 1 && Z_LIMB(v)[0] <= Z_MAX_INT) {
-      printf("ml_z_check: unreduced argument for %s at %s:%i.\n", arg, fn, line);
-      ml_z_dump("offending argument: ", Z_LIMB(v), Z_SIZE(v));
-      exit(1);
-    }
+  }
+#if Z_CUSTOM_BLOCK
+  if (Custom_ops_val(v) != &ml_z_custom_ops) {
+    printf("ml_z_check: wrong custom block for %s at %s:%i.\n",
+           arg, fn, line);
+    exit(1);
+  }
+  sz = Wosize_val(v) - 1;
+#else
+  sz = Wosize_val(v);
 #endif
-    printf("ml_z_check failed for %s at %s:%i.\n", arg, fn, line);
+  if (Z_SIZE(v) + 2 > sz) {
+    printf("ml_z_check: invalid block size (%i / %i) for %s at %s:%i.\n",
+           (int)Z_SIZE(v), (int)sz,
+           arg, fn, line);
+    exit(1);
+  }
+  if ((mp_size_t) Z_LIMB(v)[sz - 2] != (mp_size_t)(0xDEADBEEF ^ (sz - 2))) {
+    printf("ml_z_check: corrupted block for %s at %s:%i.\n",
+           arg, fn, line);
+    exit(1);
+  }
+  if (Z_SIZE(v) && !Z_LIMB(v)[Z_SIZE(v)-1]) {
+    printf("ml_z_check: unreduced argument for %s at %s:%i.\n", arg, fn, line);
     ml_z_dump("offending argument: ", Z_LIMB(v), Z_SIZE(v));
     exit(1);
   }
+#if Z_USE_NATINT
+  if (Z_SIZE(v) == 0
+      || (Z_SIZE(v) <= 1
+          && (Z_LIMB(v)[0] <= Z_MAX_INT
+              || (Z_LIMB(v)[0] == -Z_MIN_INT && Z_SIGN(v))))) {
+    printf("ml_z_check: expected a tagged integer for %s at %s:%i.\n", arg, fn, line);
+    ml_z_dump("offending argument: ", Z_LIMB(v), Z_SIZE(v));
+    exit(1);
+  }
+#else
+  if (!Z_SIZE(v) && Z_SIGN(v)) {
+    printf("ml_z_check: invalid sign of 0 for %s at %s:%i.\n",
+           arg, fn, line);
+    exit(1);
+  }
+#endif
 }
 #endif
 
@@ -397,9 +405,14 @@ static value ml_z_reduce(value r, mp_size_t sz, intnat sign)
   while (sz > 0 && !Z_LIMB(r)[sz-1]) sz--;
 #if Z_USE_NATINT
   if (!sz) return Val_long(0);
-  if (sz <= 1 && Z_LIMB(r)[0] <= Z_MAX_INT) {
-    if (sign) return Val_long(-Z_LIMB(r)[0]);
-    else return Val_long(Z_LIMB(r)[0]);
+  if (sz <= 1) {
+    if (Z_LIMB(r)[0] <= Z_MAX_INT) {
+      if (sign) return Val_long(-Z_LIMB(r)[0]);
+      else return Val_long(Z_LIMB(r)[0]);
+    }
+    if (Z_LIMB(r)[0] == -Z_MIN_INT && sign) {
+      return Val_long(Z_MIN_INT);
+    }
   }
 #else
   if (!sz) sign = 0;
@@ -583,7 +596,7 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
   /* process the string */
   const char *d = String_val(v) + ofs;
   const char *end = d + len;
-  mp_size_t i, sz, sz2;
+  mp_size_t i, j, sz, sz2, num_digits = 0;
   mp_limb_t sign = 0;
   intnat base = Long_val(b);
   /* We allow [d] to advance beyond [end] while parsing the prefix:
@@ -603,27 +616,42 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
       if (*d == 'o' || *d == 'O') { base = 8; d++; }
       else if (*d == 'x' || *d == 'X') { base = 16; d++; }
       else if (*d == 'b' || *d == 'B') { base = 2; d++; }
+      else {
+        /* The leading zero is not part of a base prefix. This is an
+           important distinction for the check below looking at
+           leading underscore
+         */
+        d--; }
     }
   }
   if (base < 2 || base > 16)
     caml_invalid_argument("Z.of_substring_base: base must be between 2 and 16");
-  while (*d == '0') d++;
+  /* we do not allow leading underscore */
+  if (*d == '_')
+    caml_invalid_argument("Z.of_substring_base: invalid digit");
+  while (*d == '0' || *d == '_') d++;
   /* sz is the length of the substring that has not been consumed above. */
   sz = end - d;
+  for(i = 0; i < sz; i++){
+    /* underscores are going to be ignored below. Assuming the string
+       is well formatted, this will give us the exact number of digits */
+    if(d[i] != '_') num_digits++;
+  }
 #if Z_USE_NATINT
   if (sz <= 0) {
     /* "+", "-", "0x" are parsed as 0. */
     r = Val_long(0);
   }
   /* Process common case (fits into a native integer) */
-  else if ((base == 10 && sz <= Z_BASE10_LENGTH_OP)
-        || (base == 16 && sz <= Z_BASE16_LENGTH_OP)
-        || (base == 8  && sz <= Z_BASE8_LENGTH_OP)
-        || (base == 2  && sz <= Z_BASE2_LENGTH_OP)) {
+  else if ((base == 10 && num_digits <= Z_BASE10_LENGTH_OP)
+        || (base == 16 && num_digits <= Z_BASE16_LENGTH_OP)
+        || (base == 8  && num_digits <= Z_BASE8_LENGTH_OP)
+        || (base == 2  && num_digits <= Z_BASE2_LENGTH_OP)) {
       Z_MARK_OP;
       intnat ret = 0;
       for (i = 0; i < sz; i++) {
         int digit = 0;
+        if (d[i] == '_') continue;
         if (d[i] >= '0' && d[i] <= '9') digit = d[i] - '0';
         else if (d[i] >= 'a' && d[i] <= 'f') digit = d[i] - 'a' + 10;
         else if (d[i] >= 'A' && d[i] <= 'F') digit = d[i] - 'A' + 10;
@@ -637,22 +665,28 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
 #endif
   {
      /* converts to sequence of digits */
-    char* dd = (char*)malloc(sz+1);
-    strncpy(dd,d,sz);
-    /* make sure that dd is nul terminated */
-    dd[sz] = 0;
-    for (i = 0; i < sz; i++) {
-      if (dd[i] >= '0' && dd[i] <= '9') dd[i] -= '0';
-      else if (dd[i] >= 'a' && dd[i] <= 'f') dd[i] -= 'a' - 10;
-      else if (dd[i] >= 'A' && dd[i] <= 'F') dd[i] -= 'A' - 10;
-      else caml_invalid_argument("Z.of_substring_base: invalid digit");
-      if (dd[i] >= base)
+    char* digits = (char*)malloc(num_digits+1);
+    for (i = 0, j = 0; i < sz; i++) {
+      if (d[i] == '_') continue;
+      if (d[i] >= '0' && d[i] <= '9') digits[j] = d[i] - '0';
+      else if (d[i] >= 'a' && d[i] <= 'f') digits[j] = d[i] - 'a' + 10;
+      else if (d[i] >= 'A' && d[i] <= 'F') digits[j] = d[i] - 'A' + 10;
+      else {
+        free(digits);
         caml_invalid_argument("Z.of_substring_base: invalid digit");
+      }
+      if (digits[j] >= base) {
+        free(digits);
+        caml_invalid_argument("Z.of_substring_base: invalid digit");
+      }
+      j++;
     }
-    r = ml_z_alloc(1 + sz / (2 * sizeof(mp_limb_t)));
-    sz2 = mpn_set_str(Z_LIMB(r), (unsigned char*)dd, sz, base);
+    /* make sure that digits is nul terminated */
+    digits[j] = 0;
+    r = ml_z_alloc(1 + j / (2 * sizeof(mp_limb_t)));
+    sz2 = mpn_set_str(Z_LIMB(r), (unsigned char*)digits, j, base);
     r = ml_z_reduce(r, sz2, sign);
-    free(dd);
+    free(digits);
   }
   Z_CHECK(r);
   CAMLreturn(r);
@@ -1032,11 +1066,22 @@ CAMLprim value ml_z_compare(value arg1, value arg2)
   Z_MARK_OP;
   Z_CHECK(arg1); Z_CHECK(arg2);
 #if Z_FAST_PATH
-  if (Is_long(arg1) && Is_long(arg2)) {
-    /* fast path */
-    if (arg1 > arg2) return Val_long(1);
-    else if (arg1 < arg2) return Val_long(-1);
-    else return Val_long(0);
+  /* Value-equal small integers are equal.
+     Pointer-equal big integers are equal as well. */
+  if (arg1 == arg2) return Val_long(0);
+  if (Is_long(arg2)) {
+    if (Is_long(arg1)) {
+      return arg1 > arg2 ? Val_long(1) : Val_long(-1);
+    } else {
+      /* Either arg1 is positive and arg1 > Z_MAX_INT >= arg2 -> result +1
+             or arg1 is negative and arg1 < Z_MIN_INT <= arg2 -> result -1 */
+      return Z_SIGN(arg1) ? Val_long(-1) : Val_long(1);
+    }
+  }
+  else if (Is_long(arg1)) {
+    /* Either arg2 is positive and arg2 > Z_MAX_INT >= arg1 -> result -1
+           or arg2 is negative and arg2 < Z_MIN_INT <= arg1 -> result +1 */
+    return Z_SIGN(arg2) ? Val_long(1) : Val_long(-1);
   }
 #endif
   /* mpn_ version */
@@ -1065,10 +1110,15 @@ CAMLprim value ml_z_equal(value arg1, value arg2)
   Z_MARK_OP;
   Z_CHECK(arg1); Z_CHECK(arg2);
 #if Z_FAST_PATH
-  if (Is_long(arg1) && Is_long(arg2)) {
-    /* fast path */
-    return (arg1 == arg2) ? Val_true : Val_false;
-  }
+  /* Value-equal small integers are equal.
+     Pointer-equal big integers are equal as well. */
+  if (arg1 == arg2) return Val_true;
+  /* If both arg1 and arg2 are small integers but failed the equality
+     test above, they are different.
+     If one of arg1/arg2 is a small integer and the other is a big integer,
+     they are different: one is in the range [Z_MIN_INT,Z_MAX_INT]
+     and the other is outside this range. */
+  if (Is_long(arg2) || Is_long(arg1)) return Val_false;
 #endif
   /* mpn_ version */
   Z_MARK_SLOW;
@@ -1089,9 +1139,11 @@ int ml_z_sgn(value arg)
   }
   else {
     Z_MARK_SLOW;
+#if !Z_USE_NATINT
+    /* In "use natint" mode, zero is a small integer, treated above */
     if (!Z_SIZE(arg)) return 0;
-    else if (Z_SIGN(arg)) return -1;
-    else return 1;
+#endif
+    if (Z_SIGN(arg)) return -1; else return 1;
   }
 }
 CAMLprim value ml_z_sign(value arg)
@@ -1750,7 +1802,9 @@ CAMLprim value ml_z_gcd(value arg1, value arg2)
       intnat r = a1 % a2;
       a1 = a2; a2 = r;
     }
-    return Val_long(a1);
+    /* If arg1 = arg2 = min_int, the result a1 is -min_int, not representable
+       as a tagged integer; fall through the slow case, then. */
+    if (a1 <= Z_MAX_INT) return Val_long(a1);
   }
 #endif
   /* mpn_ version */
@@ -2293,7 +2347,7 @@ CAMLprim value ml_z_shift_right_trunc(value arg, value count)
     /* fast path */
     if (c1) return Val_long(0);
     if (arg >= 1) return (arg >> c2) | 1;
-    else return 2 - (((2 - arg) >> c2) | 1);
+    else return Val_long(- ((- Long_val(arg)) >> c2));
   }
 #endif
   Z_ARG(arg);
@@ -3091,11 +3145,22 @@ int ml_z_custom_compare(value arg1, value arg2)
   int r;
   Z_CHECK(arg1); Z_CHECK(arg2);
 #if Z_FAST_PATH
-  if (Is_long(arg1) && Is_long(arg2)) {
-    /* fast path */
-    if (arg1 > arg2) return 1;
-    else if (arg1 < arg2) return -1;
-    else return 0;
+  /* Value-equal small integers are equal.
+     Pointer-equal big integers are equal as well. */
+  if (arg1 == arg2) return 0;
+  if (Is_long(arg2)) {
+    if (Is_long(arg1)) {
+      return arg1 > arg2 ? 1 : -1;
+    } else {
+      /* Either arg1 is positive and arg1 > Z_MAX_INT >= arg2 -> result +1
+             or arg1 is negative and arg1 < Z_MIN_INT <= arg2 -> result -1 */
+      return Z_SIGN(arg1) ? -1 : 1;
+    }
+  }
+  else if (Is_long(arg1)) {
+    /* Either arg2 is positive and arg2 > Z_MAX_INT >= arg1 -> result -1
+           or arg2 is negative and arg2 < Z_MIN_INT <= arg1 -> result +1 */
+    return Z_SIGN(arg2) ? 1 : -1;
   }
 #endif
   r = 0;

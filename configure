@@ -22,7 +22,8 @@ host='auto'
 gmp='auto'
 perf='no'
 
-ar='ar'
+ar="${AR}"
+[ -z "$ar" ] && ar='ar'
 ocaml='ocaml'
 ocamlc='ocamlc'
 ocamlopt='ocamlopt'
@@ -63,6 +64,7 @@ where options include:
   -prefixnonocaml      add for non ocaml tool, e.g. -prefixnonocaml x86_64-w64-mingw32-
 
 Environment variables that affect configuration:
+  AR                   archiver tool
   CC                   C compiler to use (default: try gcc, then cc)
   CFLAGS               extra flags to pass to the C compiler
   ASFLAGS              extra flags to pass to the assembler

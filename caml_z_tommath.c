@@ -129,6 +129,7 @@ static mp_int z_max_int64,  z_min_int64;
 #endif
 
 #define Z_MP(x) ((mp_int*)Data_custom_val((x)))
+#define Z_SIGN(x) (Z_MP((x))->sign)
 
 #define Z_ISZERO(x) (Is_long((x)) ? Long_val((x)) == 0 : mp_iszero(Z_MP((x))))
 #define Z_ISNEG(x) (Is_long((x)) ? Long_val((x)) < 0 : mp_isneg(Z_MP((x))))
@@ -282,7 +283,7 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
   /* process the string */
   const char *d = String_val(v) + ofs;
   const char *end = d + len;
-  ptrdiff_t i, sz;
+  ptrdiff_t i, j, sz;
   int sign = 0;
   intnat base = Long_val(b);
   /* We allow [d] to advance beyond [end] while parsing the prefix:
@@ -302,11 +303,20 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
       if (*d == 'o' || *d == 'O') { base = 8; d++; }
       else if (*d == 'x' || *d == 'X') { base = 16; d++; }
       else if (*d == 'b' || *d == 'B') { base = 2; d++; }
+      else {
+        /* The leading zero is not part of a base prefix. This is an
+           important distinction for the check below looking at
+           leading underscore
+         */
+        d--; }
     }
   }
   if (base < 2 || base > 16)
     caml_invalid_argument("Z.of_substring_base: base must be between 2 and 16");
-  while (*d == '0') d++;
+  /* we do not allow leading underscore */
+  if (*d == '_')
+    caml_invalid_argument("Z.of_substring_base: invalid digit");
+  while (*d == '0' || *d == '_') d++;
   /* sz is the length of the substring that has not been consumed above. */
   sz = end - d;
   if (sz <= 0) {
@@ -321,6 +331,7 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
       intnat ret = 0;
       for (i = 0; i < sz; i++) {
         int digit = 0;
+        if (d[i] == '_') continue;
         if (d[i] >= '0' && d[i] <= '9') digit = d[i] - '0';
         else if (d[i] >= 'a' && d[i] <= 'f') digit = d[i] - 'a' + 10;
         else if (d[i] >= 'A' && d[i] <= 'F') digit = d[i] - 'A' + 10;
@@ -331,11 +342,14 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
       }
       r = Val_long(ret * (sign ? -1 : 1));
   } else {
-    // copy the substring
+    /* copy the substring, ignoring underscores */
     char* dd = (char*)malloc(sz + 1);
     if (!dd) caml_raise_out_of_memory();
-    memcpy(dd, d, sz);
-    dd[sz] = 0;
+    for (i = 0, j = 0; i < sz; i++) {
+      if (d[i] == '_') continue;
+      dd[j++] = d[i];
+    }
+    dd[j] = 0;
     r = ml_z_alloc();
     if (mp_read_radix(Z_MP(r), dd, base) != MP_OKAY) {
       free(dd);
@@ -349,6 +363,7 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
         caml_failwith("Z.of_substring_base: internal error");
       }
     }
+    r = ml_z_reduce(r);
   }
   CAMLreturn(r);
 }
@@ -545,11 +560,22 @@ CAMLprim value ml_z_of_bits(UNUSED_PARAM value arg)
 
 CAMLprim value ml_z_compare(value arg1, value arg2)
 {
-  if (Is_long(arg1) && Is_long(arg2)) {
-    /* fast path */
-    if (arg1 > arg2) return Val_long(1);
-    else if (arg1 < arg2) return Val_long(-1);
-    else return Val_long(0);
+  /* Value-equal small integers are equal.
+     Pointer-equal big integers are equal as well. */
+  if (arg1 == arg2) return Val_long(0);
+  if (Is_long(arg2)) {
+    if (Is_long(arg1)) {
+      return arg1 > arg2 ? Val_long(1) : Val_long(-1);
+    } else {
+      /* Either arg1 is positive and arg1 > Z_MAX_INT >= arg2 -> result +1
+             or arg1 is negative and arg1 < Z_MIN_INT <= arg2 -> result -1 */
+      return Z_SIGN(arg1) ? Val_long(-1) : Val_long(1);
+    }
+  }
+  else if (Is_long(arg1)) {
+    /* Either arg2 is positive and arg2 > Z_MAX_INT >= arg1 -> result -1
+           or arg2 is negative and arg2 < Z_MIN_INT <= arg1 -> result +1 */
+    return Z_SIGN(arg2) ? Val_long(1) : Val_long(-1);
   }
   else {
     /* slow path */
@@ -572,10 +598,15 @@ CAMLprim value ml_z_equal(value arg1, value arg2)
   mp_ord r;
   Z_DECL(arg1);
   Z_DECL(arg2);
-  if (Is_long(arg1) && Is_long(arg2)) {
-    /* fast path */
-    return (arg1 == arg2) ? Val_true : Val_false;
-  }
+  /* Value-equal small integers are equal.
+     Pointer-equal big integers are equal as well. */
+  if (arg1 == arg2) return Val_true;
+  /* If both arg1 and arg2 are small integers but failed the equality
+     test above, they are different.
+     If one of arg1/arg2 is a small integer and the other is a big integer,
+     they are different: one is in the range [Z_MIN_INT,Z_MAX_INT]
+     and the other is outside this range. */
+  if (Is_long(arg2) || Is_long(arg1)) return Val_false;
   /* slow path */
   Z_ARG(arg1);
   Z_ARG(arg2);
@@ -593,9 +624,9 @@ CAMLprim value ml_z_sign(value arg)
     else return Val_long(0);
   }
   else {
-    if (mp_iszero(Z_MP(arg))) return Val_long(0);
-    else if (mp_isneg(Z_MP(arg))) return Val_long(-1);
-    else return Val_long(1);
+    /* zero is a small integer, treated above */
+    if (mp_isneg(Z_MP(arg))) return Val_long(-1);
+    return Val_long(1);
   }
 }
 
@@ -1097,7 +1128,9 @@ CAMLprim value ml_z_gcd(value arg1, value arg2)
       intnat r = a1 % a2;
       a1 = a2; a2 = r;
     }
-    return Val_long(a1);
+    /* If arg1 = arg2 = min_int, the result a1 is -min_int, not representable
+       ￼       as a tagged integer; fall through the slow case, then. */
+    if (a1 <= Z_MAX_INT) return Val_long(a1);
   }
   {
     /* slow path */
@@ -1355,7 +1388,7 @@ CAMLprim value ml_z_shift_right_trunc(value arg, value count)
     /* fast path */
     if (c >= Z_INTNAT_BITS) return Val_long(0);
     if (arg >= 1) return (arg >> c) | 1;
-    else return 2 - (((2 - arg) >> c) | 1);
+    else return Val_long(- ((- Long_val(arg)) >> c));
   }
   {
     /* slow path */
@@ -1709,11 +1742,22 @@ static void ml_z_custom_finalize(value v) {
 */
 int ml_z_custom_compare(value arg1, value arg2)
 {
-  if (Is_long(arg1) && Is_long(arg2)) {
-    /* fast path */
-    if (arg1 > arg2) return 1;
-    else if (arg1 < arg2) return -1;
-    else return 0;
+  /* Value-equal small integers are equal.
+￼    Pointer-equal big integers are equal as well. */
+  if (arg1 == arg2) return 0;
+  if (Is_long(arg2)) {
+    if (Is_long(arg1)) {
+      return arg1 > arg2 ? 1 : -1;
+    } else {
+      /* Either arg1 is positive and arg1 > Z_MAX_INT >= arg2 -> result +1
+         or arg1 is negative and arg1 < Z_MIN_INT <= arg2 -> result -1 */
+      return Z_SIGN(arg1) ? -1 : 1;
+    }
+  }
+  else if (Is_long(arg1)) {
+    /* Either arg2 is positive and arg2 > Z_MAX_INT >= arg1 -> result -1
+       or arg2 is negative and arg2 < Z_MIN_INT <= arg1 -> result +1 */
+    return Z_SIGN(arg2) ? 1 : -1;
   }
   else {
     /* slow path */

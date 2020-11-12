@@ -26,7 +26,7 @@ let add (x, y) =
 
 let sub (x, y) =
   for i = 1 to 50_000_000 do
-    ignore (Sys.opaque_identity (Z.add x y))
+    ignore (Sys.opaque_identity (Z.sub x y))
   done;
   50_000_000
 

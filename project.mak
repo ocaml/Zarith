@@ -42,18 +42,20 @@ CMIOBJ = $(MLISRC:%.mli=%.cmi)
 CMXOBJ = $(MLISRC:%.mli=%.cmx)
 CMIDOC = $(MLISRC:%.mli=%.cmti)
 
-TOINSTALL := zarith.h zarith.cma libzarith.$(LIBSUFFIX) $(MLISRC) $(CMIOBJ) \
-  zarith_top.cma
+TOBUILD = zarith.cma libzarith.$(LIBSUFFIX) $(CMIOBJ) zarith_top.cma z.mli
+
+TOINSTALL = $(TOBUILD) zarith.h q.mli big_int_Z.mli
 
 ifeq ($(HASOCAMLOPT),yes)
-TOINSTALL += zarith.$(LIBSUFFIX) zarith.cmxa $(CMXOBJ)
+TOBUILD += zarith.cmxa $(CMXOBJ)
+TOINSTALL += zarith.$(LIBSUFFIX)
 endif
 
 OCAMLFLAGS = -I +compiler-libs
 OCAMLOPTFLAGS = -I +compiler-libs
 
 ifeq ($(HASDYNLINK),yes)
-TOINSTALL += zarith.cmxs
+TOBUILD += zarith.cmxs
 endif
 
 ifeq ($(HASBINANNOT),yes)
@@ -64,7 +66,7 @@ endif
 # build targets
 ###############
 
-all: $(TOINSTALL)
+all: $(TOBUILD)
 
 tests:
 	make -C tests test
@@ -72,13 +74,13 @@ tests:
 zarith.cma: $(MLSRC:%.ml=%.cmo)
 	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)
 
-zarith.cmxa zarith.$(LIBSUFFIX): $(MLSRC:%.ml=%.cmx)
+zarith.cmxa: $(MLSRC:%.ml=%.cmx)
 	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)
 
 zarith.cmxs: zarith.cmxa libzarith.$(LIBSUFFIX)
 	$(OCAMLOPT) -shared -o $@ -I . zarith.cmxa -linkall
 
-libzarith.$(LIBSUFFIX) dllzarith.$(DLLSUFFIX): $(SSRC:%.S=%.$(OBJSUFFIX)) $(CSRC:%.c=%.$(OBJSUFFIX)) 
+libzarith.$(LIBSUFFIX): $(SSRC:%.S=%.$(OBJSUFFIX)) $(CSRC:%.c=%.$(OBJSUFFIX))
 	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)
 
 zarith_top.cma: zarith_top.cmo

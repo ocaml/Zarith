@@ -91,7 +91,7 @@ doc: $(MLISRC)
 	$(OCAMLDOC) -html -d html -charset utf8 $+
 
 zarith_version.ml: META
-	(echo "let"; grep '^version' META) > zarith_version.ml
+	(echo "let"; grep "version" META | head -1) > zarith_version.ml
 
 # install targets
 #################

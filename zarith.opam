@@ -27,8 +27,8 @@ install: [
   [make "install"]
 ]
 depends: [
-  "ocaml"
-  "ocamlfind" {build}
+  "ocaml"     {>= "4.04.0"}
+  "ocamlfind"
   "conf-gmp"
   "conf-perl" {build}
 ]

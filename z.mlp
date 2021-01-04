@@ -27,13 +27,13 @@ let _ = Callback.register_exception "ml_z_overflow" Overflow
 
 external is_small_int: t -> bool = "%obj_is_int"
 external unsafe_to_int: t -> int = "%identity"
-external unsafe_of_int: int -> t = "%identity"
+external of_int: int -> t = "%identity"
 
 external c_neg: t -> t = "ml_z_neg"
 
 let neg x =
   if is_small_int x && unsafe_to_int x <> min_int
-  then unsafe_of_int (- unsafe_to_int x)
+  then of_int (- unsafe_to_int x)
   else c_neg x
 
 external c_add: t -> t -> t = "ml_z_add"
@@ -43,7 +43,7 @@ let add x y =
     let z = unsafe_to_int x + unsafe_to_int y in
     (* Overflow check -- Hacker's Delight, section 2.12 *)
     if (z lxor unsafe_to_int x) land (z lxor unsafe_to_int y) >= 0 
-    then unsafe_of_int z
+    then of_int z
     else c_add x y
   end else
     c_add x y
@@ -56,7 +56,7 @@ let sub x y =
     (* Overflow check -- Hacker's Delight, section 2.12 *)
     if (unsafe_to_int x lxor unsafe_to_int y)
        land (z lxor unsafe_to_int x) >= 0 
-    then unsafe_of_int z
+    then of_int z
     else c_sub x y
   end else
     c_sub x y
@@ -67,7 +67,7 @@ external c_mul: t -> t -> t = "ml_z_mul"
 let mul x y =
   if is_small_int x && is_small_int y
   && not (mul_overflows (unsafe_to_int x) (unsafe_to_int y))
-  then unsafe_of_int (unsafe_to_int x * unsafe_to_int y)
+  then of_int (unsafe_to_int x * unsafe_to_int y)
   else c_mul x y
 
 external c_div: t -> t -> t = "ml_z_div"
@@ -77,7 +77,7 @@ let div x y =
     if unsafe_to_int y = -1 then
       neg x
     else if is_small_int x then
-      unsafe_of_int (unsafe_to_int x / unsafe_to_int y)
+      of_int (unsafe_to_int x / unsafe_to_int y)
     else
       c_div x y
   else
@@ -91,9 +91,9 @@ external c_rem: t -> t -> t = "ml_z_rem"
 let rem x y =
   if is_small_int y then
     if unsafe_to_int y = -1 then
-      unsafe_of_int 0
+      of_int 0
     else if is_small_int x then
-      unsafe_of_int (unsafe_to_int x mod unsafe_to_int y)
+      of_int (unsafe_to_int x mod unsafe_to_int y)
     else
       c_rem x y
   else
@@ -108,7 +108,7 @@ let divexact x y =
     if unsafe_to_int y = -1 then
       neg x
     else if is_small_int x then
-      unsafe_of_int (unsafe_to_int x / unsafe_to_int y)
+      of_int (unsafe_to_int x / unsafe_to_int y)
     else
       c_divexact x y
   else
@@ -118,14 +118,14 @@ external c_succ: t -> t = "ml_z_succ"
 
 let succ x =
   if is_small_int x && unsafe_to_int x <> max_int
-  then unsafe_of_int (unsafe_to_int x + 1)
+  then of_int (unsafe_to_int x + 1)
   else c_succ x
 
 external c_pred: t -> t = "ml_z_pred"
 
 let pred x =
   if is_small_int x && unsafe_to_int x <> min_int
-  then unsafe_of_int (unsafe_to_int x - 1)
+  then of_int (unsafe_to_int x - 1)
   else c_pred x
 
 external c_abs: t -> t = "ml_z_abs"
@@ -134,7 +134,7 @@ let abs x =
   if is_small_int x then
     if unsafe_to_int x >= 0 then x
     else if unsafe_to_int x <> min_int then
-      unsafe_of_int (- unsafe_to_int x)
+      of_int (- unsafe_to_int x)
     else
       c_abs x
   else
@@ -144,28 +144,28 @@ external c_logand: t -> t -> t = "ml_z_logand"
 
 let logand x y =
   if is_small_int x && is_small_int y
-  then unsafe_of_int (unsafe_to_int x land unsafe_to_int y)
+  then of_int (unsafe_to_int x land unsafe_to_int y)
   else c_logand x y
 
 external c_logor: t -> t -> t = "ml_z_logor"
 
 let logor x y =
   if is_small_int x && is_small_int y
-  then unsafe_of_int (unsafe_to_int x lor unsafe_to_int y)
+  then of_int (unsafe_to_int x lor unsafe_to_int y)
   else c_logor x y
 
 external c_logxor: t -> t -> t = "ml_z_logxor"
 
 let logxor x y =
   if is_small_int x && is_small_int y
-  then unsafe_of_int (unsafe_to_int x lxor unsafe_to_int y)
+  then of_int (unsafe_to_int x lxor unsafe_to_int y)
   else c_logxor x y
 
 external c_lognot: t -> t = "ml_z_lognot"
 
 let lognot x =
   if is_small_int x
-  then unsafe_of_int (unsafe_to_int x lxor (-1))
+  then of_int (unsafe_to_int x lxor (-1))
   else c_lognot x
 
 external c_shift_left: t -> int -> t = "ml_z_shift_left"
@@ -174,7 +174,7 @@ let shift_left x y =
   if is_small_int x && y >= 0 && y < Sys.word_size then begin
     let z = unsafe_to_int x lsl y in
     if z asr y = unsafe_to_int x
-    then unsafe_of_int z
+    then of_int z
     else c_shift_left x y
   end else
     c_shift_left x y
@@ -183,7 +183,7 @@ external c_shift_right: t -> int -> t = "ml_z_shift_right"
 
 let shift_right x y =
   if is_small_int x && y >= 0 then
-    unsafe_of_int
+    of_int
       (unsafe_to_int x asr (if y < Sys.word_size then y else Sys.word_size - 1))
   else
     c_shift_right x y
@@ -193,15 +193,14 @@ external c_shift_right_trunc: t -> int -> t = "ml_z_shift_right_trunc"
 let shift_right_trunc x y =
   if is_small_int x && y >= 0 then
     if y >= Sys.word_size then
-      unsafe_of_int 0
+      of_int 0
     else if unsafe_to_int x >= 0 then
-      unsafe_of_int (unsafe_to_int x lsr y)
+      of_int (unsafe_to_int x lsr y)
     else
-      unsafe_of_int (- ((- unsafe_to_int x) lsr y))
+      of_int (- ((- unsafe_to_int x) lsr y))
   else
     c_shift_right_trunc x y
 
-external of_int: int -> t = "ml_z_of_int" @NOALLOC
 external of_int32: int32 -> t = "ml_z_of_int32"
 external of_int64: int64 -> t = "ml_z_of_int64"
 external of_nativeint: nativeint -> t = "ml_z_of_nativeint"
@@ -396,7 +395,7 @@ let (lxor) = logxor
 let (~!) = lognot
 let (lsl) = shift_left
 let (asr) = shift_right
-external (~$): int -> t = "ml_z_of_int" @NOALLOC
+external (~$): int -> t = "%identity"
 external ( ** ): t -> int -> t = "ml_z_pow"
 
 module Compare = struct

@@ -33,10 +33,10 @@ endif
 
 CSRC = caml_z.c
 SSRC = $(wildcard caml_z_$(ARCH).S)
-MLSRC = z.ml q.ml big_int_Z.ml
+MLSRC = zarith_version.ml z.ml q.ml big_int_Z.ml
 MLISRC = z.mli q.mli big_int_Z.mli
 
-AUTOGEN = z.ml z.mli
+AUTOGEN = zarith_version.ml
 
 CMIOBJ = $(MLISRC:%.mli=%.cmi)
 CMXOBJ = $(MLISRC:%.mli=%.cmx)
@@ -90,7 +90,8 @@ doc: $(MLISRC)
 	mkdir -p html
 	$(OCAMLDOC) -html -d html -charset utf8 $+
 
-
+zarith_version.ml: META
+	(echo "let"; grep '^version' META) > zarith_version.ml
 
 # install targets
 #################
@@ -121,9 +122,6 @@ endif
 
 # rules
 #######
-
-$(AUTOGEN): z.mlp z.mlip $(SSRC) z_pp.pl
-	./z_pp.pl $(ARCH)
 
 %.cmi: %.mli
 	$(OCAMLC) $(OCAMLFLAGS) $(OCAMLINC) -c $<

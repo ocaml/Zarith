@@ -407,4 +407,4 @@ module Compare = struct
   let (<>) a b = not (equal a b)
 end
 
-let version = @VERSION
+let version = Zarith_version.version

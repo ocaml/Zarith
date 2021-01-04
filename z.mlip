@@ -247,14 +247,14 @@ val shift_right_trunc: t -> int -> t
     The second argument must be nonnegative.
  *)
 
-external numbits: t -> int = "ml_z_numbits" @NOALLOC
+external numbits: t -> int = "ml_z_numbits" [@@noalloc]
 (** Returns the number of significant bits in the given number.
     If [x] is zero, [numbits x] returns 0.  Otherwise,
     [numbits x] returns a positive integer [n] such that
     [2^{n-1} <= |x| < 2^n].  Note that [numbits] is defined
     for negative arguments, and that [numbits (-x) = numbits x]. *)
 
-external trailing_zeros: t -> int = "ml_z_trailing_zeros" @NOALLOC
+external trailing_zeros: t -> int = "ml_z_trailing_zeros" [@@noalloc]
 (** Returns the number of trailing 0 bits in the given number.
     If [x] is zero, [trailing_zeros x] returns [max_int].
     Otherwise, [trailing_zeros x] returns a nonnegative integer [n]
@@ -336,16 +336,16 @@ external format: string -> t -> string = "ml_z_format"
     are simply ignored (and not copied in the output).
  *)
 
-external fits_int: t -> bool = "ml_z_fits_int" @NOALLOC
+external fits_int: t -> bool = "ml_z_fits_int" [@@noalloc]
 (** Whether the argument fits in a regular [int]. *)
 
-external fits_int32: t -> bool = "ml_z_fits_int32" @NOALLOC
+external fits_int32: t -> bool = "ml_z_fits_int32" [@@noalloc]
 (** Whether the argument fits in an [int32]. *)
 
-external fits_int64: t -> bool = "ml_z_fits_int64" @NOALLOC
+external fits_int64: t -> bool = "ml_z_fits_int64" [@@noalloc]
 (** Whether the argument fits in an [int64]. *)
 
-external fits_nativeint: t -> bool = "ml_z_fits_nativeint" @NOALLOC
+external fits_nativeint: t -> bool = "ml_z_fits_nativeint" [@@noalloc]
 (** Whether the argument fits in a [nativeint]. *)
 
 
@@ -374,7 +374,7 @@ val pp_print: Format.formatter -> t -> unit
 
 (** {1 Ordering} *)
 
-external compare: t -> t -> int = "ml_z_compare" @NOALLOC
+external compare: t -> t -> int = "ml_z_compare" [@@noalloc]
 (** Comparison.  [compare x y] returns 0 if [x] equals [y],
     -1 if [x] is smaller than [y], and 1 if [x] is greater than [y].
 
@@ -382,7 +382,7 @@ external compare: t -> t -> int = "ml_z_compare" @NOALLOC
     only on OCaml 3.12.1 and later versions.
  *)
 
-external equal: t -> t -> bool = "ml_z_equal" @NOALLOC
+external equal: t -> t -> bool = "ml_z_equal" [@@noalloc]
 (** Equality test. *)
 
 val leq: t -> t -> bool
@@ -397,7 +397,7 @@ val lt: t -> t -> bool
 val gt: t -> t -> bool
 (** Greater than (and not equal). *)
 
-external sign: t -> int = "ml_z_sign" @NOALLOC
+external sign: t -> int = "ml_z_sign" [@@noalloc]
 (** Returns -1, 0, or 1 when the argument is respectively negative, null, or
     positive.
  *)
@@ -414,7 +414,7 @@ val is_even: t -> bool
 val is_odd: t -> bool
 (** Returns true if the argument is odd, false if even. *)
 
-external hash: t -> int = "ml_z_hash" @NOALLOC
+external hash: t -> int = "ml_z_hash" [@@noalloc]
 (** Hashes a number, producing a small integer.
     The result is consistent with equality: if [a] = [b], then [hash a] =
     [hash b].
@@ -585,7 +585,7 @@ val log2up: t -> int
 
 (** {1 Representation} *)
 
-external size: t -> int = "ml_z_size" @NOALLOC
+external size: t -> int = "ml_z_size" [@@noalloc]
 (** Returns the number of machine words used to represent the number. *)
 
 external extract: t -> int -> int -> t = "ml_z_extract"

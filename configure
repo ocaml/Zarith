@@ -406,14 +406,6 @@ case "$ocamlver" in
         ;;
 esac
 
-# Extended comparisons available since 3.12.1
-echo "OCaml extended comparison supported"
-ccdef="-DZ_OCAML_COMPARE_EXT $ccdef"
-
-# New hash functions available since 4.00.0
-echo "OCaml new hash functions available"
-ccdef="-DZ_OCAML_HASH $ccdef"
-
 # -bin-annot available since 4.00.0
 echo "OCaml supports -bin-annot to produce documentation"
 hasbinannot='yes'

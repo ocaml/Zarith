@@ -36,7 +36,7 @@ SSRC = $(wildcard caml_z_$(ARCH).S)
 MLSRC = z.ml q.ml big_int_Z.ml
 MLISRC = z.mli q.mli big_int_Z.mli
 
-AUTOGEN = z.ml z.mli z_features.h
+AUTOGEN = z.ml z.mli
 
 CMIOBJ = $(MLISRC:%.mli=%.cmi)
 CMXOBJ = $(MLISRC:%.mli=%.cmx)
@@ -152,7 +152,7 @@ depend: $(AUTOGEN)
 
 include depend
 
-$(CSRC:%.c=%.$(OBJSUFFIX)): z_features.h zarith.h
+$(CSRC:%.c=%.$(OBJSUFFIX)): zarith.h
 
 .PHONY: clean
 .PHONY: tests

@@ -396,34 +396,27 @@ if test "$gmp" != 'OK'; then echo "cannot find GMP nor MPIR"; exit 2; fi
 
 ocamlver=`ocamlc -version`
 
-# Extended comparisons available since 3.12.1
+# OCaml version 4.04 or later is required
+
 case "$ocamlver" in
-    [12].* | 3.0* | 3.10* | 3.11* | 3.12.0*)
-        ;;
-    *)
-        echo "OCaml extended comparison supported"
-        ccdef="-DZ_OCAML_COMPARE_EXT $ccdef"
+    [123].* | 4.0[0123].*)
+        echo "OCaml version $ocamlver is no longer supported."
+        echo "OCaml version 4.04.0 or later is required."
+        exit 2
         ;;
 esac
+
+# Extended comparisons available since 3.12.1
+echo "OCaml extended comparison supported"
+ccdef="-DZ_OCAML_COMPARE_EXT $ccdef"
 
 # New hash functions available since 4.00.0
-case "$ocamlver" in
-    [123].*)
-        ;;
-    *)
-        echo "OCaml new hash functions available"
-        ccdef="-DZ_OCAML_HASH $ccdef"
-        ;;
-esac
+echo "OCaml new hash functions available"
+ccdef="-DZ_OCAML_HASH $ccdef"
 
 # -bin-annot available since 4.00.0
-case "$ocamlver" in
-    [123].*)
-        hasbinannot='no';;
-    *)
-        echo "OCaml supports -bin-annot to produce documentation"
-        hasbinannot='yes';;
-esac
+echo "OCaml supports -bin-annot to produce documentation"
+hasbinannot='yes'
 
 # Changes to C API (the custom_operation struct) since 4.08.0
 case "$ocamlver" in

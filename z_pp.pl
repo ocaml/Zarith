@@ -25,9 +25,6 @@ die "Usage: './z_pp.pl architecture'" unless $#ARGV==0;
 $v = `grep version META`;
 ($ver) = $v =~ /version\s*=\s*(\S+)/;
 
-$ov = `ocamlc -version`;
-($major,$minor,$extra) = split(/\./, $ov, 3);
-
 # specialize .ml & .mli files
 
 sub doml {
@@ -39,7 +36,8 @@ sub doml {
         $l =~ s/\@VERSION/$ver/;
         print O "$l";
     }
-    close F;
+    close I;
+    close O;
 }
 
 doml "ml";

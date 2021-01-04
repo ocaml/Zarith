@@ -32,7 +32,6 @@ Additional features include:
 * OCaml, version 4.04.0 or later.
 * Either the GMP library or the MPIR library, including development files.
 * GCC or Clang or a gcc-compatible C compiler and assembler (other compilers may work).
-* The Perl programming language.
 * The Findlib package manager (optional, recommended).
 
 

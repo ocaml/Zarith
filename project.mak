@@ -32,7 +32,6 @@ endif
 ###############
 
 CSRC = caml_z.c
-SSRC = $(wildcard caml_z_$(ARCH).S)
 MLSRC = zarith_version.ml z.ml q.ml big_int_Z.ml
 MLISRC = z.mli q.mli big_int_Z.mli
 
@@ -80,7 +79,7 @@ zarith.cmxa: $(MLSRC:%.ml=%.cmx)
 zarith.cmxs: zarith.cmxa libzarith.$(LIBSUFFIX)
 	$(OCAMLOPT) -shared -o $@ -I . zarith.cmxa -linkall
 
-libzarith.$(LIBSUFFIX): $(SSRC:%.S=%.$(OBJSUFFIX)) $(CSRC:%.c=%.$(OBJSUFFIX))
+libzarith.$(LIBSUFFIX): $(CSRC:%.c=%.$(OBJSUFFIX))
 	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)
 
 zarith_top.cma: zarith_top.cmo

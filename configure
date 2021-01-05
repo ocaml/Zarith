@@ -22,8 +22,6 @@ host='auto'
 gmp='auto'
 perf='no'
 
-ar="${AR}"
-[ -z "$ar" ] && ar='ar'
 ocaml='ocaml'
 ocamlc='ocamlc'
 ocamlopt='ocamlopt'
@@ -60,7 +58,6 @@ where options include:
   -prefixnonocaml      add for non ocaml tool, e.g. -prefixnonocaml x86_64-w64-mingw32-
 
 Environment variables that affect configuration:
-  AR                   archiver tool
   CC                   C compiler to use (default: try gcc, then cc)
   CFLAGS               extra flags to pass to the C compiler
   CPPFLAGS             extra includes, e.g. -I/path/to/gmp/include
@@ -202,9 +199,6 @@ searchbinreq $ocamlc
 searchbinreq $ocamldep
 searchbinreq $ocamlmklib
 searchbinreq $ocamldoc
-searchbin $ar
-if test $? -eq 0; then ar=$prefixnonocaml$ar; searchbinreq $ar; fi
-searchbinreq perl
 
 if test -n "$CC"; then
   searchbinreq "$CC"
@@ -392,9 +386,7 @@ OCAMLOPTFLAGS=$mloptflags
 OCAMLINC=$mlinc
 CFLAGS=$ccinc $ccdef $ccopt
 LIBS=$cclib
-ARCH=$arch
 INSTALLDIR=$installdir
-AR=$ar
 INSTALL=install
 OCAMLFIND=ocamlfind
 INSTMETH=$instmeth

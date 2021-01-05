@@ -16,3 +16,17 @@ jobs:
       run: make
     - name: Run the testsuite
       run: make -C tests test
+
+  MacOS:
+    runs-on: macos-latest
+    steps:
+    - name: Install packages
+      run: brew install ocaml ocaml-findlib gmp
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: configure tree
+      run: ./configure
+    - name: Build
+      run: make
+    - name: Run the testsuite
+      run: make -C tests test

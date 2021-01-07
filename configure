@@ -294,27 +294,6 @@ if test "x$host" = 'xauto'; then
     fi
 fi
 
-
-# Add extra options for some hosts
-
-case $host in
-    x86_64-*linux-gnu|x86_64-kfreebsd-gnu)
-        if test $wordsize = 32; then
-            # 32-bit OCaml on a 64-bit host
-            ccopt="-m32 $ccopt"
-        fi
-        ;;
-    i386-*darwin* | x86_64-*darwin*)
-        if test "x$wordsize" = "x64"; then
-            ccopt="-arch x86_64 $ccopt"
-            checkcc
-        else
-            ccopt="-arch i386 $ccopt"
-            checkcc
-        fi
-        ;;
-esac
-
 # check GMP, MPIR
 
 if test "$gmp" = 'gmp' -o "$gmp" = 'auto'; then

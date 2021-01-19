@@ -61,7 +61,7 @@ let sub x y =
   end else
     c_sub x y
 
-external mul_overflows: int -> int -> bool = "ml_z_mul_overflows" @NOALLOC
+external mul_overflows: int -> int -> bool = "ml_z_mul_overflows" [@@noalloc]
 external c_mul: t -> t -> t = "ml_z_mul"
 
 let mul x y =
@@ -216,22 +216,22 @@ external to_int64: t -> int64 = "ml_z_to_int64"
 external to_nativeint: t -> nativeint = "ml_z_to_nativeint"
 external format: string -> t -> string = "ml_z_format"
 external of_substring_base: int -> string -> pos:int -> len:int -> t = "ml_z_of_substring_base"
-external compare: t -> t -> int = "ml_z_compare" @NOALLOC
-external equal: t -> t -> bool = "ml_z_equal" @NOALLOC
-external sign: t -> int = "ml_z_sign" @NOALLOC
+external compare: t -> t -> int = "ml_z_compare" [@@noalloc]
+external equal: t -> t -> bool = "ml_z_equal" [@@noalloc]
+external sign: t -> int = "ml_z_sign" [@@noalloc]
 external gcd: t -> t -> t = "ml_z_gcd"
 external gcdext_intern: t -> t -> (t * t * bool) = "ml_z_gcdext_intern"
 external sqrt: t -> t = "ml_z_sqrt"
 external sqrt_rem: t -> (t * t) = "ml_z_sqrt_rem"
-external numbits: t -> int = "ml_z_numbits" @NOALLOC
-external trailing_zeros: t -> int = "ml_z_trailing_zeros" @NOALLOC
+external numbits: t -> int = "ml_z_numbits" [@@noalloc]
+external trailing_zeros: t -> int = "ml_z_trailing_zeros" [@@noalloc]
 external popcount: t -> int = "ml_z_popcount"
 external hamdist: t -> t -> int = "ml_z_hamdist"
-external size: t -> int = "ml_z_size" @NOALLOC
-external fits_int: t -> bool = "ml_z_fits_int" @NOALLOC
-external fits_int32: t -> bool = "ml_z_fits_int32" @NOALLOC
-external fits_int64: t -> bool = "ml_z_fits_int64" @NOALLOC
-external fits_nativeint: t -> bool = "ml_z_fits_nativeint" @NOALLOC
+external size: t -> int = "ml_z_size" [@@noalloc]
+external fits_int: t -> bool = "ml_z_fits_int" [@@noalloc]
+external fits_int32: t -> bool = "ml_z_fits_int32" [@@noalloc]
+external fits_int64: t -> bool = "ml_z_fits_int64" [@@noalloc]
+external fits_nativeint: t -> bool = "ml_z_fits_nativeint" [@@noalloc]
 external extract: t -> int -> int -> t = "ml_z_extract"
 external powm: t -> t -> t -> t = "ml_z_powm"
 external pow: t -> int -> t = "ml_z_pow"
@@ -243,7 +243,7 @@ external perfect_power: t -> bool = "ml_z_perfect_power"
 external perfect_square: t -> bool = "ml_z_perfect_square"
 external probab_prime: t -> int -> int = "ml_z_probab_prime"
 external nextprime: t -> t = "ml_z_nextprime"
-external hash: t -> int = "ml_z_hash" @NOALLOC
+external hash: t -> int = "ml_z_hash" [@@noalloc]
 external to_bits: t -> string = "ml_z_to_bits"
 external of_bits: string -> t = "ml_z_of_bits"
 external divisible: t -> t -> bool = "ml_z_divisible"
@@ -314,11 +314,11 @@ let lcm u v =
     let g = gcd u v in
     abs (mul (divexact u g) v)
 
-external testbit_internal: t -> int -> bool = "ml_z_testbit" @NOALLOC
+external testbit_internal: t -> int -> bool = "ml_z_testbit" [@@noalloc]
 let testbit x n =
   if n >= 0 then testbit_internal x n else invalid_arg "Z.testbit"
 (* The test [n >= 0] is done in Caml rather than in the C stub code
-   so that the latter raises no exceptions and can be declared @NOALLOC. *)
+   so that the latter raises no exceptions and can be declared [@@noalloc]. *)
 
 let is_odd x = testbit_internal x 0
 let is_even x  = not (testbit_internal x 0)
@@ -407,4 +407,4 @@ module Compare = struct
   let (<>) a b = not (equal a b)
 end
 
-let version = @VERSION
+let version = Zarith_version.version

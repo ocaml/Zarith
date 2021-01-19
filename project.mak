@@ -32,11 +32,10 @@ endif
 ###############
 
 CSRC = caml_z.c
-SSRC = $(wildcard caml_z_$(ARCH).S)
-MLSRC = z.ml q.ml big_int_Z.ml
+MLSRC = zarith_version.ml z.ml q.ml big_int_Z.ml
 MLISRC = z.mli q.mli big_int_Z.mli
 
-AUTOGEN = z.ml z.mli z_features.h
+AUTOGEN = zarith_version.ml
 
 CMIOBJ = $(MLISRC:%.mli=%.cmi)
 CMXOBJ = $(MLISRC:%.mli=%.cmx)
@@ -80,7 +79,7 @@ zarith.cmxa: $(MLSRC:%.ml=%.cmx)
 zarith.cmxs: zarith.cmxa libzarith.$(LIBSUFFIX)
 	$(OCAMLOPT) -shared -o $@ -I . zarith.cmxa -linkall
 
-libzarith.$(LIBSUFFIX): $(SSRC:%.S=%.$(OBJSUFFIX)) $(CSRC:%.c=%.$(OBJSUFFIX))
+libzarith.$(LIBSUFFIX): $(CSRC:%.c=%.$(OBJSUFFIX))
 	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)
 
 zarith_top.cma: zarith_top.cmo
@@ -90,7 +89,8 @@ doc: $(MLISRC)
 	mkdir -p html
 	$(OCAMLDOC) -html -d html -charset utf8 $+
 
-
+zarith_version.ml: META
+	(echo "let"; grep "version" META | head -1) > zarith_version.ml
 
 # install targets
 #################
@@ -122,9 +122,6 @@ endif
 # rules
 #######
 
-$(AUTOGEN): z.mlp z.mlip $(SSRC) z_pp.pl
-	./z_pp.pl $(ARCH)
-
 %.cmi: %.mli
 	$(OCAMLC) $(OCAMLFLAGS) $(OCAMLINC) -c $<
 
@@ -152,7 +149,7 @@ depend: $(AUTOGEN)
 
 include depend
 
-$(CSRC:%.c=%.$(OBJSUFFIX)): z_features.h zarith.h
+$(CSRC:%.c=%.$(OBJSUFFIX)): zarith.h
 
 .PHONY: clean
 .PHONY: tests

@@ -30,7 +30,6 @@ depends: [
   "ocaml"     {>= "4.04.0"}
   "ocamlfind"
   "conf-gmp"
-  "conf-perl" {build}
 ]
 synopsis:
   "Implements arithmetic and logical operations over arbitrary-precision integers"

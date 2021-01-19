@@ -35,7 +35,6 @@
 #include <mpir.h>
 #endif
 
-#include "z_features.h"
 #include "zarith.h"
 
 #ifdef __cplusplus
@@ -50,9 +49,7 @@ extern "C" {
 #include <caml/intext.h>
 #include <caml/callback.h>
 #include <caml/intext.h>
-#ifdef Z_OCAML_HASH
 #include <caml/hash.h>
-#endif
 
 #define inline __inline
 
@@ -102,16 +99,6 @@ extern "C" {
    hashing) instead of abstract tags
 */
 #define Z_CUSTOM_BLOCK 1
-
-/* whether the "compare_ext" operation over custom blocks is supported.
-   This operation is required for OCaml's generic comparisons to
-   operate properly over values of type Z.t.
-   The compare_ext operation is supported in OCaml since version 3.12.1.
-*/
-/*
-  #define Z_OCAML_COMPARE_EXT 0
-  now set by configure
-*/
 
 /*---------------------------------------------------
   DATA STRUCTURES
@@ -3244,10 +3231,6 @@ int ml_z_custom_compare(value arg1, value arg2)
   return r;
 }
 
-#ifndef Z_OCAML_HASH
-#define caml_hash_mix_uint32(h,n) ((h) * 65599 + (n))
-#endif
-
 static intnat ml_z_custom_hash(value v)
 {
   Z_DECL(v);
@@ -3380,11 +3363,7 @@ struct custom_operations ml_z_custom_ops = {
   ml_z_custom_hash,
   ml_z_custom_serialize,
   ml_z_custom_deserialize,
-#if Z_OCAML_COMPARE_EXT
   ml_z_custom_compare,
-#else
-  custom_compare_ext_default,
-#endif
 #ifndef Z_OCAML_LEGACY_CUSTOM_OPERATIONS
   custom_fixed_length_default
 #endif

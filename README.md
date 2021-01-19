@@ -95,7 +95,7 @@ See LICENSE file for details.
 ## AUTHORS
 
 * Antoine Miné, Sorbonne Université, formerly at ENS Paris.
-* Xavier Leroy, INRIA Paris-Rocquencourt.
+* Xavier Leroy, Collège de France, formerly at Inria Paris.
 * Pascal Cuoq, TrustInSoft.
 * Christophe Troestler (toplevel module)
 

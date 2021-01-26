@@ -16,13 +16,12 @@ However, small integers are represented as unboxed Caml integers, to save
 space and improve performance. Big integers are allocated in the Caml heap,
 bypassing GMP's memory management and achieving better GC behavior than e.g.
 the MLGMP library.
-Computations on small integers use a special, faster path (coded in assembly
-for some platforms and functions) eschewing calls to GMP, while computations
-on large intergers use the low-level MPN functions from GMP.
+Computations on small integers use a special, faster path (in C or OCaml)
+eschewing calls to GMP, while computations on large intergers use the
+low-level MPN functions from GMP.
 
 Arbitrary-precision integers can be compared correctly using OCaml's
 polymorphic comparison operators (`=`, `<`, `>`, etc.).
-This requires OCaml version 3.12.1 or later, though.
 
 Additional features include:
 * a module `Q` for rationals, built on top of `Z` (see `q.mli`)
@@ -30,10 +29,9 @@ Additional features include:
 
 ## REQUIREMENTS
 
-* OCaml, preferably version 3.12.1 or later.  (Earlier versions are usable but generic comparisons will misbehave.)
+* OCaml, version 4.04.0 or later.
 * Either the GMP library or the MPIR library, including development files.
 * GCC or Clang or a gcc-compatible C compiler and assembler (other compilers may work).
-* The Perl programming language.
 * The Findlib package manager (optional, recommended).
 
 
@@ -96,8 +94,8 @@ See LICENSE file for details.
 
 ## AUTHORS
 
-* Antoine Miné, Université Pierre et Marie Curie, formerly ENS Paris.
-* Xavier Leroy, INRIA Paris-Rocquencourt.
+* Antoine Miné, Sorbonne Université, formerly at ENS Paris.
+* Xavier Leroy, Collège de France, formerly at Inria Paris.
 * Pascal Cuoq, TrustInSoft.
 * Christophe Troestler (toplevel module)
 
@@ -117,22 +115,16 @@ INRIA Rocquencourt (Institut national de recherche en informatique, France).
 Source files        | Description
 --------------------|-----------------------------------------
   configure         | configuration script
-  caml_z.c          | C implementation of all functions using GMP/MPIR
+  z.ml[i]           | Z module and implementation for small integers
+  caml_z.c          | C implementation using GMP/MPIR
   caml_z_tommath.c  | C implementation using LibTomMath
-  caml_z_*.S        | asm implementation for a few functions
-  z_pp.pl           | script to generate z.ml[i] from z.ml[i]p
-  z.ml[i]p          | templates used to generate z.ml[i]p
   big_int_z.ml[i]   | wrapper to provide a Big_int compatible API to Z
   q.ml[i]           | rational library, pure OCaml on top of Z
   zarith_top.ml     | toplevel module to provide pretty-printing
   projet.mak        | builds Z, Q and the tests
+  zarith.opam       | package description for opam
+  z_mlgmpidl.ml[i]  | conversion between Zarith and MLGMPIDL
   tests/            | simple regression tests and benchmarks
-
-Note: `z_pp.pl` simply scans the asm file (if any) to see which functions have
-an asm implementation. It then fixes the external statements in .mlp and
-.mlip accordingly.
-The argument to `z_pp.pl` is the suffix `*` of the `caml_z_*.S` to use (guessed by configure).
-
 
 ## BACK-END COMPATIBILITY
 
@@ -144,8 +136,8 @@ The choice of back-end can be overridden with the `-gmp`, `-mpir`, and `-tommath
 GMP and MPIR support all functions and should give identical results.
 The hashing function is notably identical and the marshalling format is compatible for GMP and MPIR, and for 32-bit and 64-bit.
 
-LibTomMath support is experimental.
+LibTomMath support is partial and experimental.
 Not all functions are implemented. 
 Unsupported functions raise a `Failure` exception.
 The hashing function is different from the GMP/MPIR one, and the hashed value actually depends on the digit bit-size used by LibTomMath (which can be queried with `digit_bits ()`).
-Additionally, the marshaling format is incompatible with the GMP/MPIR one, although is independent from the digit bit-size.
+Additionally, the marshaling format is incompatible with the GMP/MPIR one, although it is independent from the digit bit-size.

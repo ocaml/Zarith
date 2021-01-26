@@ -41,16 +41,29 @@
 #include <caml/intext.h>
 #include <caml/callback.h>
 #include <caml/intext.h>
-#ifdef Z_OCAML_HASH
 #include <caml/hash.h>
-#endif
 
 #define inline __inline
 
 #ifdef _MSC_VER
 #include <float.h>
+#include <intrin.h>
 #endif
 
+/* The "__has_builtin" special macro from Clang */
+#ifdef __has_builtin
+#define HAS_BUILTIN(x) __has_builtin(x)
+#else
+#define HAS_BUILTIN(x) 0
+#endif
+
+/* Whether the fast path (arguments and result are small integers)
+￼   has already be handled in OCaml, so that there is no need to
+￼   re-test for it in C functions.
+￼   Applies to: neg, abs, add, sub, mul, div, rem, succ, pred,
+￼   logand, logor, logxor, lognot, shifts, divexact.
+￼*/
+#define Z_FAST_PATH_IN_OCAML 1
 
 
 /*---------------------------------------------------
@@ -688,7 +701,7 @@ CAMLprim value ml_z_size(value v)
 
 CAMLprim value ml_z_neg(value arg)
 {
-#ifndef Z_ASM_neg
+#if !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg)) {
     /* fast path */
     if (arg > Val_long(Z_MIN_INT)) return 2 - arg;
@@ -714,7 +727,7 @@ CAMLprim value ml_z_neg(value arg)
 
 CAMLprim value ml_z_abs(value arg)
 {
-#ifndef Z_ASM_abs
+#if !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg)) {
     /* fast path */
     if (arg >= Val_long(0)) return arg;
@@ -744,7 +757,7 @@ CAMLprim value ml_z_abs(value arg)
 
 CAMLprim value ml_z_add(value arg1, value arg2)
 {
-#ifndef Z_ASM_add
+#if !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg1) && Is_long(arg2)) {
     /* fast path */
     intnat a1 = Long_val(arg1);
@@ -777,7 +790,7 @@ CAMLprim value ml_z_add(value arg1, value arg2)
 
 CAMLprim value ml_z_sub(value arg1, value arg2)
 {
-#ifndef Z_ASM_sub
+#if !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg1) && Is_long(arg2)) {
     /* fast path */
     intnat a1 = Long_val(arg1);
@@ -808,16 +821,65 @@ CAMLprim value ml_z_sub(value arg1, value arg2)
   }
 }
 
+CAMLprim value ml_z_mul_overflows(value vx, value vy)
+{
+#if HAS_BUILTIN(__builtin_mul_overflow) || __GNUC__ >= 5
+  intnat z;
+  return Val_bool(__builtin_mul_overflow(vx - 1, vy >> 1, &z));
+#elif defined(__GNUC__) && defined(__x86_64__)
+  intnat z;
+  unsigned char o;
+  asm("imulq %1, %3; seto %0"
+      : "=q" (o), "=r" (z)
+      : "1" (vx - 1), "r" (vy >> 1)
+      : "cc");
+  return Val_int(o);
+#elif defined(_MSC_VER) && defined(_M_X64)
+  intnat hi, lo;
+  lo = _mul128(vx - 1, vy >> 1, &hi);
+  return Val_bool(hi != lo >> 63);
+#else
+  /* Portable C code */
+  intnat x = Long_val(vx);
+  intnat y = Long_val(vy);
+  /* Quick approximate check for small values of x and y.
+     Also catches the cases x = 0, x = 1, y = 0, y = 1. */
+  if (Z_FITS_HINT(x)) {
+    if (Z_FITS_HINT(y)) return Val_false;
+    if ((uintnat) x <= 1) return Val_false;
+  }
+  if ((uintnat) y <= 1) return Val_false;
+#if 1
+  /* Give up at this point; we'll go through the general case in ml_z_mul */
+  return Val_true;
+#else
+  /* The product x*y is representable as an unboxed integer if
+     it is in [Z_MIN_INT, Z_MAX_INT].
+     x >= 0 y >= 0:  x*y >= 0 and x*y <= Z_MAX_INT <-> y <= Z_MAX_INT / x
+     x < 0  y >= 0:  x*y <= 0 and x*y >= Z_MIN_INT <-> x >= Z_MIN_INT / y
+     x >= 0 y < 0 :  x*y <= 0 and x*y >= Z_MIN_INT <-> y >= Z_MIN_INT / x
+     x < 0  y < 0 :  x*y >= 0 and x*y <= Z_MAX_INT <-> x >= Z_MAX_INT / y */
+  if (x >= 0)
+    if (y >= 0)
+      return Val_bool(y > Z_MAX_INT / x);
+    else
+      return Val_bool(y < Z_MIN_INT / x);
+  else
+    if (y >= 0)
+      return Val_bool(x < Z_MIN_INT / y);
+    else
+      return Val_bool(x < Z_MAX_INT / y);
+#endif
+#endif
+}
+
 CAMLprim value ml_z_mul(value arg1, value arg2)
 {
-#ifndef ASM_mul
-  if (Is_long(arg1) && Is_long(arg2)) {
+#if !Z_FAST_PATH_IN_OCAML
+  if (Is_long(arg1) && Is_long(arg2) &&
+      ml_z_mul_overflows(arg1, arg2) == Val_false)) {
     /* fast path */
-    intnat a1 = Long_val(arg1);
-    intnat a2 = Long_val(arg2);
-    if (!a1 || !a2) return Val_long(0);
-    /* small argument case */
-    if (Z_FITS_HINT(arg1) && Z_FITS_HINT(arg2)) return Val_long(a1 * a2);
+    return Val_long(Long_val(arg1) * Long_var(arg2));
   }
 #endif
   {
@@ -1037,7 +1099,7 @@ CAMLprim value ml_z_fdiv(value arg1, value arg2)
 
 CAMLprim value ml_z_succ(value arg)
 {
-#ifndef Z_ASM_succ
+#if !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg)) {
     /* fast path */
     if (arg < Val_long(Z_MAX_INT)) return arg + 2;
@@ -1064,7 +1126,7 @@ CAMLprim value ml_z_succ(value arg)
 
 CAMLprim value ml_z_pred(value arg)
 {
-#ifndef Z_ASM_pred
+#if !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg)) {
     /* fast path */
      if (arg > Val_long(Z_MIN_INT)) return arg - 2;
@@ -1192,7 +1254,7 @@ CAMLprim value ml_z_gcdext_intern(value arg1, value arg2)
 
 CAMLprim value ml_z_logand(value arg1, value arg2)
 {
-#ifndef Z_ASM_logand
+#if !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg1) && Is_long(arg2)) {
     /* fast path */
     return arg1 & arg2;
@@ -1222,7 +1284,7 @@ CAMLprim value ml_z_logand(value arg1, value arg2)
 
 CAMLprim value ml_z_logor(value arg1, value arg2)
 {
-#ifndef Z_ASM_logor
+#if !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg1) && Is_long(arg2)) {
     /* fast path */
     return arg1 | arg2;
@@ -1252,7 +1314,7 @@ CAMLprim value ml_z_logor(value arg1, value arg2)
 
 CAMLprim value ml_z_logxor(value arg1, value arg2)
 {
-#ifndef Z_ASM_logxor
+#if !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg1) && Is_long(arg2)) {
     /* fast path */
     return (arg1 ^ arg2) | 1;
@@ -1282,7 +1344,7 @@ CAMLprim value ml_z_logxor(value arg1, value arg2)
 
 CAMLprim value ml_z_lognot(value arg)
 {
-#ifndef Z_ASM_lognot
+#if !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg)) {
     /* fast path */
     return (~arg) | 1;
@@ -1314,7 +1376,7 @@ CAMLprim value ml_z_shift_left(value arg, value count)
   if (c > INT_MAX)
     caml_invalid_argument("Z.shift_left: count argument too large");
   if (!c) return arg;
-#ifndef Z_ASM_shift_left
+#if !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg) && c < Z_INTNAT_BITS) {
     /* fast path */
     value a = arg - 1;
@@ -1348,7 +1410,7 @@ CAMLprim value ml_z_shift_right(value arg, value count)
   if (c > INT_MAX)
     caml_invalid_argument("Z.shift_left: count argument too large");
   if (!c) return arg;
-#ifndef Z_ASM_shift_right
+#if !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg)) {
     /* fast path */
     if (c >= Z_INTNAT_BITS) {
@@ -1774,9 +1836,6 @@ int ml_z_custom_compare(value arg1, value arg2)
   }
 }
 
-#ifndef Z_OCAML_HASH
-#define caml_hash_mix_uint32(h,n) ((h) * 65599 + (n))
-#endif
 
 #if 1 /* Select the ml_z_custom_hash implementation */
 
@@ -1946,11 +2005,7 @@ struct custom_operations ml_z_custom_ops = {
   ml_z_custom_hash,
   ml_z_custom_serialize,
   ml_z_custom_deserialize,
-#if Z_OCAML_COMPARE_EXT
   ml_z_custom_compare,
-#else
-  custom_compare_ext_default,
-#endif
 #ifndef Z_OCAML_LEGACY_CUSTOM_OPERATIONS
   custom_fixed_length_default
 #endif
@@ -1960,13 +2015,6 @@ struct custom_operations ml_z_custom_ops = {
 /*---------------------------------------------------
   INIT / EXIT
   ---------------------------------------------------*/
-
-CAMLprim value ml_z_install_frametable()
-{
-  /* nothing to do for bytecode version */
-  return Val_unit;
-}
-
 CAMLprim value ml_z_init()
 {
   mp_err err = MP_OKAY;

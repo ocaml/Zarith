@@ -34,7 +34,7 @@ endif
 MLSRC = zarith_version.ml z.ml q.ml big_int_Z.ml
 MLISRC = z.mli q.mli big_int_Z.mli
 
-AUTOGEN = zarith_version.ml
+AUTOGEN =
 
 CMIOBJ = $(MLISRC:%.mli=%.cmi)
 CMXOBJ = $(MLISRC:%.mli=%.cmx)
@@ -88,8 +88,6 @@ doc: $(MLISRC)
 	mkdir -p html
 	$(OCAMLDOC) -html -d html -charset utf8 $+
 
-zarith_version.ml: META
-	(echo "let"; grep "version" META | head -1; echo "let backend = \"$(BACKEND)\"") > zarith_version.ml
 
 
 # install targets

@@ -368,6 +368,14 @@ case "$ocamlver" in
     ;;
 esac
 
+
+# zarith version
+
+version=`grep "version" META | head -1`
+echo "let $version" > zarith_version.ml
+echo "let backend = \"$backend\"" >> zarith_version.ml
+
+
 # dump Makefile
 
 cat > Makefile <<EOF

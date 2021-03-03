@@ -712,7 +712,7 @@ end
 (** {1 Miscellaneous} *)
 
 val version: string
-(** Library version (this file refers to version [@VERSION]). *)
+(** Library version. *)
 
 (**/**)
 

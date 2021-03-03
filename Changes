@@ -1,3 +1,11 @@
+Release 1.12 (2021-03-03)
+- PR #79: fast path in OCaml (instead of assembly language) [Xavier Leroy]
+- PR #94: remove source preprocessing and simplify configuration [Xavier Leroy]
+- PR #93: fix parallel build [Guillaume Melquiond]
+- PR #92: fix benchmark for subtraction [Guillaume Melquiond]
+- require OCaml 4.04 or later [Xavier Leroy]
+- add CI testing on macOS  [Xavier Leroy]
+
 Release 1.11 (2020-11-09)
 - Fixes #72, #75, #78: multiple fixes for of_string, support for underscores [hhugo]
 - Fix #74: fix Q.to_float for denormal numbers [pascal-cuoq]

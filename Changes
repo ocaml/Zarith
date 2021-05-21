@@ -1,3 +1,19 @@
+Release 1.12 (2021-03-03)
+- PR #79: fast path in OCaml (instead of assembly language) [Xavier Leroy]
+- PR #94: remove source preprocessing and simplify configuration [Xavier Leroy]
+- PR #93: fix parallel build [Guillaume Melquiond]
+- PR #92: fix benchmark for subtraction [Guillaume Melquiond]
+- require OCaml 4.04 or later [Xavier Leroy]
+- add CI testing on macOS  [Xavier Leroy]
+
+Release 1.11 (2020-11-09)
+- Fixes #72, #75, #78: multiple fixes for of_string, support for underscores [hhugo]
+- Fix #74: fix Q.to_float for denormal numbers [pascal-cuoq]
+- Fix #84: always represent min_int by a tagged integer [xavierleroy]
+- muliple fixes for min_int arguments [xavierleroy]
+- Improvement #85: optimize the fast paths for comparison and equality tests [xavierleroy]
+- Fix #80: ar tool is detected in configure [jsmolic]
+
 Release 1.10 (2020-09-11)
 - Improvement #66: added some mpz functions (divisible, congruent, jacobi, legendre, krobecker, remove, fac, primorial, bin, fib, lucnum)
 - Improvement #65: Q.of_string now handles decimal point and scientific notation [Ghiles Ziat]
@@ -5,7 +21,7 @@ Release 1.10 (2020-09-11)
 - Fix #62: raise division by 0 for 0-modulo in powm
 - Fix #59: improved abs for negative arguments
 - Fix #58: gcd, lcm, gcdext now behave as gmp for negative arguments
-- Fix #57: clean compile with sage strings [hugo]
+- Fix #57: clean compile with safe strings [hhugo]
 
 Release 1.9.1 (2019-08-28) (bugfix):
 - Fix configure issue for non-bash sh introduced in #45

@@ -171,7 +171,7 @@ let lognot x =
 external c_shift_left: t -> int -> t = "ml_z_shift_left"
 
 let shift_left x y =
-  if is_small_int x && y >= 0 && y < Sys.word_size then begin
+  if is_small_int x && y >= 0 && y <= Sys.int_size then begin
     let z = unsafe_to_int x lsl y in
     if z asr y = unsafe_to_int x
     then of_int z
@@ -184,7 +184,7 @@ external c_shift_right: t -> int -> t = "ml_z_shift_right"
 let shift_right x y =
   if is_small_int x && y >= 0 then
     of_int
-      (unsafe_to_int x asr (if y < Sys.word_size then y else Sys.word_size - 1))
+      (unsafe_to_int x asr (if y <= Sys.int_size then y else Sys.int_size))
   else
     c_shift_right x y
 
@@ -192,7 +192,7 @@ external c_shift_right_trunc: t -> int -> t = "ml_z_shift_right_trunc"
 
 let shift_right_trunc x y =
   if is_small_int x && y >= 0 then
-    if y >= Sys.word_size then
+    if y > Sys.int_size then
       of_int 0
     else if unsafe_to_int x >= 0 then
       of_int (unsafe_to_int x lsr y)

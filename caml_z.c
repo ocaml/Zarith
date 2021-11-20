@@ -3049,15 +3049,16 @@ CAMLprim value ml_z_kronecker(value a, value b)
 CAMLprim value ml_z_remove(value a, value b)
 {
   CAMLparam2(a,b);
-  CAMLlocal1(r);
+  CAMLlocal2(r,tmp);
   mpz_t ma, mb, mr;
   int i;
   ml_z_mpz_init_set_z(ma, a);
   ml_z_mpz_init_set_z(mb, b);
   mpz_init(mr);
   i = mpz_remove(mr, ma, mb);
+  tmp = ml_z_from_mpz(mr);
   r = caml_alloc_small(2, 0);
-  Field(r,0) = ml_z_from_mpz(mr);
+  Field(r,0) = tmp;
   Field(r,1) = Val_int(i);
   mpz_clear(ma);
   mpz_clear(mb);

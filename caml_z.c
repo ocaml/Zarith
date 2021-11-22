@@ -1497,7 +1497,7 @@ CAMLprim value ml_z_mul(value arg1, value arg2)
 #if Z_FAST_PATH && !Z_FAST_PATH_IN_OCAML
   if (Is_long(arg1) && Is_long(arg2) &&
       ml_z_mul_overflows(arg1, arg2) == Val_false) {
-    return Val_long(Long_val(a1) * Long_val(a2));
+    return Val_long(Long_val(arg1) * Long_val(arg2));
   }
 #endif
   /* mpn_ version */

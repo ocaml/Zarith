@@ -3,6 +3,8 @@ requires = ""
 version = "1.12"
 archive(byte) = "zarith.cma"
 archive(native) = "zarith.cmxa"
+plugin(byte) = "zarith.cma"
+plugin(native) = "zarith.cmxs"
 
 package "top" (
   version = "1.12"

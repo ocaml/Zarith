@@ -287,16 +287,20 @@ external hamdist: t -> t -> int = "ml_z_hamdist"
  *)
 
 val to_int: t -> int
-(** Converts to a base integer. May raise an [Overflow]. *)
+(** Converts to a signed OCaml [int].
+    Raises an [Overflow] if the value does not fit in a signed OCaml [int]. *)
 
 external to_int32: t -> int32 = "ml_z_to_int32"
-(** Converts to a 32-bit integer. May raise [Overflow]. *)
+(** Converts to a signed 32-bit integer [int32].
+    Raises an [Overflow] if the value does not fit in a signed [int32]. *)
 
 external to_int64: t -> int64 = "ml_z_to_int64"
-(** Converts to a 64-bit integer. May raise [Overflow]. *)
+(** Converts to a signed 64-bit integer [int64].
+    Raises an [Overflow] if the value does not fit in a signed [int64]. *)
 
 external to_nativeint: t -> nativeint = "ml_z_to_nativeint"
-(** Converts to a native integer. May raise [Overflow]. *)
+(** Converts to a native signed integer [nativeint].
+    Raises an [Overflow] if the value does not fit in a signed [nativeint]. *)
 
 val to_float: t -> float
 (** Converts to a floating-point value.
@@ -337,16 +341,16 @@ external format: string -> t -> string = "ml_z_format"
  *)
 
 external fits_int: t -> bool = "ml_z_fits_int" [@@noalloc]
-(** Whether the argument fits in a regular [int]. *)
+(** Whether the argument fits in an OCaml signed [int]. *)
 
 external fits_int32: t -> bool = "ml_z_fits_int32" [@@noalloc]
-(** Whether the argument fits in an [int32]. *)
+(** Whether the argument fits in a signed [int32]. *)
 
 external fits_int64: t -> bool = "ml_z_fits_int64" [@@noalloc]
-(** Whether the argument fits in an [int64]. *)
+(** Whether the argument fits in a signed [int64]. *)
 
 external fits_nativeint: t -> bool = "ml_z_fits_nativeint" [@@noalloc]
-(** Whether the argument fits in a [nativeint]. *)
+(** Whether the argument fits in a signed [nativeint]. *)
 
 
 (** {1 Printing} *)

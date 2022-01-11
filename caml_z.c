@@ -182,6 +182,7 @@ extern "C" {
 
 /* hi bit of OCaml int32, int64 & nativeint */
 #define Z_HI_INT32   0x80000000
+#define Z_HI_UINT32  0x100000000LL
 #define Z_HI_INT64   0x8000000000000000LL
 #ifdef ARCH_SIXTYFOUR
 #define Z_HI_INTNAT  Z_HI_INT64
@@ -741,6 +742,25 @@ CAMLprim value ml_z_to_nativeint(value v)
   return caml_copy_nativeint(x);
 }
 
+CAMLprim value ml_z_to_nativeint_unsigned(value v)
+{
+  uintnat r;
+  Z_DECL(v);
+  Z_MARK_OP;
+  Z_CHECK(v);
+  if (Is_long(v)) {
+    intnat x = Long_val(v);
+    if (x < 0) ml_z_raise_overflow();
+    return caml_copy_nativeint((uintnat)x);
+  }
+  Z_MARK_SLOW;
+  Z_ARG(v);
+  if (!size_v) return r = 0;
+  else if (sign_v || size_v > 1) ml_z_raise_overflow();
+  else r = *ptr_v;
+  return caml_copy_nativeint(r);
+}
+
 CAMLprim value ml_z_to_int32(value v)
 {
   intnat x;
@@ -774,6 +794,37 @@ CAMLprim value ml_z_to_int32(value v)
   }
 }
 
+CAMLprim value ml_z_to_int32_unsigned(value v)
+{
+  uintnat r;
+  Z_DECL(v);
+  Z_MARK_OP;
+  Z_CHECK(v);
+  if (Is_long(v)) {
+    intnat x = Long_val(v);
+#ifdef ARCH_SIXTYFOUR
+    if (x < 0 || x >= Z_HI_UINT32)
+#else
+    if (x < 0)
+#endif
+      ml_z_raise_overflow();
+    return caml_copy_int32(x);
+  }
+  else {
+    Z_ARG(v);
+    Z_MARK_SLOW;
+    if (!size_v) r = 0;
+    else if (sign_v || size_v > 1) ml_z_raise_overflow();
+    else {
+      r = *ptr_v;
+#ifdef ARCH_SIXTYFOUR
+      if (r >= Z_HI_UINT32) ml_z_raise_overflow();
+#endif
+    }
+    return caml_copy_int32(r);
+  }
+}
+
 CAMLprim value ml_z_to_int64(value v)
 {
   int64_t x = 0;
@@ -799,6 +850,31 @@ CAMLprim value ml_z_to_int64(value v)
     if ((uint64_t)x >= Z_HI_INT64) ml_z_raise_overflow();
   }
   return caml_copy_int64(x);
+}
+
+CAMLprim value ml_z_to_int64_unsigned(value v)
+{
+  uint64_t r;
+  Z_DECL(v);
+  Z_MARK_OP;
+  Z_CHECK(v);
+  if (Is_long(v)) {
+    intnat x = Long_val(v);
+    if (x < 0) ml_z_raise_overflow();
+    return caml_copy_int64(x);
+  }
+  Z_MARK_SLOW;
+  Z_ARG(v);
+  if (sign_v) ml_z_raise_overflow();
+  switch (size_v) {
+  case 0: r = 0; break;
+  case 1: r = ptr_v[0]; break;
+#ifndef ARCH_SIXTYFOUR
+  case 2: r = ptr_v[0] | (ptr_v[1] << 32); break;
+#endif
+  default: ml_z_raise_overflow(); break;
+  }
+  return caml_copy_int64(r);
 }
 
 /* XXX: characters that do not belong to the format are ignored, this departs
@@ -1198,6 +1274,21 @@ CAMLprim value ml_z_fits_nativeint(value v)
   return Val_true;
 }
 
+CAMLprim value ml_z_fits_nativeint_unsigned(value v)
+{
+  Z_DECL(v);
+  Z_MARK_OP;
+  Z_CHECK(v);
+  if (Is_long(v)) {
+    if (Long_val(v) < 0) return Val_false;
+    return Val_true;
+  }
+  Z_MARK_SLOW;
+  Z_ARG(v);
+  if (sign_v || size_v > 1) return Val_false;
+  return Val_true;
+}
+
 CAMLprim value ml_z_fits_int32(value v)
 {
   intnat x;
@@ -1228,6 +1319,31 @@ CAMLprim value ml_z_fits_int32(value v)
   }
 }
 
+CAMLprim value ml_z_fits_int32_unsigned(value v)
+{
+  intnat x;
+  Z_MARK_OP;
+  Z_CHECK(v);
+  if (Is_long(v)) {
+    x = Long_val(v);
+    if (x < 0) return Val_false;
+#ifdef ARCH_SIXTYFOUR
+    if (x >= Z_HI_UINT32) return Val_false;
+#endif
+    return Val_true;
+  }
+  else {
+    Z_DECL(v);
+    Z_MARK_SLOW;
+    Z_ARG(v);
+    if (sign_v || size_v > 1) return Val_false;
+    if (!size_v) return Val_true;
+    x = *ptr_v;
+    if ((uintnat)x >= Z_HI_INT32) return Val_false;
+    return Val_true;
+  }
+}
+
 CAMLprim value ml_z_fits_int64(value v)
 {
   int64_t x;
@@ -1251,6 +1367,26 @@ CAMLprim value ml_z_fits_int64(value v)
   else {
     if ((uint64_t)x >= Z_HI_INT64) return Val_false;
   }
+  return Val_true;
+}
+
+CAMLprim value ml_z_fits_int64_unsigned(value v)
+{
+  Z_DECL(v);
+  Z_MARK_OP;
+  Z_CHECK(v);
+  if (Is_long(v)) {
+    if (Long_val(v) < 0) return Val_false;
+    return Val_true;
+  }
+  Z_MARK_SLOW;
+  Z_ARG(v);
+  if (sign_v) return Val_false;
+#ifdef ARCH_SIXTYFOUR
+  if (size_v > 1) return Val_false;
+#else
+  if (size_v > 2) return Val_false;
+#endif
   return Val_true;
 }
 

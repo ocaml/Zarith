@@ -312,6 +312,32 @@ external to_nativeint: t -> nativeint = "ml_z_to_nativeint"
 (** Converts to a native signed integer [nativeint].
     Raises an [Overflow] if the value does not fit in a signed [nativeint]. *)
 
+external to_int32_unsigned: t -> int32 = "ml_z_to_int32_unsigned"
+(** Converts to an unsigned 32-bit integer.
+    The result is stored into an OCaml [int32].
+    Beware that most [Int32] operations consider [int32] to a signed type, not unsigned.
+    Raises an [Overflow] if the value is negative or does not fit in an unsigned 32-bit integer. *)
+
+external to_int64: t -> int64 = "ml_z_to_int64"
+(** Converts to a signed 64-bit integer [int64].
+    Raises an [Overflow] if the value does not fit in a signed [int64]. *)
+
+external to_int64_unsigned: t -> int64 = "ml_z_to_int64_unsigned"
+(** Converts to an unsigned 64-bit integer.
+    The result is stored into an OCaml [int64].
+    Beware that most [Int64] operations consider [int64] to a signed type, not unsigned.
+    Raises an [Overflow] if the value is negative or does not fit in an unsigned 64-bit integer. *)
+
+external to_nativeint: t -> nativeint = "ml_z_to_nativeint"
+(** Converts to a native signed integer [nativeint].
+    Raises an [Overflow] if the value does not fit in a signed [nativeint]. *)
+
+external to_nativeint_unsigned: t -> nativeint = "ml_z_to_nativeint_unsigned"
+(** Converts to a native unsigned integer.
+    The result is stored into an OCaml [nativeint].
+    Beware that most [Nativeint] operations consider [nativeint] to a signed type, not unsigned.
+    Raises an [Overflow] if the value is negative or does not fit in an unsigned native integer. *)
+
 val to_float: t -> float
 (** Converts to a floating-point value.
     This function rounds the given integer according to the current
@@ -361,6 +387,15 @@ external fits_int64: t -> bool = "ml_z_fits_int64" [@@noalloc]
 
 external fits_nativeint: t -> bool = "ml_z_fits_nativeint" [@@noalloc]
 (** Whether the argument fits in a signed [nativeint]. *)
+
+external fits_int32_unsigned: t -> bool = "ml_z_fits_int32_unsigned" [@@noalloc]
+(** Whether the argument is non-negative and fits in an unsigned [int32]. *)
+
+external fits_int64_unsigned: t -> bool = "ml_z_fits_int64_unsigned" [@@noalloc]
+(** Whether the argument is non-negative and fits in an unsigned [int64]. *)
+
+external fits_nativeint_unsigned: t -> bool = "ml_z_fits_nativeint_unsigned" [@@noalloc]
+(** Whether the argument is non-negative fits in an unsigned [nativeint]. *)
 
 
 (** {1 Printing} *)

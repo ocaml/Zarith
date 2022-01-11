@@ -99,7 +99,8 @@ val of_string: string -> t
 val of_substring : string -> pos:int -> len:int -> t
 (** [of_substring s ~pos ~len] is the same as [of_string (String.sub s
     pos len)]
- *)
+    @since 1.4
+*)
 
 val of_string_base: int -> string -> t
 (** Parses a number represented as a string in the specified base,
@@ -112,6 +113,7 @@ external of_substring_base
   = "ml_z_of_substring_base"
 (** [of_substring_base base s ~pos ~len] is the same as [of_string_base
     base (String.sub s pos len)]
+    @since 1.4
 *)
 
 
@@ -196,12 +198,14 @@ external divisible: t -> t -> bool = "ml_z_divisible"
 (** [divisible a b] returns [true] if [a] is exactly divisible by [b].
     Unlike the other division functions, [b = 0] is accepted 
     (only 0 is considered divisible by 0).
+    @since 1.10
 *)
 
 external congruent: t -> t -> t -> bool = "ml_z_congruent"
 (** [congruent a b c] returns [true] if [a] is congruent to [b] modulo [c].
     Unlike the other division functions, [c = 0] is accepted 
     (only equal numbers are considered equal congruent 0).
+    @since 1.10
 *)
 
 
@@ -252,7 +256,9 @@ external numbits: t -> int = "ml_z_numbits" [@@noalloc]
     If [x] is zero, [numbits x] returns 0.  Otherwise,
     [numbits x] returns a positive integer [n] such that
     [2^{n-1} <= |x| < 2^n].  Note that [numbits] is defined
-    for negative arguments, and that [numbits (-x) = numbits x]. *)
+    for negative arguments, and that [numbits (-x) = numbits x].
+    @since 1.4
+*)
 
 external trailing_zeros: t -> int = "ml_z_trailing_zeros" [@@noalloc]
 (** Returns the number of trailing 0 bits in the given number.
@@ -260,13 +266,17 @@ external trailing_zeros: t -> int = "ml_z_trailing_zeros" [@@noalloc]
     Otherwise, [trailing_zeros x] returns a nonnegative integer [n]
     which is the largest [n] such that [2^n] divides [x] evenly.
     Note that [trailing_zeros] is defined for negative arguments,
-    and that [trailing_zeros (-x) = trailing_zeros x]. *)
+    and that [trailing_zeros (-x) = trailing_zeros x].
+    @since 1.4
+*)
 
 val testbit: t -> int -> bool
 (** [testbit x n] return the value of bit number [n] in [x]:
     [true] if the bit is 1, [false] if the bit is 0.
     Bits are numbered from 0.  Raise [Invalid_argument] if [n]
-    is negative. *)
+    is negative.
+    @since 1.4
+*)
 
 external popcount: t -> int = "ml_z_popcount"
 (** Counts the number of bits set.
@@ -413,10 +423,14 @@ val max: t -> t -> t
 (** Returns the maximum of its arguments. *)
 
 val is_even: t -> bool
-(** Returns true if the argument is even (divisible by 2), false if odd. *)
+(** Returns true if the argument is even (divisible by 2), false if odd.
+    @since 1.4
+*)
 
 val is_odd: t -> bool
-(** Returns true if the argument is odd, false if even. *)
+(** Returns true if the argument is odd, false if even.
+    @since 1.4
+*)
 
 external hash: t -> int = "ml_z_hash" [@@noalloc]
 (** Hashes a number, producing a small integer.
@@ -464,7 +478,9 @@ external powm_sec: t -> t -> t -> t = "ml_z_powm_sec"
     arguments.  Used in cryptographic applications, it provides better
     resistance to side-channel attacks than [Z.powm].
     The exponent [exp] must be positive, and the modulus [mod]
-    must be odd.  Otherwise, [Invalid_arg] is raised. *)
+    must be odd. Otherwise, [Invalid_arg] is raised.
+    @since 1.4
+*)
 
 external invert: t -> t -> t = "ml_z_invert"
 (** [invert base mod] returns the inverse of [base] modulo [mod].
@@ -484,55 +500,58 @@ external nextprime: t -> t = "ml_z_nextprime"
  *)
 
 external jacobi: t -> t -> int = "ml_z_jacobi"
-(** [jacobi a b] returns the Jacobi symbol [(a/b)]. *)
+(** [jacobi a b] returns the Jacobi symbol [(a/b)].
+    @since 1.10 *)
 
 external legendre: t -> t -> int = "ml_z_legendre"
-(** [legendre a b] returns the Legendre symbol [(a/b)]. *)
+(** [legendre a b] returns the Legendre symbol [(a/b)].
+    @since 1.10 *)
 
 external kronecker: t -> t -> int = "ml_z_kronecker"
-(** [kronecker a b] returns the Kronecker symbol [(a/b)]. *)
+(** [kronecker a b] returns the Kronecker symbol [(a/b)].
+    @since 1.10 *)
 
 external remove: t -> t -> t * int = "ml_z_remove"
 (** [remove a b] returns [a] after removing all the occurences of the
     factor [b]. 
     Also returns how many occurrences were removed.
- *)
+    @since 1.10 *)
 
 external fac: int -> t = "ml_z_fac"
 (** [fac n] returns the factorial of [n] ([n!]).
     Raises an [Invaid_argument] if [n] is non-positive.
-*)
+    @since 1.10 *)
   
 external fac2: int -> t = "ml_z_fac2"
 (** [fac2 n] returns the double factorial of [n] ([n!!]).
     Raises an [Invaid_argument] if [n] is non-positive.
-*)
+    @since 1.10 *)
   
  external facM: int -> int -> t = "ml_z_facM"
 (** [facM n m] returns the [m]-th factorial of [n].
     Raises an [Invaid_argument] if [n] or [m] is non-positive.
-*)
+    @since 1.10 *)
 
 external primorial: int -> t = "ml_z_primorial"
 (** [primorial n] returns the product of all positive prime numbers less
     than or equal to [n].
     Raises an [Invaid_argument] if [n] is non-positive.
-*)
+    @since 1.10 *)
 
 external bin: t -> int -> t = "ml_z_bin"
 (** [bin n k] returns the binomial coefficient [n] over [k].
     Raises an [Invaid_argument] if [k] is non-positive.
-*)
+    @since 1.10 *)
 
 external fib: int -> t = "ml_z_fib"
 (** [fib n] returns the [n]-th Fibonacci number.
     Raises an [Invaid_argument] if [n] is non-positive.
-*)
+    @since 1.10 *)
 
 external lucnum: int -> t = "ml_z_lucnum"
 (** [lucnum n] returns the [n]-th Lucas number.
     Raises an [Invaid_argument] if [n] is non-positive.
-*)
+    @since 1.10 *)
 
 
 (** {1 Powers} *)
@@ -567,7 +586,7 @@ external rootrem: t -> int -> t * t = "ml_z_rootrem"
     [x-root**n].
     [n] must be positive and, if [n] is even, then [x] must be nonnegative.
     Otherwise, an [Invalid_argument] is raised.
- *)
+    @since 1.10 *)
 
 external perfect_power: t -> bool = "ml_z_perfect_power"
 (** True if the argument has the form [a^b], with [b>1] *)
@@ -579,13 +598,17 @@ val log2: t -> int
 (** Returns the base-2 logarithm of its argument, rounded down to
     an integer.  If [x] is positive, [log2 x] returns the largest [n]
     such that [2^n <= x].  If [x] is negative or zero, [log2 x] raise
-    the [Invalid_argument] exception. *)
+    the [Invalid_argument] exception.
+    @since 1.4
+*)
 
 val log2up: t -> int
 (** Returns the base-2 logarithm of its argument, rounded up to
     an integer.  If [x] is positive, [log2up x] returns the smallest [n]
     such that [x <= 2^n].  If [x] is negative or zero, [log2up x] raise
-    the [Invalid_argument] exception. *)
+    the [Invalid_argument] exception.
+    @since 1.4
+*)
 
 (** {1 Representation} *)
 
@@ -716,7 +739,9 @@ end
 (** {1 Miscellaneous} *)
 
 val version: string
-(** Library version. *)
+(** Library version.
+    @since 1.1
+*)
 
 (**/**)
 

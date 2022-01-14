@@ -1,3 +1,7 @@
+Release 1.12+dune (2022-01-14)
+
+- PR #1: dunify the package and allow the cross-compilation via `opam monorepo` and `gmp` [Romain Calascibetta, Lucas Pluvinage]
+
 Release 1.12 (2021-03-03)
 - PR #79: fast path in OCaml (instead of assembly language) [Xavier Leroy]
 - PR #94: remove source preprocessing and simplify configuration [Xavier Leroy]

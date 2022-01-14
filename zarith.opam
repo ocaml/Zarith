@@ -6,9 +6,9 @@ authors: [
   "Xavier Leroy"
   "Pascal Cuoq"
 ]
-homepage: "https://github.com/ocaml/Zarith"
-bug-reports: "https://github.com/ocaml/Zarith/issues"
-dev-repo: "git+https://github.com/ocaml/Zarith.git"
+homepage: "https://github.com/mirage/Zarith"
+bug-reports: "https://github.com/mirage/Zarith/issues"
+dev-repo: "git+https://github.com/mirage/Zarith.git"
 build: [
   ["dune" "build" "-p" "zarith" ]
 ]

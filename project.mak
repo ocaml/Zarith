@@ -49,9 +49,8 @@ ifeq ($(HASOCAMLOPT),yes)
 TOBUILD += zarith.cmxa $(CMXOBJ)
 TOINSTALL += zarith.$(LIBSUFFIX)
 endif
-DEBUG = -g
-OCAMLFLAGS += $(DEBUG) -I +compiler-libs
-OCAMLOPTFLAGS += $(DEBUG) -I +compiler-libs
+OCAMLFLAGS += -I +compiler-libs
+OCAMLOPTFLAGS += -I +compiler-libs
 
 ifeq ($(HASDYNLINK),yes)
 TOBUILD += zarith.cmxs
@@ -71,19 +70,19 @@ tests:
 	make -C tests test
 
 zarith.cma: $(MLSRC:%.ml=%.cmo)
-	$(OCAMLMKLIB) $(DEBUG) -failsafe -o zarith $+ $(LIBS)
+	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)
 
 zarith.cmxa: $(MLSRC:%.ml=%.cmx)
-	$(OCAMLMKLIB) $(DEBUG) -failsafe -o zarith $+ $(LIBS)
+	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)
 
 zarith.cmxs: zarith.cmxa libzarith.$(LIBSUFFIX)
 	$(OCAMLOPT) -shared -o $@ -I . zarith.cmxa -linkall
 
 libzarith.$(LIBSUFFIX): $(CSRC:%.c=%.$(OBJSUFFIX))
-	$(OCAMLMKLIB) $(DEBUG) -failsafe -o zarith $+ $(LIBS)
+	$(OCAMLMKLIB) -failsafe -o zarith $+ $(LIBS)
 
 zarith_top.cma: zarith_top.cmo
-	$(OCAMLC) $(DEBUG) -o $@ -a $<
+	$(OCAMLC) -o $@ -a $<
 
 doc: $(MLISRC)
 	mkdir -p html

@@ -1,0 +1,86 @@
+(env
+ (dev
+  (flags
+   (:standard -w -6))))
+
+(library
+ (name zarith)
+ (public_name zarith)
+ (modules z q big_int_Z zarith_version)
+ (wrapped false)
+ (foreign_stubs
+  (language c)
+  (names caml_z)
+  (flags
+   :standard
+   (:include cflags.sexp)))
+ (c_library_flags
+  (:include libs.sexp)))
+
+(executable
+ (name configure_env)
+ (modules configure_env))
+
+(rule
+ (target Makefile)
+ (deps configure config.guess env)
+ (action
+  (bash "env %{read:env} ./configure")))
+
+(rule
+ (target env)
+ (action (copy gmp.%{lib-available:gmp} env)))
+
+(rule
+ (target gmp.true)
+ (deps
+  (:exe configure_env.exe)
+  %{lib:gmp:libgmp.a}
+  %{lib:gmp:libgmp.so}
+  %{lib:gmp:gmp.h})
+ (action
+  (with-stdout-to %{target} (run %{exe} --cc "%{cc}" --with-gmp=%{lib:gmp:libgmp.a}))))
+
+(rule
+ (target gmp.false)
+ (deps (:exe configure_env.exe))
+ (action
+  (with-stdout-to %{target} (run %{exe} --cc "%{cc}" --with-conf-gmp))))
+
+(rule
+ (target cflags.sexp)
+ (deps Makefile)
+ (action
+  (with-stdout-to
+   %{target}
+   (progn
+    (bash "echo -n '('")
+    (bash "cat Makefile | sed -n -e 's/CFLAGS=//p'")
+    (bash "echo -n ')'")))))
+
+(rule
+ (target libs.sexp)
+ (deps Makefile)
+ (action
+  (with-stdout-to
+   %{target}
+   (progn
+    (bash "echo -n '('")
+    (bash "cat Makefile | sed -n -e 's/LIBS=//p'")
+    (bash "echo -n ')'")))))
+
+(rule
+ (deps META)
+ (action
+  (with-stdout-to
+   zarith_version.ml
+   (progn
+    (run echo "let")
+    (bash "grep \"version\" META | head -1")))))
+
+(library
+ (name zarith_top)
+ (optional)
+ (public_name zarith.top)
+ (modules zarith_top)
+ (libraries zarith compiler-libs.toplevel))

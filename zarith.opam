@@ -10,26 +10,12 @@ homepage: "https://github.com/ocaml/Zarith"
 bug-reports: "https://github.com/ocaml/Zarith/issues"
 dev-repo: "git+https://github.com/ocaml/Zarith.git"
 build: [
-  ["./configure"] {os != "openbsd" & os != "freebsd" & os != "macos"}
-  [
-    "sh"
-    "-exc"
-    "LDFLAGS=\"$LDFLAGS -L/usr/local/lib\" CFLAGS=\"$CFLAGS -I/usr/local/include\" ./configure"
-  ] {os = "openbsd" | os = "freebsd"}
-  [
-    "sh"
-    "-exc"
-    "LDFLAGS=\"$LDFLAGS -L/opt/local/lib -L/usr/local/lib\" CFLAGS=\"$CFLAGS -I/opt/local/include -I/usr/local/include\" ./configure"
-  ] {os = "macos"}
-  [make]
-]
-install: [
-  [make "install"]
+  ["dune" "build" "-p" "zarith" ]
 ]
 depends: [
   "ocaml"     {>= "4.04.0"}
-  "ocamlfind"
-  "conf-gmp"
+  "dune"
+  ("gmp" | "conf-gmp" )
 ]
 synopsis:
   "Implements arithmetic and logical operations over arbitrary-precision integers"
@@ -38,3 +24,6 @@ The Zarith library implements arithmetic and logical operations over
 arbitrary-precision integers. It uses GMP to efficiently implement
 arithmetic over big integers. Small integers are represented as Caml
 unboxed integers, for speed and space economy."""
+url {
+ src: "git+https://github.com/mirage/Zarith.git#22adda581a979c020de856e85781814a0ad5769a"
+}

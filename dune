@@ -1,0 +1,90 @@
+(env
+ (dev
+  (flags
+   (:standard -w -6))))
+
+(library
+ (name zarith)
+ (public_name zarith)
+ (modules z q big_int_Z zarith_version)
+ (wrapped false)
+ (foreign_stubs
+  (language c)
+  (names caml_z)
+  (flags
+   :standard
+   (:include cflags.sxp)))
+ (c_library_flags
+  (:include libs.sxp)))
+
+(rule
+ (target Makefile)
+ (deps configure config.guess env)
+ (action
+  (with-stdout-to
+   config.log
+   (bash "env %{read:env}  ./configure"))))
+
+(rule
+ (target env)
+ (deps env-%{lib-available:gmp})
+ (action
+  (copy env-%{lib-available:gmp} env)))
+
+(rule
+ (target env-false)
+ (action
+  (with-stdout-to
+   %{target}
+   (bash "echo -n CC=\\\"%{cc}\\\""))))
+
+(rule
+ (target env-true)
+ (deps
+  %{lib:gmp:libgmp.a}
+  %{lib:gmp:libgmp.so}
+  %{lib:gmp:gmp.h}
+  %{workspace_root})
+ (action
+  (with-stdout-to
+   %{target}
+   (bash
+    "echo -n CC=\\\"%{cc}\\\" LDFLAGS=\\\"-L$PWD/$(dirname %{lib:gmp:libgmp.a})\\\" CFLAGS=\\\"-I$PWD/$(dirname %{lib:gmp:libgmp.a})\\\" CPPFLAGS=\\\"-I$PWD/$(dirname %{lib:gmp:libgmp.a})\\\""))))
+
+(rule
+ (target cflags.sxp)
+ (deps Makefile)
+ (action
+  (with-stdout-to
+   %{target}
+   (progn
+    (bash "echo -n '('")
+    (bash "cat Makefile | sed -n -e 's/CFLAGS=//p'")
+    (bash "echo -n ')'")))))
+
+(rule
+ (target libs.sxp)
+ (deps Makefile)
+ (action
+  (with-stdout-to
+   %{target}
+   (progn
+    (bash "echo -n '('")
+    (bash "cat Makefile | sed -n -e 's/LIBS=//p'")
+    (bash "echo -n ')'")))))
+
+(rule
+ (deps META)
+ (action
+  (with-stdout-to
+   zarith_version.ml
+   (progn
+    (run echo "let")
+    (bash "grep \"version\" META | head -1")))))
+
+(library
+ (name zarith_top)
+ (optional)
+ (public_name zarith.top)
+ (modules zarith_top)
+ (libraries zarith compiler-libs.toplevel))

@@ -617,9 +617,10 @@ external size: t -> int = "ml_z_size" [@@noalloc]
 
 external extract: t -> int -> int -> t = "ml_z_extract"
 (** [extract a off len] returns a nonnegative number corresponding to bits
-    [off] to [off]+[len]-1 of [b].
+    [off] to [off]+[len]-1 of [a].
     Negative [a] are considered in infinite-length 2's complement
     representation.
+    Raises an [Invalid_argument] if [off] is strictly negative, or if [len] is negative or null.
  *)
 
 val signed_extract: t -> int -> int -> t
@@ -628,6 +629,7 @@ val signed_extract: t -> int -> int -> t
     (that is, bit [off + len - 1] of [a]).  The result is between
     [- 2{^[len]-1}] (included) and [2{^[len]-1}] (excluded),
     and equal to [extract a off len] modulo [2{^len}].
+    Raises an [Invalid_argument] if [off] is strictly negative, or if [len] is negative or null.
  *)
 
 external to_bits: t -> string = "ml_z_to_bits"

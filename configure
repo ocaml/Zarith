@@ -198,7 +198,7 @@ searchbinreq $ocaml
 searchbinreq $ocamlc
 searchbinreq $ocamldep
 searchbinreq $ocamlmklib
-searchbinreq $ocamldoc
+searchbin $ocamldoc
 
 if test -n "$CC"; then
   searchbinreq "$CC"

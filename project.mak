@@ -86,8 +86,12 @@ zarith_top.cma: zarith_top.cmo
 	$(OCAMLC) $(DEBUG) -o $@ -a $<
 
 doc: $(MLISRC)
+ifneq ($(OCAMLDOC),)
 	mkdir -p html
 	$(OCAMLDOC) -html -d html -charset utf8 $+
+else
+	$(error ocamldoc is required to build the documentation)
+endif
 
 zarith_version.ml: META
 	(echo "let"; grep "version" META | head -1) > zarith_version.ml

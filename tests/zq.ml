@@ -150,6 +150,17 @@ let chk_testbit x =
   then Printf.printf "(passed)\n"
   else Printf.printf "(FAILED)\n"
 
+let pr_byte =
+  let state = ref 0 in
+  fun () ->
+    state := (!state * 65793 + 4282663) land 0xFF_FF_FF;
+    !state lsr 16
+
+let pr_bytes buf pos len =
+  for i = pos to pos + len - 1 do
+    Bytes.set_uint8 buf i (pr_byte ())
+  done
+
 let test_Z() =
   Printf.printf "0\n = %a\n" pr I.zero;
   Printf.printf "1\n = %a\n" pr I.one;
@@ -746,6 +757,18 @@ let test_Z() =
     I.shift_left (I.of_int 9999) 77;
     I.neg (I.shift_left (I.of_int 123456) 64);
   ];
+
+  Printf.printf "random_bits 45 = %a\n"
+    pr (I.random_bits_gen ~fill:pr_bytes 45);
+  Printf.printf "random_bits 45 = %a\n"
+    pr (I.random_bits_gen ~fill:pr_bytes 45);
+  Printf.printf "random_bits 12 = %a\n"
+    pr (I.random_bits_gen ~fill:pr_bytes 12);
+  Printf.printf "random_int 123456 = %a\n"
+    pr (I.random_int_gen ~fill:pr_bytes (I.of_int 123456));
+  Printf.printf "random_int 9999999 = %a\n"
+    pr (I.random_int_gen ~fill:pr_bytes (I.of_int 9999999));
+
   ()
 
 

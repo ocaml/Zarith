@@ -326,9 +326,7 @@ external c_extract_small: t -> int -> int -> t
   = "ml_z_extract_small" [@@noalloc]
 external c_extract: t -> int -> int -> t = "ml_z_extract"
 
-let extract x o l =
-  if o < 0 then invalid_arg "Z.signed_extract: negative bit offset";
-  if l < 1 then invalid_arg "Z.signed_extract: nonpositive bit length";
+let extract_internal x o l =
   if is_small_int x then
     (* Fast path *)
     let o = if o >= Sys.int_size then Sys.int_size - 1 else o in
@@ -348,6 +346,11 @@ let extract x o l =
     c_extract_small x o l
   else
     c_extract x o l
+
+let extract x o l =
+  if o < 0 then invalid_arg "Z.extract: negative bit offset";
+  if l < 1 then invalid_arg "Z.extract: nonpositive bit length";
+  extract_internal x o l
 
 let signed_extract x o l =
   if o < 0 then invalid_arg "Z.signed_extract: negative bit offset";

@@ -911,29 +911,31 @@ CAMLprim value ml_z_extract_small(value arg, value off, value len)
   mp_size_t c1, c2, csz, i;
   mp_limb_t cr;
   Z_ARG(arg);
-  o = Long_val(off);
-  l = Long_val(len);
+  o = (uintnat)Long_val(off);
+  l = (uintnat)Long_val(len);
   c1 = o / Z_LIMB_BITS;
   c2 = o % Z_LIMB_BITS;
   csz = size_arg - c1;
   if (csz > 0) {
     if (c2) {
       x = ptr_arg[c1] >> c2;
-      if ((o + l > (intnat)Z_LIMB_BITS) && (csz > 1))
+      if ((c2 + l > (intnat)Z_LIMB_BITS) && (csz > 1))
 	x |= (ptr_arg[c1 + 1] << (Z_LIMB_BITS - c2));
-    } else x = ptr_arg[c1];
-  } else x = (intnat)0;
+    }
+    else x = ptr_arg[c1];
+  }
+  else x = 0;
   if (sign_arg) {
     x = ~x;
     if (csz > 0) {
       /* carry (cr=0 if all shifted-out bits are 0) */
       cr = ptr_arg[c1] & (((intnat)1 << c2) - 1);
       for (i = 0; !cr && i < c1; i++)
-	cr = ptr_arg[i];
-      if (!cr) x += 1;
+        cr = ptr_arg[i];
+      if (!cr) x ++;
     }
   }
-  x &= (((intnat)1 << l) - 1);
+  x &= ((intnat)1 << l) - 1;
   return Val_long(x);
 }
 
@@ -947,8 +949,8 @@ CAMLprim value ml_z_extract(value arg, value off, value len)
   Z_DECL(arg);
   Z_MARK_OP;
   MAYBE_UNUSED x;
-  o = Long_val(off);
-  l = Long_val(len);
+  o = (uintnat)Long_val(off);
+  l = (uintnat)Long_val(len);
   Z_MARK_SLOW;
   {
   CAMLparam1(arg);

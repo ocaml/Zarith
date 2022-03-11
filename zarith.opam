@@ -11,7 +11,7 @@ bug-reports: "https://github.com/ocaml/Zarith/issues"
 dev-repo: "git+https://github.com/ocaml/Zarith.git"
 license: "LGPL-2.0-only WITH OCaml-LGPL-linking-exception"
 build: [
-  ["./configure"] {os != "openbsd" & os != "freebsd" & os != "macos"}
+  ["./configure"] {os != "openbsd" & os != "freebsd" & os != "macos" & !(os = "win32" & os-distribution = "win32")}
   [
     "sh"
     "-exc"
@@ -22,6 +22,28 @@ build: [
     "-exc"
     "LDFLAGS=\"$LDFLAGS -L/opt/local/lib -L/usr/local/lib\" CFLAGS=\"$CFLAGS -I/opt/local/include -I/usr/local/include\" ./configure"
   ] {os = "macos"}
+  [
+    "sh"
+    "-exc"
+    # Native Windows does not have an analog to /usr/lib or /usr/local/lib. Even
+    # with Cygwin or MSYS2 the user will almost always want a MinGW library at
+    # some unusual path (ex. /mingw64/lib).
+    # An evolving "standard" for OCaml from jonahbeckford@ for consistency across packages is:
+    #   <CLIBRARY>_(LIB|INCLUDE)_DEFAULT[_<uppercased sanitized-with-underscores findlib toolchain>]=<forward-slashed path arguments separated by semicolons>
+    # Ex. GMP_LIB_DEFAULT = -LZ:/build/windows_x86_64/vcpkg_installed/x64-windows/lib;-lgmp
+    # Ex. GMP_INCLUDE_DEFAULT = -IZ:/build/windows_x86_64/vcpkg_installed/x64-windows/include
+    # In Zarith we need the C compiler and linker (MSVC) to see:
+    #   -LIBPATH:Z:/build/windows_x86_64/vcpkg_installed/x64-windows/lib gmp.lib
+    #   -IZ:/build/windows_x86_64/vcpkg_installed/x64-windows/include
+    # while for OCaml (ocamlmklib) Zarith needs to give:
+    #   -LZ:/build/windows_x86_64/vcpkg_installed/x64-windows/lib -lgmp
+    """
+    GMP_MLLIB=$(printf "%s" "${GMP_LIB_DEFAULT:-$GMP_LIB}" | tr ';' ' ')
+    GMP_CCLINKERFLAGS=$(printf "%s" "${GMP_LIB_DEFAULT:-$GMP_LIB}" | sed 's#\\B-L#-LIBPATH:#g; s#\\B-l\\(.*\\)\\b#\\1.lib#g' | tr ';' ' ')
+    GMP_INCLUDE=$(printf "%s" "${GMP_INCLUDE_DEFAULT:-$GMP_INCLUDE}" | tr ';' ' ')
+    LDFLAGS="$LDFLAGS $GMP_MLLIB" CCLINKERFLAGS="$CCLINKERFLAGS $GMP_CCLINKERFLAGS" CPPFLAGS="$CPPFLAGS $GMP_INCLUDE" CFLAGS="$CFLAGS $GMP_INCLUDE" ./configure
+    """
+  ] {os = "win32" & os-distribution = "win32" }
   [make]
 ]
 install: [

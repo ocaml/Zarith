@@ -2702,7 +2702,7 @@ value ml_z_from_mpz(mpz_t op)
   return ml_z_reduce(r, sz, (mpz_sgn(op) >= 0) ? 0 : Z_SIGN_MASK);
 }
 
-#if __GNU_MP_VERSION >= 5
+#if __GNU_MP_VERSION >= 5 && defined(HAS_GMPN_DIVEXACT)
 /* not exported by gmp.h */
 extern void __gmpn_divexact (mp_ptr, mp_srcptr, mp_size_t, mp_srcptr, mp_size_t);
 #endif
@@ -2724,7 +2724,7 @@ CAMLprim value ml_z_divexact(value arg1, value arg2)
   }
 #endif
   Z_MARK_SLOW;
-#if __GNU_MP_VERSION >= 5
+#if __GNU_MP_VERSION >= 5 && defined(HAS_GMPN_DIVEXACT)
   {
     /* mpn_ version */
     Z_ARG(arg1);

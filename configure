@@ -30,12 +30,19 @@ ocamldep='ocamldep'
 ocamldoc='ocamldoc'
 ccinc="$CPPFLAGS"
 cclib="$LDFLAGS"
+cclinkflags="$CCLINKERFLAGS"
 ccdef=''
 mlflags="$OCAMLFLAGS"
 mloptflags="$OCAMLOPTFLAGS"
 mlinc="$OCAMLINC"
 objsuffix="o"
+exeext=""
 ocamlfind="auto"
+linkextrastart=""
+linkexe="-o "
+linkobj="-o "
+linklibstart="-l"
+linklibend=""
 
 # sanitize
 LC_ALL=C
@@ -69,6 +76,16 @@ EOF
     exit
 }
 
+use_msvc() {
+  linkextrastart="-link "
+  linkexe="-Fe"
+  linkobj="-Fo"
+  linklibstart=""
+  linklibend=".lib"
+  objsuffix="obj"
+  exeext=".exe"
+}
+
 # parse arguments
 while : ; do
     case "$1" in
@@ -94,6 +111,8 @@ while : ; do
         -prefixnonocaml|--prefixnonocaml)
             prefixnonocaml="$2"
             shift;;
+        -msvc|--msvc)
+            use_msvc;;
         *)
             echo "unknown option $1, try -help"
             exit 2;;
@@ -144,13 +163,13 @@ searchbinreq()
 checkinc()
 {
     echo_n "include $1: "
-    rm -f tmp.c tmp.o
+    rm -f tmp.c tmp.${objsuffix}
     echo "#include <$1>" > tmp.c
     echo "int main() { return 1; }" >> tmp.c
     r=1
-    $cc $ccopt $ccinc -c tmp.c -o tmp.o >/dev/null 2>/dev/null || r=0
-    if test ! -f tmp.o; then r=0; fi
-    rm -f tmp.c tmp.o
+    $cc $ccopt $ccinc -c tmp.c ${linkobj}tmp.${objsuffix} >/dev/null 2>/dev/null || r=0
+    if test ! -f tmp.${objsuffix}; then r=0; fi
+    rm -f tmp.c tmp.${objsuffix}
     if test $r -eq 0; then echo "not found"; else echo "found"; fi
     return $r
 }
@@ -158,12 +177,26 @@ checkinc()
 checklib()
 {
     echo_n "library $1: "
-    rm -f tmp.c tmp.out
+    rm -f tmp.c tmp${exeext}
     echo "int main() { return 1; }" >> tmp.c
     r=1
-    $cc $ccopt $cclib tmp.c -l$1 -o tmp.out >/dev/null 2>/dev/null || r=0
-    if test ! -x tmp.out; then r=0; fi
-    rm -f tmp.c tmp.o tmp.out
+    $cc $ccopt tmp.c ${linkexe}tmp${exeext} ${linkextrastart}$cclinkflags ${linklibstart}$1${linklibend} >/dev/null 2>/dev/null || r=0
+    if test ! -x tmp${exeext}; then r=0; fi
+    rm -f tmp.c tmp.${objsuffix} tmp${exeext}
+    if test $r -eq 0; then echo "not found"; else echo "found"; fi
+    return $r
+}
+
+checkgmpn_divexact()
+{
+    echo_n "__gmpn_divexact: "
+    rm -f tmp.c tmp${exeext}
+    echo "extern void __gmpn_divexact (mp_ptr, mp_srcptr, mp_size_t, mp_srcptr, mp_size_t);"  >> tmp.c
+    echo "int main() { __gmpn_divexact(0, 0, 0, 0, 0); return 1; }" >> tmp.c
+    r=1
+    $cc $ccopt tmp.c ${linkexe}tmp${exeext} ${linkextrastart}$cclinkflags >/dev/null 2>/dev/null || r=0
+    if test ! -x tmp${exeext}; then r=0; fi
+    rm -f tmp.c tmp.${objsuffix} tmp${exeext}
     if test $r -eq 0; then echo "not found"; else echo "found"; fi
     return $r
 }
@@ -171,12 +204,12 @@ checklib()
 checkcc()
 {
     echo_n "checking compilation with $cc $ccopt: "
-    rm -f tmp.c tmp.out
+    rm -f tmp.c tmp${exeext}
     echo "int main() { return 1; }" >> tmp.c
     r=1
-    $cc $ccopt tmp.c -o tmp.out >/dev/null 2>/dev/null || r=0
-    if test ! -x tmp.out; then r=0; fi
-    rm -f tmp.c tmp.o tmp.out
+    $cc $ccopt tmp.c ${linkexe}tmp${exeext} >/dev/null 2>/dev/null || r=0
+    if test ! -x tmp${exeext}; then r=0; fi
+    rm -f tmp.c tmp.${objsuffix} tmp${exeext}
     if test $r -eq 0; then echo "not working"; else echo "working"; fi
     return $r
 }
@@ -184,9 +217,9 @@ checkcc()
 checkcmxalib()
 {
     echo_n "library $1: "
-    $ocamlopt $mloptflags $1 -o tmp.out >/dev/null 2>/dev/null || r=0
-    if test ! -x tmp.out; then r=0; fi
-    rm -f tmp.out
+    $ocamlopt $mloptflags $1 -o tmp${exeext} >/dev/null 2>/dev/null || r=0
+    if test ! -x tmp${exeext}; then r=0; fi
+    rm -f tmp${exeext}
     if test $r -eq 0; then echo "not found"; else echo "found"; fi
     return $r    
 }
@@ -206,6 +239,10 @@ if test -n "$CC"; then
   searchbinreq "$CC"
   cc="$CC"
   ccopt="$CFLAGS"
+  cc_base=`basename $cc`
+  if test "$cc_base" = cl || test "$cc_base" = cl.exe; then
+    use_msvc
+  fi
 elif ! searchbin 'gcc'; then
   cc='gcc'
   ccopt="-O3 -Wall -Wextra $CFLAGS"
@@ -215,6 +252,9 @@ elif ! searchbin $prefixnonocaml'gcc'; then
 elif ! searchbin 'cc'; then
   cc='cc'
   ccopt="-O3 -Wall -Wextra $CFLAGS"
+elif ! searchbin 'cl'; then
+  cc='cl'
+  use_msvc
 else
   searchbinreq $prefixnonocaml'cc'
   cc=$prefixnonocaml'cc'
@@ -305,6 +345,7 @@ if test "$gmp" = 'gmp' || test "$gmp" = 'auto'; then
         if test $? -eq 1; then 
             gmp='OK'
             cclib="$cclib -lgmp"
+            cclinkflags="$cclinkflags ${linklibstart}gmp${linklibend}"
             ccdef="-DHAS_GMP $ccdef"
         fi
     fi
@@ -316,12 +357,19 @@ if test "$gmp" = 'mpir' || test "$gmp" = 'auto'; then
         if test $? -eq 1; then 
             gmp='OK'
             cclib="$cclib -lmpir"
+            cclinkflags="$cclinkflags ${linklibstart}mpir${linklibend}"
             ccdef="-DHAS_MPIR $ccdef"
         fi
     fi
 fi
 if test "$gmp" != 'OK'; then echo "cannot find GMP nor MPIR"; exit 2; fi
 
+# check for gmpn_divexact in the gmp/mpir library
+
+checkgmpn_divexact
+if test $? -eq 1; then
+    ccdef="-DHAS_GMPN_DIVEXACT $ccdef"
+fi
 
 # OCaml version
 

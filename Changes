@@ -1,3 +1,8 @@
+Pending
+- Support MSVC compiler with environment variables for GMP library locations
+  and consistent .exe and .obj extensions. Probe for __gmpn_divexact rather
+  than assume existence [Jonah Beckford]
+
 Release 1.12 (2021-03-03)
 - PR #79: fast path in OCaml (instead of assembly language) [Xavier Leroy]
 - PR #94: remove source preprocessing and simplify configuration [Xavier Leroy]

@@ -52,6 +52,7 @@ endif
 DEBUG = -g
 OCAMLFLAGS += $(DEBUG) -I +compiler-libs
 OCAMLOPTFLAGS += $(DEBUG) -I +compiler-libs
+LDFLAGS = $(foreach flag, $(LIBS), -ldopt $(flag))
 
 ifeq ($(HASDYNLINK),yes)
 TOBUILD += zarith.cmxs
@@ -71,16 +72,16 @@ tests:
 	make -C tests test
 
 zarith.cma: $(MLSRC:%.ml=%.cmo)
-	$(OCAMLMKLIB) $(DEBUG) -failsafe -o zarith $+ $(LIBS)
+	$(OCAMLMKLIB) $(DEBUG) -failsafe -o zarith $+ $(LDFLAGS)
 
 zarith.cmxa: $(MLSRC:%.ml=%.cmx)
-	$(OCAMLMKLIB) $(DEBUG) -failsafe -o zarith $+ $(LIBS)
+	$(OCAMLMKLIB) $(DEBUG) -failsafe -o zarith $+ $(LDFLAGS)
 
 zarith.cmxs: zarith.cmxa libzarith.$(LIBSUFFIX)
 	$(OCAMLOPT) -shared -o $@ -I . zarith.cmxa -linkall
 
 libzarith.$(LIBSUFFIX): $(CSRC:%.c=%.$(OBJSUFFIX))
-	$(OCAMLMKLIB) $(DEBUG) -failsafe -o zarith $+ $(LIBS)
+	$(OCAMLMKLIB) $(DEBUG) -failsafe -o zarith $+ $(LDFLAGS)
 
 zarith_top.cma: zarith_top.cmo
 	$(OCAMLC) $(DEBUG) -o $@ -a $<

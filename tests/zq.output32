@@ -1113,6 +1113,11 @@ numbits / trailing_zeros 1 (passed)
 numbits / trailing_zeros -42 (passed)
 numbits / trailing_zeros 1511006158790834639735881728 (passed)
 numbits / trailing_zeros -2277361236363886404304896 (passed)
+random_bits 45 = 25076743995969
+random_bits 45 = 33510880286625
+random_bits 12 = 1263
+random_int 123456 = 103797
+random_int 9999999 = 1089068
 - 0 = 0
 - 1 = -1
 - -1 = 1

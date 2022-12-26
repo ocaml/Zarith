@@ -36,6 +36,10 @@ test:: ofstring.exe
 	@echo "Testing ofstring..."
 	@./ofstring.exe
 
+test:: chi2.exe
+	@echo "Testing random number generation..."
+	@./chi2.exe
+
 bench:: timings.exe
 	./timings.exe
 

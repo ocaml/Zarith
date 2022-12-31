@@ -755,7 +755,7 @@ CAMLprim value ml_z_to_nativeint_unsigned(value v)
   }
   Z_MARK_SLOW;
   Z_ARG(v);
-  if (!size_v) return r = 0;
+  if (!size_v) r = 0;
   else if (sign_v || size_v > 1) ml_z_raise_overflow();
   else r = *ptr_v;
   return caml_copy_nativeint(r);

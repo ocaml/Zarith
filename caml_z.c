@@ -870,7 +870,7 @@ CAMLprim value ml_z_to_int64_unsigned(value v)
   case 0: r = 0; break;
   case 1: r = ptr_v[0]; break;
 #ifndef ARCH_SIXTYFOUR
-  case 2: r = ptr_v[0] | (ptr_v[1] << 32); break;
+  case 2: r = ptr_v[0] | ((uint64_t) ptr_v[1] << 32); break;
 #endif
   default: ml_z_raise_overflow(); break;
   }

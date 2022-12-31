@@ -1338,8 +1338,9 @@ CAMLprim value ml_z_fits_int32_unsigned(value v)
     Z_ARG(v);
     if (sign_v || size_v > 1) return Val_false;
     if (!size_v) return Val_true;
-    x = *ptr_v;
-    if ((uintnat)x >= Z_HI_INT32) return Val_false;
+#ifdef ARCH_SIXTYFOUR
+    if (*ptr_v >= Z_HI_UINT32) return Val_false;
+#endif
     return Val_true;
   }
 }

@@ -232,7 +232,6 @@ external fits_int: t -> bool = "ml_z_fits_int" [@@noalloc]
 external fits_int32: t -> bool = "ml_z_fits_int32" [@@noalloc]
 external fits_int64: t -> bool = "ml_z_fits_int64" [@@noalloc]
 external fits_nativeint: t -> bool = "ml_z_fits_nativeint" [@@noalloc]
-external extract: t -> int -> int -> t = "ml_z_extract"
 external powm: t -> t -> t -> t = "ml_z_powm"
 external pow: t -> int -> t = "ml_z_pow"
 external powm_sec: t -> t -> t -> t = "ml_z_powm_sec"
@@ -322,6 +321,36 @@ let testbit x n =
 
 let is_odd x = testbit_internal x 0
 let is_even x  = not (testbit_internal x 0)
+
+external c_extract_small: t -> int -> int -> t
+  = "ml_z_extract_small" [@@noalloc]
+external c_extract: t -> int -> int -> t = "ml_z_extract"
+
+let extract_internal x o l =
+  if is_small_int x then
+    (* Fast path *)
+    let o = if o >= Sys.int_size then Sys.int_size - 1 else o in
+    (* Shift away low "o" bits.  If "o" too big, just replicate sign bit. *)
+    let z = unsafe_to_int x asr o in
+    if l < Sys.int_size then
+      (* Extract "l" low bits, if "l" is small enough *)
+      of_int (z land ((1 lsl l) - 1))
+    else if z >= 0 then
+      (* If x >= 0, the extraction of "l" low bits keeps x unchanged. *)
+      of_int z
+    else
+      (* If x < 0, fall through slow path *)
+      c_extract x o l
+  else if l < Sys.int_size then
+    (* Alternative fast path since no allocation is required *)
+    c_extract_small x o l
+  else
+    c_extract x o l
+
+let extract x o l =
+  if o < 0 then invalid_arg "Z.extract: negative bit offset";
+  if l < 1 then invalid_arg "Z.extract: nonpositive bit length";
+  extract_internal x o l
 
 let signed_extract x o l =
   if o < 0 then invalid_arg "Z.signed_extract: negative bit offset";

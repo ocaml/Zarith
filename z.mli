@@ -615,7 +615,7 @@ val log2up: t -> int
 external size: t -> int = "ml_z_size" [@@noalloc]
 (** Returns the number of machine words used to represent the number. *)
 
-external extract: t -> int -> int -> t = "ml_z_extract"
+val extract: t -> int -> int -> t
 (** [extract a off len] returns a nonnegative number corresponding to bits
     [off] to [off]+[len]-1 of [a].
     Negative [a] are considered in infinite-length 2's complement

@@ -696,107 +696,171 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
   CAMLreturn(r);
 }
 
-CAMLprim value ml_z_to_int(value v)
+/* either stores the result in r and returns 0 (no overflow),
+   or returns 1 and leave r undefined (overflow)
+*/
+static value ml_to_int(value v, value* r)
 {
-  intnat x;
   Z_DECL(v);
   Z_MARK_OP;
   Z_CHECK(v);
-  if (Is_long(v)) return v;
+  if (Is_long(v)) { *r = v; return 0; }
   Z_MARK_SLOW;
   Z_ARG(v);
-  if (size_v > 1) ml_z_raise_overflow();
-  if (!size_v) return Val_long(0);
-  x = *ptr_v;
-  if (sign_v) {
-    if ((uintnat)x > Z_HI_INT) ml_z_raise_overflow();
-    x = -x;
-  }
+  if (size_v > 1) return 1;
+  else if (!size_v) { *r = Val_long(0); return 0; }
   else {
-    if ((uintnat)x >= Z_HI_INT) ml_z_raise_overflow();
+    intnat x = *ptr_v;
+    if (sign_v) {
+      if ((uintnat)x > Z_HI_INT) return 1;
+      *r = Val_long(-x);
+    }
+    else {
+      if ((uintnat)x >= Z_HI_INT) return 1;
+      *r = Val_long(x);
+    }
+    return 0;
   }
-  return Val_long(x);
+}
+
+CAMLprim value ml_z_to_int(value v)
+{
+  value x;
+  if (ml_to_int(v, &x)) ml_z_raise_overflow();
+  return x;
+}
+
+CAMLprim value ml_z_fits_int(value v)
+{
+  value x;
+  if (ml_to_int(v, &x)) return Val_false;
+  return Val_true;
+}
+
+static int ml_to_nativeint(value v, intnat* r)
+{
+  Z_DECL(v);
+  Z_MARK_OP;
+  Z_CHECK(v);
+  if (Is_long(v)) { *r = Long_val(v); return 0; }
+  Z_MARK_SLOW;
+  Z_ARG(v);
+  if (size_v > 1) return 1;
+  if (!size_v) { *r = 0; return 0; }
+  else {
+    intnat x;
+    x = *ptr_v;
+    if (sign_v) {
+      if ((uintnat)x > Z_HI_INTNAT) return 1;
+      *r = -x;
+    }
+    else {
+      if ((uintnat)x >= Z_HI_INTNAT) return 1;
+      *r = x;
+    }
+    return 0;
+  }
 }
 
 CAMLprim value ml_z_to_nativeint(value v)
 {
   intnat x;
-  Z_DECL(v);
-  Z_MARK_OP;
-  Z_CHECK(v);
-  if (Is_long(v)) return caml_copy_nativeint(Long_val(v));
-  Z_MARK_SLOW;
-  Z_ARG(v);
-  if (size_v > 1) ml_z_raise_overflow();
-  if (!size_v) x = 0;
-  else {
-    x = *ptr_v;
-    if (sign_v) {
-      if ((uintnat)x > Z_HI_INTNAT) ml_z_raise_overflow();
-      x = -x;
-    }
-    else {
-      if ((uintnat)x >= Z_HI_INTNAT) ml_z_raise_overflow();
-    }
-  }
+  if (ml_to_nativeint(v, &x)) ml_z_raise_overflow();
   return caml_copy_nativeint(x);
 }
 
-CAMLprim value ml_z_to_nativeint_unsigned(value v)
+CAMLprim value ml_z_fits_nativeint(value v)
 {
-  uintnat r;
+  intnat x;
+  if (ml_to_nativeint(v, &x)) return Val_false;
+  return Val_true;
+}
+
+static int ml_to_nativeint_unsigned(value v, uintnat* r)
+{
   Z_DECL(v);
   Z_MARK_OP;
   Z_CHECK(v);
   if (Is_long(v)) {
     intnat x = Long_val(v);
-    if (x < 0) ml_z_raise_overflow();
-    return caml_copy_nativeint((uintnat)x);
+    if (x < 0) return 1;
+    *r = (uintnat)x;
+    return 0;
   }
   Z_MARK_SLOW;
   Z_ARG(v);
-  if (!size_v) r = 0;
-  else if (sign_v || size_v > 1) ml_z_raise_overflow();
-  else r = *ptr_v;
-  return caml_copy_nativeint(r);
+  if (!size_v) { *r = 0; return 0; }
+  else if (sign_v || size_v > 1) return 1;
+  else {
+    *r = *ptr_v;
+    return 0;
+  }
+}
+
+CAMLprim value ml_z_to_nativeint_unsigned(value v)
+{
+  uintnat x;
+  if (ml_to_nativeint_unsigned(v, &x)) ml_z_raise_overflow();
+  return caml_copy_nativeint(x);
+}
+
+CAMLprim value ml_z_fits_nativeint_unsigned(value v)
+{
+  uintnat x;
+  if (ml_to_nativeint_unsigned(v, &x)) return Val_false;
+  return Val_true;
+}
+
+static int ml_to_int32(value v, intnat* r)
+{
+  Z_DECL(v);
+  Z_MARK_OP;
+  Z_CHECK(v);
+  if (Is_long(v)) {
+    intnat x = Long_val(v);
+#ifdef ARCH_SIXTYFOUR
+    if (x >= (intnat)Z_HI_INT32 || x < -(intnat)Z_HI_INT32)
+      return 1;
+#endif
+    *r = x;
+    return 0;
+  }
+  else {
+    Z_ARG(v);
+    Z_MARK_SLOW;
+    if (size_v > 1) return 1;
+    if (!size_v) { *r = 0; return 0; }
+    else {
+      intnat x = *ptr_v;
+      if (sign_v) {
+        if ((uintnat)x > Z_HI_INT32) return 1;
+        *r = -x;
+      }
+      else {
+        if ((uintnat)x >= Z_HI_INT32) return 1;
+        *r = x;
+      }
+      return 0;
+    }
+  }
 }
 
 CAMLprim value ml_z_to_int32(value v)
 {
   intnat x;
-  Z_DECL(v);
-  Z_MARK_OP;
-  Z_CHECK(v);
-  if (Is_long(v)) {
-    x = Long_val(v);
-#ifdef ARCH_SIXTYFOUR
-    if (x >= (intnat)Z_HI_INT32 || x < -(intnat)Z_HI_INT32)
-      ml_z_raise_overflow();
-#endif
-    return caml_copy_int32(x);
-  }
-  else {
-    Z_ARG(v);
-    Z_MARK_SLOW;
-    if (size_v > 1) ml_z_raise_overflow();
-    if (!size_v) x = 0;
-    else {
-      x = *ptr_v;
-      if (sign_v) {
-        if ((uintnat)x > Z_HI_INT32) ml_z_raise_overflow();
-        x = -x;
-      }
-      else {
-        if ((uintnat)x >= Z_HI_INT32) ml_z_raise_overflow();
-      }
-    }
-    return caml_copy_int32(x);
-  }
+  if (ml_to_int32(v, &x)) ml_z_raise_overflow();
+  return caml_copy_int32(x);
 }
 
-CAMLprim value ml_z_to_int32_unsigned(value v)
+CAMLprim value ml_z_fits_int32(value v)
 {
-  uintnat r;
+  intnat x;
+  if (ml_to_int32(v, &x)) return Val_false;
+  return Val_true;
+}
+
+static int ml_to_int32_unsigned(value v, uintnat* r)
+{
   Z_DECL(v);
   Z_MARK_OP;
   Z_CHECK(v);
@@ -807,31 +871,46 @@ CAMLprim value ml_z_to_int32_unsigned(value v)
 #else
     if (x < 0)
 #endif
-      ml_z_raise_overflow();
-    return caml_copy_int32(x);
+      return 1;
+    *r = x;
+    return 0;
   }
   else {
     Z_ARG(v);
     Z_MARK_SLOW;
-    if (!size_v) r = 0;
-    else if (sign_v || size_v > 1) ml_z_raise_overflow();
+    if (!size_v) { *r = 0; return 0; }
+    else if (sign_v || size_v > 1) return 1;
     else {
-      r = *ptr_v;
+      *r = *ptr_v;
 #ifdef ARCH_SIXTYFOUR
-      if (r >= Z_HI_UINT32) ml_z_raise_overflow();
+      if (*r >= Z_HI_UINT32) return 1;
 #endif
+      return 0;
     }
-    return caml_copy_int32(r);
   }
 }
 
-CAMLprim value ml_z_to_int64(value v)
+CAMLprim value ml_z_to_int32_unsigned(value v)
 {
-  int64_t x = 0;
+  uintnat x;
+  if (ml_to_int32_unsigned(v, &x)) ml_z_raise_overflow();
+  return caml_copy_int32(x);
+}
+
+CAMLprim value ml_z_fits_int32_unsigned(value v)
+{
+  uintnat x;
+  if (ml_to_int32_unsigned(v, &x)) return Val_false;
+  return Val_true;
+}
+
+static int ml_to_int64(value v, int64_t* r)
+{
+  int64_t x;
   Z_DECL(v);
   Z_MARK_OP;
   Z_CHECK(v);
-  if (Is_long(v)) return caml_copy_int64(Long_val(v));
+  if (Is_long(v)) { *r = Long_val(v); return 0; }
   Z_MARK_SLOW;
   Z_ARG(v);
   switch (size_v) {
@@ -840,41 +919,69 @@ CAMLprim value ml_z_to_int64(value v)
 #ifndef ARCH_SIXTYFOUR
   case 2: x = ptr_v[0] | ((uint64_t)ptr_v[1] << 32); break;
 #endif
-  default: ml_z_raise_overflow(); break;
+  default: return 1;
   }
   if (sign_v) {
-    if ((uint64_t)x > Z_HI_INT64) ml_z_raise_overflow();
-    x = -x;
+    if ((uint64_t)x > Z_HI_INT64) return 1;
+    *r = -x;
   }
   else {
-    if ((uint64_t)x >= Z_HI_INT64) ml_z_raise_overflow();
+    if ((uint64_t)x >= Z_HI_INT64) return 1;
+    *r = x;
   }
+  return 0;
+}
+
+CAMLprim value ml_z_to_int64(value v)
+{
+  int64_t x;
+  if (ml_to_int64(v, &x)) ml_z_raise_overflow();
   return caml_copy_int64(x);
 }
 
-CAMLprim value ml_z_to_int64_unsigned(value v)
+CAMLprim value ml_z_fits_int64(value v)
 {
-  uint64_t r;
+  int64_t x;
+  if (ml_to_int64(v, &x)) return Val_false;
+  return Val_true;
+}
+
+static int ml_to_int64_unsigned(value v, uint64_t* r)
+{
   Z_DECL(v);
   Z_MARK_OP;
   Z_CHECK(v);
   if (Is_long(v)) {
     intnat x = Long_val(v);
-    if (x < 0) ml_z_raise_overflow();
-    return caml_copy_int64(x);
+    if (x < 0) return 1;
+    *r = x;
+    return 0;
   }
   Z_MARK_SLOW;
   Z_ARG(v);
-  if (sign_v) ml_z_raise_overflow();
+  if (sign_v) return 1;
   switch (size_v) {
-  case 0: r = 0; break;
-  case 1: r = ptr_v[0]; break;
+  case 0: *r = 0; return 0;
+  case 1: *r = ptr_v[0]; return 0;
 #ifndef ARCH_SIXTYFOUR
-  case 2: r = ptr_v[0] | ((uint64_t) ptr_v[1] << 32); break;
+  case 2: *r = ptr_v[0] | ((uint64_t) ptr_v[1] << 32); return 0;
 #endif
-  default: ml_z_raise_overflow(); break;
+  default: return 1;
   }
-  return caml_copy_int64(r);
+}
+
+CAMLprim value ml_z_to_int64_unsigned(value v)
+{
+  uint64_t x;
+  if (ml_to_int64_unsigned(v, &x)) ml_z_raise_overflow();
+  return caml_copy_int64(x);
+}
+
+CAMLprim value ml_z_fits_int64_unsigned(value v)
+{
+  uint64_t x;
+  if (ml_to_int64_unsigned(v, &x)) return Val_false;
+  return Val_true;
 }
 
 /* XXX: characters that do not belong to the format are ignored, this departs
@@ -1230,165 +1337,6 @@ CAMLprim value ml_z_sign(value arg)
   Z_MARK_OP;
   Z_CHECK(arg);
   return Val_long(ml_z_sgn(arg));
-}
-
-CAMLprim value ml_z_fits_int(value v)
-{
-  intnat x;
-  Z_DECL(v);
-  Z_MARK_OP;
-  Z_CHECK(v);
-  if (Is_long(v)) return Val_true;
-  Z_MARK_SLOW;
-  Z_ARG(v);
-  if (size_v > 1) return Val_false;
-  if (!size_v) return Val_true;
-  x = *ptr_v;
-  if (sign_v) {
-    if ((uintnat)x > Z_HI_INT) return Val_false;
-  }
-  else {
-    if ((uintnat)x >= Z_HI_INT) return Val_false;
-  }
-  return Val_true;
-}
-
-CAMLprim value ml_z_fits_nativeint(value v)
-{
-  intnat x;
-  Z_DECL(v);
-  Z_MARK_OP;
-  Z_CHECK(v);
-  if (Is_long(v)) return Val_true;
-  Z_MARK_SLOW;
-  Z_ARG(v);
-  if (size_v > 1) return Val_false;
-  if (!size_v) return Val_true;
-  x = *ptr_v;
-  if (sign_v) {
-    if ((uintnat)x > Z_HI_INTNAT) return Val_false;
-  }
-  else {
-    if ((uintnat)x >= Z_HI_INTNAT) return Val_false;
-  }
-  return Val_true;
-}
-
-CAMLprim value ml_z_fits_nativeint_unsigned(value v)
-{
-  Z_DECL(v);
-  Z_MARK_OP;
-  Z_CHECK(v);
-  if (Is_long(v)) {
-    if (Long_val(v) < 0) return Val_false;
-    return Val_true;
-  }
-  Z_MARK_SLOW;
-  Z_ARG(v);
-  if (sign_v || size_v > 1) return Val_false;
-  return Val_true;
-}
-
-CAMLprim value ml_z_fits_int32(value v)
-{
-  intnat x;
-  Z_MARK_OP;
-  Z_CHECK(v);
-  if (Is_long(v)) {
-#ifdef ARCH_SIXTYFOUR
-    x = Long_val(v);
-    if (x >= (intnat)Z_HI_INT32 || x < -(intnat)Z_HI_INT32)
-      return Val_false;
-#endif
-    return Val_true;
-  }
-  else {
-    Z_DECL(v);
-    Z_MARK_SLOW;
-    Z_ARG(v);
-    if (size_v > 1) return Val_false;
-    if (!size_v) return Val_true;
-    x = *ptr_v;
-    if (sign_v) {
-      if ((uintnat)x > Z_HI_INT32) return Val_false;
-    }
-    else {
-      if ((uintnat)x >= Z_HI_INT32) return Val_false;
-    }
-    return Val_true;
-  }
-}
-
-CAMLprim value ml_z_fits_int32_unsigned(value v)
-{
-  intnat x;
-  Z_MARK_OP;
-  Z_CHECK(v);
-  if (Is_long(v)) {
-    x = Long_val(v);
-    if (x < 0) return Val_false;
-#ifdef ARCH_SIXTYFOUR
-    if (x >= Z_HI_UINT32) return Val_false;
-#endif
-    return Val_true;
-  }
-  else {
-    Z_DECL(v);
-    Z_MARK_SLOW;
-    Z_ARG(v);
-    if (sign_v || size_v > 1) return Val_false;
-    if (!size_v) return Val_true;
-#ifdef ARCH_SIXTYFOUR
-    if (*ptr_v >= Z_HI_UINT32) return Val_false;
-#endif
-    return Val_true;
-  }
-}
-
-CAMLprim value ml_z_fits_int64(value v)
-{
-  int64_t x;
-  Z_DECL(v);
-  Z_MARK_OP;
-  Z_CHECK(v);
-  if (Is_long(v)) return Val_true;
-  Z_MARK_SLOW;
-  Z_ARG(v);
-  switch (size_v) {
-  case 0: return Val_true;
-  case 1: x = ptr_v[0]; break;
-#ifndef ARCH_SIXTYFOUR
-  case 2: x = ptr_v[0] | ((uint64_t)ptr_v[1] << 32); break;
-#endif
-  default: return Val_false;
-  }
-  if (sign_v) {
-    if ((uint64_t)x > Z_HI_INT64) return Val_false;
-  }
-  else {
-    if ((uint64_t)x >= Z_HI_INT64) return Val_false;
-  }
-  return Val_true;
-}
-
-CAMLprim value ml_z_fits_int64_unsigned(value v)
-{
-  Z_DECL(v);
-  Z_MARK_OP;
-  Z_CHECK(v);
-  if (Is_long(v)) {
-    if (Long_val(v) < 0) return Val_false;
-    return Val_true;
-  }
-  Z_MARK_SLOW;
-  Z_ARG(v);
-  if (sign_v) return Val_false;
-#ifdef ARCH_SIXTYFOUR
-  if (size_v > 1) return Val_false;
-#else
-  if (size_v > 2) return Val_false;
-#endif
-  return Val_true;
 }
 
 CAMLprim value ml_z_size(value v)

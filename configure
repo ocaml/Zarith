@@ -29,7 +29,8 @@ ocamlmklib='ocamlmklib'
 ocamldep='ocamldep'
 ocamldoc='ocamldoc'
 ccinc="$CPPFLAGS"
-cclib="$LDFLAGS"
+ldflags="$LDFLAGS"
+cclib=''
 ccdef=''
 mlflags="$OCAMLFLAGS"
 mloptflags="$OCAMLOPTFLAGS"
@@ -161,7 +162,7 @@ checklib()
     rm -f tmp.c tmp.out
     echo "int main() { return 1; }" >> tmp.c
     r=1
-    $cc $ccopt $cclib tmp.c -l$1 -o tmp.out >/dev/null 2>/dev/null || r=0
+    $cc $ccopt $ldflags $cclib tmp.c -l$1 -o tmp.out >/dev/null 2>/dev/null || r=0
     if test ! -x tmp.out; then r=0; fi
     rm -f tmp.c tmp.o tmp.out
     if test $r -eq 0; then echo "not found"; else echo "found"; fi
@@ -367,6 +368,7 @@ OCAMLOPTFLAGS=$mloptflags
 OCAMLINC=$mlinc
 CFLAGS=$ccinc $ccdef $ccopt
 LIBS=$cclib
+LDFLAGS=$ldflags
 INSTALLDIR=$installdir
 INSTALL=install
 OCAMLFIND=ocamlfind
@@ -390,6 +392,7 @@ detected configuration:
   dynamic linking:      $hasdynlink
   defines:              $ccdef
   libraries:            $cclib
+  linker options:       $ldflags
   C options:            $ccopt
   installation path:    $installdir
   installation method   $instmeth

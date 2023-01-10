@@ -69,13 +69,28 @@ external of_int: int -> t = "%identity"
 (** Converts from a base integer. *)
 
 external of_int32: int32 -> t = "ml_z_of_int32"
-(** Converts from a 32-bit integer. *)
+(** Converts from a 32-bit (signed) integer. *)
 
 external of_int64: int64 -> t = "ml_z_of_int64"
-(** Converts from a 64-bit integer. *)
+(** Converts from a 64-bit (signed) integer. *)
 
 external of_nativeint: nativeint -> t = "ml_z_of_nativeint"
-(** Converts from a native integer. *)
+(** Converts from a native (signed) integer. *)
+
+val of_int32_unsigned: int32 -> t
+(** Converts from a 32-bit integer, interpreted as an unsigned integer.
+    @since 1.13
+ *)
+
+val of_int64_unsigned: int64 -> t
+(** Converts from a 64-bit integer, interpreted as an unsigned integer.
+    @since 1.13
+ *)
+
+val of_nativeint_unsigned: nativeint -> t
+(** Converts from a native integer, interpreted as an unsigned integer..
+     @since 1.13
+ *)
 
 external of_float: float -> t = "ml_z_of_float"
 (** Converts from a floating-point value.
@@ -316,7 +331,9 @@ external to_int32_unsigned: t -> int32 = "ml_z_to_int32_unsigned"
 (** Converts to an unsigned 32-bit integer.
     The result is stored into an OCaml [int32].
     Beware that most [Int32] operations consider [int32] to a signed type, not unsigned.
-    Raises an [Overflow] if the value is negative or does not fit in an unsigned 32-bit integer. *)
+    Raises an [Overflow] if the value is negative or does not fit in an unsigned 32-bit integer.
+    @since 1.13
+*)
 
 external to_int64: t -> int64 = "ml_z_to_int64"
 (** Converts to a signed 64-bit integer [int64].
@@ -326,7 +343,9 @@ external to_int64_unsigned: t -> int64 = "ml_z_to_int64_unsigned"
 (** Converts to an unsigned 64-bit integer.
     The result is stored into an OCaml [int64].
     Beware that most [Int64] operations consider [int64] to a signed type, not unsigned.
-    Raises an [Overflow] if the value is negative or does not fit in an unsigned 64-bit integer. *)
+    Raises an [Overflow] if the value is negative or does not fit in an unsigned 64-bit integer.
+    @since 1.13
+ *)
 
 external to_nativeint: t -> nativeint = "ml_z_to_nativeint"
 (** Converts to a native signed integer [nativeint].
@@ -336,7 +355,9 @@ external to_nativeint_unsigned: t -> nativeint = "ml_z_to_nativeint_unsigned"
 (** Converts to a native unsigned integer.
     The result is stored into an OCaml [nativeint].
     Beware that most [Nativeint] operations consider [nativeint] to a signed type, not unsigned.
-    Raises an [Overflow] if the value is negative or does not fit in an unsigned native integer. *)
+    Raises an [Overflow] if the value is negative or does not fit in an unsigned native integer.
+    @since 1.13
+ *)
 
 val to_float: t -> float
 (** Converts to a floating-point value.
@@ -389,13 +410,19 @@ external fits_nativeint: t -> bool = "ml_z_fits_nativeint" [@@noalloc]
 (** Whether the argument fits in a signed [nativeint]. *)
 
 external fits_int32_unsigned: t -> bool = "ml_z_fits_int32_unsigned" [@@noalloc]
-(** Whether the argument is non-negative and fits in an unsigned [int32]. *)
+(** Whether the argument is non-negative and fits in an unsigned [int32].
+    @since 1.13
+ *)
 
 external fits_int64_unsigned: t -> bool = "ml_z_fits_int64_unsigned" [@@noalloc]
-(** Whether the argument is non-negative and fits in an unsigned [int64]. *)
+(** Whether the argument is non-negative and fits in an unsigned [int64].
+    @since 1.13
+*)
 
 external fits_nativeint_unsigned: t -> bool = "ml_z_fits_nativeint_unsigned" [@@noalloc]
-(** Whether the argument is non-negative fits in an unsigned [nativeint]. *)
+(** Whether the argument is non-negative fits in an unsigned [nativeint].
+    @since 1.13
+ *)
 
 
 (** {1 Printing} *)

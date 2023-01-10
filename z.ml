@@ -206,6 +206,15 @@ external of_int64: int64 -> t = "ml_z_of_int64"
 external of_nativeint: nativeint -> t = "ml_z_of_nativeint"
 external of_float: float -> t = "ml_z_of_float"
 
+let uint32_mask = pred (shift_left (of_int 1) 32)
+let of_int32_unsigned x = logand (of_int32 x) uint32_mask
+
+let uint64_mask = pred (shift_left (of_int 1) 64)
+let of_int64_unsigned x = logand (of_int64 x) uint64_mask
+
+let uintnat_mask = pred (shift_left (of_int 1) Nativeint.size)
+let of_nativeint_unsigned x = logand (of_nativeint x) uintnat_mask
+
 external c_to_int: t -> int = "ml_z_to_int"
 
 let to_int x =

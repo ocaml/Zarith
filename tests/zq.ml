@@ -351,7 +351,9 @@ let test_Z() =
   Printf.printf "to_nativeint_unsigned max_int64\n = %s\n" (cvt_nativeint_unsigned maxi64);
   Printf.printf "to_nativeint_unsigned 2max_int64\n = %s\n" (cvt_nativeint_unsigned (I.mul p2 maxi64));
   Printf.printf "to_nativeint_unsigned 3max_int64\n = %s\n" (cvt_nativeint_unsigned (I.mul p3 maxi64));
-
+  Printf.printf "of_int32_unsigned -1\n = %a\n" pr (I.of_int32_unsigned (-1l));
+  Printf.printf "of_int64_unsigned -1\n = %a\n" pr (I.of_int64_unsigned (-1L));
+  Printf.printf "of_nativeint_unsigned -1\n = %a\n" pr (I.of_nativeint_unsigned (-1n));
 
   Printf.printf "of_float 1.\n = %a\n" pr (I.of_float 1.);
   Printf.printf "of_float -1.\n = %a\n" pr (I.of_float (-. 1.));

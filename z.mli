@@ -335,10 +335,6 @@ external to_int32_unsigned: t -> int32 = "ml_z_to_int32_unsigned"
     @since 1.13
 *)
 
-external to_int64: t -> int64 = "ml_z_to_int64"
-(** Converts to a signed 64-bit integer [int64].
-    Raises an [Overflow] if the value does not fit in a signed [int64]. *)
-
 external to_int64_unsigned: t -> int64 = "ml_z_to_int64_unsigned"
 (** Converts to an unsigned 64-bit integer.
     The result is stored into an OCaml [int64].
@@ -346,10 +342,6 @@ external to_int64_unsigned: t -> int64 = "ml_z_to_int64_unsigned"
     Raises an [Overflow] if the value is negative or does not fit in an unsigned 64-bit integer.
     @since 1.13
  *)
-
-external to_nativeint: t -> nativeint = "ml_z_to_nativeint"
-(** Converts to a native signed integer [nativeint].
-    Raises an [Overflow] if the value does not fit in a signed [nativeint]. *)
 
 external to_nativeint_unsigned: t -> nativeint = "ml_z_to_nativeint_unsigned"
 (** Converts to a native unsigned integer.

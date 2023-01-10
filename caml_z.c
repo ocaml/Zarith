@@ -699,7 +699,7 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
 /* either stores the result in r and returns 0 (no overflow),
    or returns 1 and leave r undefined (overflow)
 */
-static value ml_to_int(value v, value* r)
+static int ml_to_int(value v, value* r)
 {
   Z_DECL(v);
   Z_MARK_OP;

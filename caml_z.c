@@ -699,7 +699,7 @@ CAMLprim value ml_z_of_substring_base(value b, value v, value offset, value leng
 /* either stores the result in r and returns 0 (no overflow),
    or returns 1 and leave r undefined (overflow)
 */
-static int ml_to_int(value v, value* r)
+static value ml_to_int(value v, value* r)
 {
   Z_DECL(v);
   Z_MARK_OP;
@@ -811,7 +811,7 @@ CAMLprim value ml_z_fits_nativeint_unsigned(value v)
   return Val_true;
 }
 
-static int ml_to_int32(value v, intnat* r)
+static int ml_to_int32(value v, int32_t* r)
 {
   Z_DECL(v);
   Z_MARK_OP;
@@ -831,13 +831,13 @@ static int ml_to_int32(value v, intnat* r)
     if (size_v > 1) return 1;
     if (!size_v) { *r = 0; return 0; }
     else {
-      intnat x = *ptr_v;
+      uintnat x = *ptr_v;
       if (sign_v) {
-        if ((uintnat)x > Z_HI_INT32) return 1;
+        if (x > Z_HI_INT32) return 1;
         *r = -x;
       }
       else {
-        if ((uintnat)x >= Z_HI_INT32) return 1;
+        if (x >= Z_HI_INT32) return 1;
         *r = x;
       }
       return 0;
@@ -847,19 +847,19 @@ static int ml_to_int32(value v, intnat* r)
 
 CAMLprim value ml_z_to_int32(value v)
 {
-  intnat x;
+  int32_t x;
   if (ml_to_int32(v, &x)) ml_z_raise_overflow();
   return caml_copy_int32(x);
 }
 
 CAMLprim value ml_z_fits_int32(value v)
 {
-  intnat x;
+  int32_t x;
   if (ml_to_int32(v, &x)) return Val_false;
   return Val_true;
 }
 
-static int ml_to_int32_unsigned(value v, uintnat* r)
+static int ml_to_int32_unsigned(value v, uint32_t* r)
 {
   Z_DECL(v);
   Z_MARK_OP;
@@ -881,10 +881,11 @@ static int ml_to_int32_unsigned(value v, uintnat* r)
     if (!size_v) { *r = 0; return 0; }
     else if (sign_v || size_v > 1) return 1;
     else {
-      *r = *ptr_v;
+      uintnat x = *ptr_v;
 #ifdef ARCH_SIXTYFOUR
-      if (*r >= Z_HI_UINT32) return 1;
+      if (x >= Z_HI_UINT32) return 1;
 #endif
+      *r = x;
       return 0;
     }
   }
@@ -892,14 +893,14 @@ static int ml_to_int32_unsigned(value v, uintnat* r)
 
 CAMLprim value ml_z_to_int32_unsigned(value v)
 {
-  uintnat x;
+  uint32_t x;
   if (ml_to_int32_unsigned(v, &x)) ml_z_raise_overflow();
   return caml_copy_int32(x);
 }
 
 CAMLprim value ml_z_fits_int32_unsigned(value v)
 {
-  uintnat x;
+  uint32_t x;
   if (ml_to_int32_unsigned(v, &x)) return Val_false;
   return Val_true;
 }

@@ -151,7 +151,7 @@ clean:
 	make -C tests clean
 
 depend: $(AUTOGEN)
-	$(OCAMLDEP) -native $(OCAMLINC) $(MLSRC) $(MLISRC) > depend
+	$(OCAMLDEP) $(OCAMLINC) $(MLSRC) $(MLISRC) > depend
 
 include depend
 

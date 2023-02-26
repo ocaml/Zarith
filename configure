@@ -279,6 +279,7 @@ rm -f tmp.ml
 
 if test "$gmp" = 'gmp' || test "$gmp" = 'auto'; then
     if pkg-config gmp 2>/dev/null; then
+        echo 'package gmp: found'
         gmp='OK'
         cclib="$cclib $(pkg-config --libs gmp)"
         ccinc="$ccinc $(pkg-config --cflags gmp)"
@@ -375,6 +376,7 @@ detected configuration:
   native-code:          $hasocamlopt
   dynamic linking:      $hasdynlink
   defines:              $ccdef
+  includes:             $ccinc
   libraries:            $cclib
   linker options:       $ldflags
   C options:            $ccopt

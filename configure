@@ -278,13 +278,20 @@ rm -f tmp.ml
 # check GMP, MPIR
 
 if test "$gmp" = 'gmp' || test "$gmp" = 'auto'; then
-    checkinc gmp.h
-    if test $? -eq 1; then
-        checklib gmp
-        if test $? -eq 1; then 
-            gmp='OK'
-            cclib="$cclib -lgmp"
-            ccdef="-DHAS_GMP $ccdef"
+    if pkg-config gmp 2>/dev/null; then
+        gmp='OK'
+        cclib="$cclib $(pkg-config --libs gmp)"
+        ccinc="$ccinc $(pkg-config --cflags gmp)"
+        ccdef="-DHAS_GMP $ccdef"
+    else
+        checkinc gmp.h
+        if test $? -eq 1; then
+            checklib gmp
+            if test $? -eq 1; then 
+                gmp='OK'
+                cclib="$cclib -lgmp"
+                ccdef="-DHAS_GMP $ccdef"
+            fi
         fi
     fi
 fi

@@ -18,7 +18,6 @@
 # options
 installdir='auto'
 ocamllibdir='auto'
-host='auto'
 gmp='auto'
 perf='no'
 
@@ -275,15 +274,6 @@ wordsize=`ocaml tmp.ml`
 echo "OCaml's word size is $wordsize"
 rm -f tmp.ml
 
-
-# auto-detect host
-
-if test "x$host" = 'xauto'; then 
-    searchbin uname
-    if test $? -eq 0; then host='none'
-    else host=`. ./config.guess`
-    fi
-fi
 
 # check GMP, MPIR
 

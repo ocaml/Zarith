@@ -1,0 +1,56 @@
+name: build
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+  schedule:
+    # Prime the caches every Monday
+    - cron: 0 1 * * MON
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-lastest
+        ocaml-compiler:
+          - 4.14.x
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Set git to use LF
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+          git config --global core.ignorecase false
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Use OCaml ${{ matrix.ocaml-compiler }}
+        uses: ocaml/setup-ocaml@v2
+        with:
+          ocaml-compiler: ${{ matrix.ocaml-compiler }}
+          dune-cache: true
+          opam-depext: true
+          opam-depext-flags: --with-test
+
+      - name: configure tree
+        run: ./configure
+
+      - name: Build
+        run: make
+
+      - name: Run the testsuite
+        run: make -C tests test
+
+      - run: opam install . --with-test
+
+      - run: opam exec -- git diff --exit-code
+        if: ${{ !matrix.skip-test }}

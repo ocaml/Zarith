@@ -42,13 +42,13 @@ jobs:
           opam-depext-flags: --with-test
 
       - name: configure tree
-        run: ./configure
+        run: opam exec -- ./configure
 
       - name: Build
-        run: make
+        run: opam exec -- make
 
       - name: Run the testsuite
-        run: make -C tests test
+        run: opam exec -- make -C tests test
 
       - run: opam install . --with-test
 

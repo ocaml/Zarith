@@ -158,7 +158,7 @@ checkinc()
 checklib()
 {
     echo_n "library $1: "
-    rm -f tmp.out
+    rm -f tmp.ml tmp.out
     echo "" > tmp.ml
     r=1
     $ocamlc -custom -ccopt "$ccopt $ldflags $cclib" tmp.ml -cclib -l$1 -o tmp.out >/dev/null 2>/dev/null || r=0

@@ -158,13 +158,12 @@ checkinc()
 checklib()
 {
     echo_n "library $1: "
-    rm -f tmp.c tmp.out
-    echo "int main() { return 1; }" >> tmp.c
-    echo "" > tmpml.ml
+    rm -f tmp.out
+    echo "" > tmp.ml
     r=1
-    $ocamlc -custom -ccopt "$ccopt $ldflags $cclib" tmp.c tmpml.ml -cclib -l$1 -o tmp.out >/dev/null 2>/dev/null || r=0
+    $ocamlc -custom -ccopt "$ccopt $ldflags $cclib" tmp.ml -cclib -l$1 -o tmp.out >/dev/null 2>/dev/null || r=0
     if test ! -x tmp.out; then r=0; fi
-    rm -f tmp.c tmp.o tmp.out tmpml.ml tmpml.cm*
+    rm -f tmp.out tmp.ml tmp.cmi tmp.cmo
     if test $r -eq 0; then echo "not found"; else echo "found"; fi
     return $r
 }

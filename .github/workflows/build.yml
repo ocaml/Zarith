@@ -20,6 +20,13 @@ jobs:
           - macos-lastest
         ocaml-compiler:
           - 4.14.x
+        include:
+          - os: ubuntu-latest
+            ocaml-compiler: 5.0.x
+          - os: macos-lastest
+            ocaml-compiler: 5.0.x
+          - os: windows-latest
+            ocaml-compiler: ocaml.5.0.0,ocaml-option-mingw
 
     runs-on: ${{ matrix.os }}
 
@@ -29,8 +36,22 @@ jobs:
 
       - name: Use OCaml ${{ matrix.ocaml-compiler }}
         uses: ocaml/setup-ocaml@v2
+        if: runner.os != 'Windows'
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
+          dune-cache: true
+          opam-depext: true
+          opam-depext-flags: --with-test
+
+      - name: Use OCaml ${{ matrix.ocaml-compiler }}
+        uses: ocaml/setup-ocaml@v2
+        if: runner.os == 'Windows'
+        with:
+          ocaml-compiler: ${{ matrix.ocaml-compiler }}
+          opam-repositories: |
+            dra27: https://github.com/dra27/opam-repository.git#windows-5.0
+            default: https://github.com/ocaml-opam/opam-repository-mingw.git#sunset
+            opam: https://github.com/ocaml/opam-repository.git
           dune-cache: true
           opam-depext: true
           opam-depext-flags: --with-test

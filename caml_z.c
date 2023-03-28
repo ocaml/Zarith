@@ -160,12 +160,10 @@ extern "C" {
 #endif
 #define Z_FITS_INT(v)  ((v) >= Z_MIN_INT && (v) <= Z_MAX_INT)
 
-/* Z_MAX_INT may not be representable exactly as a double => we use a
-   lower approximation to be safe
- */
+/* greatest/smallest double that can fit in an int */
 #ifdef ARCH_SIXTYFOUR
-#define Z_MAX_INT_FL    0x3ffffffffffff000
-#define Z_MIN_INT_FL    (-Z_MAX_INT_FL)
+#define Z_MAX_INT_FL    0x3ffffffffffffe00
+#define Z_MIN_INT_FL    (-0x4000000000000000)
 #else
 #define Z_MAX_INT_FL    Z_MAX_INT
 #define Z_MIN_INT_FL    Z_MIN_INT

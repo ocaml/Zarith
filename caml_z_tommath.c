@@ -443,7 +443,7 @@ CAMLprim value ml_z_format(value f, value v)
   CAMLparam2(f,v);
   Z_DECL(v);
   char* buf, *dst;
-  size_t sz = 0;
+  int sz = 0;
   size_t i, max_size, size_dst = 0;
   value r;
   const char* fmt = String_val(f);
@@ -1656,14 +1656,35 @@ CAMLprim value ml_z_divexact(value arg1, value arg2)
   return ml_z_div(arg1,arg2);
 }
 
-CAMLprim value ml_z_powm(UNUSED_PARAM value base, UNUSED_PARAM value exp, UNUSED_PARAM value mod)
+CAMLprim value ml_z_powm(value base, value exp, value mod)
 {
-  caml_failwith("Z.powm: not implemented in LibTomMath backend");
+  CAMLparam3(base,exp,mod);
+  CAMLlocal1(r);
+  Z_DECL(base);
+  Z_DECL(exp);
+  Z_DECL(mod);
+
+  Z_ARG(base);
+  Z_ARG(exp);
+  Z_ARG(mod);
+  r = ml_z_alloc();
+  if (mp_exptmod(mp_base, mp_exp, mp_mod, Z_MP(r)) != MP_OKAY) {
+    Z_END_ARG(base);
+    Z_END_ARG(exp);
+    Z_END_ARG(mod);
+    mp_clear(Z_MP(r));
+    caml_failwith("Z.powm: internal error");
+  }
+  r = ml_z_reduce(r);
+  Z_END_ARG(base);
+  Z_END_ARG(exp);
+  Z_END_ARG(mod);
+  CAMLreturn(r);
 }
 
-CAMLprim value ml_z_powm_sec(UNUSED_PARAM value base, UNUSED_PARAM value exp, UNUSED_PARAM value mod)
+CAMLprim value ml_z_powm_sec(value base, value exp, value mod)
 {
-  caml_failwith("Z.powm_sec: not implemented in LibTomMath backend");
+  return ml_z_powm(base, exp, mod);
 }
 
 CAMLprim value ml_z_pow(value base, value exp)
@@ -1674,9 +1695,13 @@ CAMLprim value ml_z_pow(value base, value exp)
   intnat e = Long_val(exp);
   if (e < 0)
     caml_invalid_argument("Z.pow: exponent must be nonnegative");
+#ifdef ARCH_SIXTYFOUR
+  if (e > 0x7fffffff)
+    caml_invalid_argument("Z.pow: exponent too large");
+#endif
   Z_ARG(base);
   r = ml_z_alloc();
-  if (mp_expt_n(mp_base, e, Z_MP(r)) != MP_OKAY) {
+  if (mp_expt_u32(mp_base, e, Z_MP(r)) != MP_OKAY) {
     Z_END_ARG(base);
     mp_clear(Z_MP(r));
     caml_failwith("Z.pow: internal error");     

@@ -36,11 +36,19 @@ test:: ofstring.exe
 	@echo "Testing ofstring..."
 	@./ofstring.exe
 
+test:: chi2.exe
+	@echo "Testing random number generation..."
+	@./chi2.exe
+
 bench:: timings.exe
 	./timings.exe
 
 bench:: pi.exe
 	@echo "Benchmarking pi"; time ./pi.exe 10000 > /dev/null
+
+test:: tst_extract.exe
+	@echo "Testing extract..."
+	@if ./tst_extract.exe; then echo "tst_extract: passed"; else echo "tst_extract: FAILED"; exit 2; fi
 
 tofloat.exe: tofloat.ml setround.o ../zarith.cmxa
 	ocamlopt -I .. -ccopt "-L.." zarith.cmxa -o tofloat.exe \

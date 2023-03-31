@@ -136,10 +136,10 @@ val max: t -> t -> t
 (** Returns the largest of its arguments. *)
 
 val leq: t -> t -> bool
-(** Less than or equal. [leq undef undef] resturns false. *)
+(** Less than or equal. [leq undef undef] returns false. *)
 
 val geq: t -> t -> bool
-(** Greater than or equal. [leq undef undef] resturns false. *)
+(** Greater than or equal. [leq undef undef] returns false. *)
 
 val lt: t -> t -> bool
 (** Less than (not equal). *)

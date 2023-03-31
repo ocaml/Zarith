@@ -669,11 +669,12 @@ val log2up: t -> int
 external size: t -> int = "ml_z_size" [@@noalloc]
 (** Returns the number of machine words used to represent the number. *)
 
-external extract: t -> int -> int -> t = "ml_z_extract"
+val extract: t -> int -> int -> t
 (** [extract a off len] returns a nonnegative number corresponding to bits
-    [off] to [off]+[len]-1 of [b].
+    [off] to [off]+[len]-1 of [a].
     Negative [a] are considered in infinite-length 2's complement
     representation.
+    Raises an [Invalid_argument] if [off] is strictly negative, or if [len] is negative or null.
  *)
 
 val signed_extract: t -> int -> int -> t
@@ -682,6 +683,7 @@ val signed_extract: t -> int -> int -> t
     (that is, bit [off + len - 1] of [a]).  The result is between
     [- 2{^[len]-1}] (included) and [2{^[len]-1}] (excluded),
     and equal to [extract a off len] modulo [2{^len}].
+    Raises an [Invalid_argument] if [off] is strictly negative, or if [len] is negative or null.
  *)
 
 external to_bits: t -> string = "ml_z_to_bits"
@@ -701,6 +703,63 @@ external of_bits: string -> t = "ml_z_of_bits"
     trailing zeros in s.
  *)
 
+(** {1 Pseudo-random number generation} *)
+
+val random_int: ?rng: Random.State.t -> t -> t
+(** [random_int bound] returns a random integer between 0 (inclusive)
+    and [bound] (exclusive).  [bound] must be greater than 0.
+
+    The source of randomness is the {!Random} module from the OCaml
+    standard library.  The optional [rng] argument specifies which
+    random state to use.  If omitted, the default random state for the
+    {!Random} module is used.
+
+    Random numbers produced by this function are not cryptographically
+    strong and must not be used in cryptographic or high-security
+    contexts.  See {!Z.random_int_gen} for an alternative.
+*)
+
+val random_bits: ?rng: Random.State.t -> int -> t
+(** [random_bits nbits] returns a random integer between 0 (inclusive)
+    and [2{^nbits}] (exclusive).  [nbits] must be nonnegative.
+    This is a more efficient special case of {!Z.random_int} when the
+    bound is a power of two.
+
+    The source of randomness and the [rng] optional argument are as
+    described in {!Z.random_int}.
+
+    Random numbers produced by this function are not cryptographically
+    strong and must not be used in cryptographic or high-security
+    contexts.  See {!Z.random_bits_gen} for an alternative.
+*)
+
+val random_int_gen: fill: (bytes -> int -> int -> unit) -> t -> t
+(** [random_int_gen ~fill bound] returns a random integer between 0 (inclusive)
+    and [bound] (exclusive).  [bound] must be greater than 0.
+
+    The [fill] parameter is the source of randomness.  It is called
+    as [fill buf pos len], and is responsible for drawing [len] random
+    bytes and writing them to offsets [pos] to [pos + len - 1] of
+    the byte array [buf].
+
+    Example of use where [/dev/random] provides the random bytes:
+<<
+    In_channel.with_open_bin "/dev/random"
+      (fun ic -> Z.random_int_gen ~fill:(really_input ic) bound)
+>>
+    Example of use where the Cryptokit library provides the random bytes:
+<<
+    Z.random_int_gen ~fill:Cryptokit.Random.secure_rng#bytes bound
+>>
+*)
+
+val random_bits_gen: fill: (bytes -> int -> int -> unit) -> int -> t
+(** [random_bits_gen ~fill nbits] returns a random integer between 0 (inclusive)
+    and [2{^nbits}] (exclusive).  [nbits] must be nonnegative.
+    This is a more efficient special case of {!Z.random_int_gen} when the
+    bound is a power of two.  The [fill] parameter is as described in
+    {!Z.random_int_gen}.
+*)
 
 (** {1 Prefix and infix operators} *)
 

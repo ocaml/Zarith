@@ -1086,43 +1086,55 @@ CAMLprim value ml_z_format(value f, value v)
   CAMLreturn(r);
 }
 
-#ifdef ARCH_SIXTYFOUR
-#define BITS_PER_WORD 64
-#else
-#define BITS_PER_WORD 32
-#endif
+/* Fast path since len < BITS_PER_WORD */
+CAMLprim value ml_z_extract_small(value arg, value off, value len)
+{
+  Z_DECL(arg);
+  uintnat o, l; /* caml code ensures off and len are non signed */
+  intnat x;
+  mp_size_t c1, c2, csz, i;
+  mp_limb_t cr;
+  Z_ARG(arg);
+  o = (uintnat)Long_val(off);
+  l = (uintnat)Long_val(len);
+  c1 = o / Z_LIMB_BITS;
+  c2 = o % Z_LIMB_BITS;
+  csz = size_arg - c1;
+  if (csz > 0) {
+    if (c2) {
+      x = ptr_arg[c1] >> c2;
+      if ((c2 + l > (intnat)Z_LIMB_BITS) && (csz > 1))
+	x |= (ptr_arg[c1 + 1] << (Z_LIMB_BITS - c2));
+    }
+    else x = ptr_arg[c1];
+  }
+  else x = 0;
+  if (sign_arg) {
+    x = ~x;
+    if (csz > 0) {
+      /* carry (cr=0 if all shifted-out bits are 0) */
+      cr = ptr_arg[c1] & (((intnat)1 << c2) - 1);
+      for (i = 0; !cr && i < c1; i++)
+        cr = ptr_arg[i];
+      if (!cr) x ++;
+    }
+  }
+  x &= ((intnat)1 << l) - 1;
+  return Val_long(x);
+}
 
 CAMLprim value ml_z_extract(value arg, value off, value len)
 {
-  intnat o, l, x;
+  uintnat o, l; /* caml code ensures off and len are non signed */
+  intnat x;
   mp_size_t sz, c1, c2, csz, i;
   mp_limb_t cr;
   value r;
   Z_DECL(arg);
   Z_MARK_OP;
   MAYBE_UNUSED x;
-  o = Long_val(off);
-  l = Long_val(len);
-  if (o < 0) caml_invalid_argument("Z.extract: negative bit offset");
-  if (l <= 0) caml_invalid_argument("Z.extract: nonpositive bit length");
-#if Z_USE_NATINT
-  /* Fast path */
-  if (Is_long(arg)) {
-    x = Long_val(arg);
-    /* Shift away low "o" bits.  If "o" too big, just replicate sign bit. */
-    if (o >= BITS_PER_WORD) o = BITS_PER_WORD - 1;
-    x = x >> o;
-    /* Extract "l" low bits, if "l" is small enough */
-    if (l < BITS_PER_WORD - 1) {
-      x = x & (((intnat)1 << l) - 1);
-      return Val_long(x);
-    } else {
-      /* If x >= 0, the extraction of "l" low bits keeps x unchanged. */
-      if (x >= 0) return Val_long(x);
-      /* If x < 0, fall through slow path */
-    }
-  }
-#endif
+  o = (uintnat)Long_val(off);
+  l = (uintnat)Long_val(len);
   Z_MARK_SLOW;
   {
   CAMLparam1(arg);

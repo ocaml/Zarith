@@ -38,7 +38,7 @@ MLISRC = z.mli q.mli big_int_Z.mli
 AUTOGEN = zarith_version.ml
 
 CMIOBJ = $(MLISRC:%.mli=%.cmi)
-CMXOBJ = $(MLISRC:%.mli=%.cmx)
+CMXOBJ = $(MLSRC:%.ml=%.cmx)
 CMIDOC = $(MLISRC:%.mli=%.cmti)
 
 TOBUILD = zarith.cma libzarith.$(LIBSUFFIX) $(CMIOBJ) zarith_top.cma z.mli

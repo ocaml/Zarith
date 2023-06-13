@@ -206,6 +206,15 @@ external of_int64: int64 -> t = "ml_z_of_int64"
 external of_nativeint: nativeint -> t = "ml_z_of_nativeint"
 external of_float: float -> t = "ml_z_of_float"
 
+let uint32_mask = pred (shift_left (of_int 1) 32)
+let of_int32_unsigned x = logand (of_int32 x) uint32_mask
+
+let uint64_mask = pred (shift_left (of_int 1) 64)
+let of_int64_unsigned x = logand (of_int64 x) uint64_mask
+
+let uintnat_mask = pred (shift_left (of_int 1) Nativeint.size)
+let of_nativeint_unsigned x = logand (of_nativeint x) uintnat_mask
+
 external c_to_int: t -> int = "ml_z_to_int"
 
 let to_int x =
@@ -214,6 +223,9 @@ let to_int x =
 external to_int32: t -> int32 = "ml_z_to_int32"
 external to_int64: t -> int64 = "ml_z_to_int64"
 external to_nativeint: t -> nativeint = "ml_z_to_nativeint"
+external to_int32_unsigned: t -> int32 = "ml_z_to_int32_unsigned"
+external to_int64_unsigned: t -> int64 = "ml_z_to_int64_unsigned"
+external to_nativeint_unsigned: t -> nativeint = "ml_z_to_nativeint_unsigned"
 external format: string -> t -> string = "ml_z_format"
 external of_substring_base: int -> string -> pos:int -> len:int -> t = "ml_z_of_substring_base"
 external compare: t -> t -> int = "ml_z_compare" [@@noalloc]
@@ -232,6 +244,10 @@ external fits_int: t -> bool = "ml_z_fits_int" [@@noalloc]
 external fits_int32: t -> bool = "ml_z_fits_int32" [@@noalloc]
 external fits_int64: t -> bool = "ml_z_fits_int64" [@@noalloc]
 external fits_nativeint: t -> bool = "ml_z_fits_nativeint" [@@noalloc]
+external fits_int32_unsigned: t -> bool = "ml_z_fits_int32_unsigned" [@@noalloc]
+external fits_int64_unsigned: t -> bool = "ml_z_fits_int64_unsigned" [@@noalloc]
+external fits_nativeint_unsigned: t -> bool = "ml_z_fits_nativeint_unsigned" [@@noalloc]
+external extract: t -> int -> int -> t = "ml_z_extract"
 external powm: t -> t -> t -> t = "ml_z_powm"
 external pow: t -> int -> t = "ml_z_pow"
 external powm_sec: t -> t -> t -> t = "ml_z_powm_sec"

@@ -7,26 +7,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Install packages
-      run: sudo apt-get install ocaml-nox libgmp-dev
+      run: sudo apt-get install ocaml-nox libgmp-dev opam
     - name: Checkout
       uses: actions/checkout@v2
-    - name: configure tree
-      run: ./configure
+    - name: init opam
+      run: opam init
+    - name: install deps
+      run: opam install . --deps-only --with-test --yes
     - name: Build
-      run: make
+      run: opam exec -- dune build
     - name: Run the testsuite
-      run: make -C tests test
+      run: opam exec -- dune runtest
 
   MacOS:
     runs-on: macos-latest
     steps:
     - name: Install packages
-      run: brew install ocaml ocaml-findlib gmp
+      run: brew install ocaml ocaml-findlib gmp opam
     - name: Checkout
       uses: actions/checkout@v2
-    - name: configure tree
-      run: ./configure
+    - name: init opam
+      run: opam init
+    - name: install deps
+      run: opam install . --deps-only --with-test --yes
     - name: Build
-      run: make
+      run: opam exec -- dune build
     - name: Run the testsuite
-      run: make -C tests test
+      run: opam exec -- dune runtest

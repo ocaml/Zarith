@@ -1,0 +1,4 @@
+- why use -linkall for zarith.cmxs ?
+- do we need -failsafe when calling OCAMLMKLIB
+- do we need -O3 -Wall -Wextra
+- we not longer test bytecode

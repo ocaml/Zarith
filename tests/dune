@@ -1,12 +1,15 @@
 (executables
- (names fact ofstring pi zq)
- (modules fact ofstring pi zq)
+ (names ofstring pi zq timings chi2 tst_extract)
+ (modules ofstring pi zq timings chi2 tst_extract)
+ (modes
+  (best exe)
+  (byte exe))
  (flags -w -27)
  (libraries zarith))
 
 (executables
- (names bi fib tak)
- (modules bi fib tak)
+ (names bi)
+ (modules bi)
  (flags -w -35)
  (libraries num zarith))
 
@@ -20,6 +23,75 @@
  (libraries zarith))
 
 (rule
+ (target zq.output32.corrected)
+ (enabled_if
+  (= %{ocaml-config:word_size} 32))
+ (action
+  (with-stdout-to
+   %{target}
+   (run ./zq.exe))))
+
+(rule
+ (alias runtest)
+ (enabled_if
+  (= %{ocaml-config:word_size} 32))
+ (action
+  (diff zq.output32 zq.output32.corrected)))
+
+(rule
+ (target zq.output64.corrected)
+ (enabled_if
+  (= %{ocaml-config:word_size} 64))
+ (action
+  (with-stdout-to
+   %{target}
+   (run ./zq.exe))))
+
+(rule
+ (alias runtest)
+ (enabled_if
+  (= %{ocaml-config:word_size} 64))
+ (action
+  (diff zq.output64 zq.output64.corrected)))
+
+(rule
+ (alias runtest)
+ (action
+  (diff pi.output pi.output.corrected)))
+
+(rule
+ (alias runtest)
+ (action
+  (run ./bi.exe)))
+
+(rule
+ (target pi.output.corrected)
+ (action
+  (with-stdout-to
+   %{target}
+   (run ./pi.exe 500))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff pi.output pi.output.corrected)))
+
+(rule
  (alias runtest)
  (action
   (run ./tofloat.exe)))
+
+(rule
+ (alias runtest)
+ (action
+  (run ./ofstring.exe)))
+
+(rule
+ (alias runtest)
+ (action
+  (run ./chi2.exe)))
+
+(rule
+ (alias runtest)
+ (action
+  (run ./tst_extract.exe)))

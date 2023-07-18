@@ -2,4 +2,3 @@
 * text=auto
 
 configure text eol=lf
-config.guess text eol=lf

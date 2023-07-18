@@ -161,7 +161,7 @@ checklib()
     rm -f tmp.ml tmp.out
     echo "" > tmp.ml
     r=1
-    $ocamlc -custom -ccopt "$ccopt $ldflags $cclib" tmp.ml -cclib -l$1 -o tmp.out >/dev/null 2>/dev/null || r=0
+    $ocamlc -custom -ccopt "$ldflags $cclib" tmp.ml -cclib -l$1 -o tmp.out >/dev/null 2>/dev/null || r=0
     if test ! -x tmp.out; then r=0; fi
     rm -f tmp.out tmp.ml tmp.cmi tmp.cmo
     if test $r -eq 0; then echo "not found"; else echo "found"; fi

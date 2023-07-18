@@ -17,13 +17,13 @@ jobs:
         os:
           - ubuntu-latest
           - windows-latest
-          - macos-lastest
+          - macos-latest
         ocaml-compiler:
           - 4.14.x
         include:
           - os: ubuntu-latest
             ocaml-compiler: 5.0.x
-          - os: macos-lastest
+          - os: macos-latest
             ocaml-compiler: 5.0.x
           - os: windows-latest
             ocaml-compiler: ocaml.5.0.0,ocaml-option-mingw

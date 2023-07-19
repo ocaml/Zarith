@@ -62,8 +62,6 @@ TOINSTALL += $(CMIDOC)
 OCAMLFLAGS += -bin-annot
 endif
 
-MKLIBLDFLAGS = $(foreach flag, $(LDFLAGS), -ldopt $(flag))
-
 # build targets
 ###############
 
@@ -73,16 +71,16 @@ tests:
 	make -C tests test
 
 zarith.cma: $(MLSRC:%.ml=%.cmo)
-	$(OCAMLMKLIB) $(DEBUG) -failsafe -o zarith $+ $(LIBS) $(MKLIBLDFLAGS)
+	$(OCAMLMKLIB) $(DEBUG) -failsafe -o zarith $+ $(LIBS) $(LDFLAGS)
 
 zarith.cmxa: $(MLSRC:%.ml=%.cmx)
-	$(OCAMLMKLIB) $(DEBUG) -failsafe -o zarith $+ $(LIBS) $(MKLIBLDFLAGS)
+	$(OCAMLMKLIB) $(DEBUG) -failsafe -o zarith $+ $(LIBS) $(LDFLAGS)
 
 zarith.cmxs: zarith.cmxa libzarith.$(LIBSUFFIX)
 	$(OCAMLOPT) -shared -o $@ -I . zarith.cmxa -linkall
 
 libzarith.$(LIBSUFFIX): $(CSRC:%.c=%.$(OBJSUFFIX))
-	$(OCAMLMKLIB) $(DEBUG) -failsafe -o zarith $+ $(LIBS) $(MKLIBLDFLAGS)
+	$(OCAMLMKLIB) $(DEBUG) -failsafe -o zarith $+ $(LIBS) $(LDFLAGS)
 
 zarith_top.cma: zarith_top.cmo
 	$(OCAMLC) $(DEBUG) -o $@ -a $<

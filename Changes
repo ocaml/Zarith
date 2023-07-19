@@ -7,7 +7,7 @@ Release 1.13 (2023-07-19)
 - #118: fix Z_mlgmpidl interface for mlgmpidl >= 1.2 [Simmo Saan]
 - #109: fix typo in `ml_z_mul` function [Bernhard Schommer]
 - #108: fix dependency on C evaluation order in `ml_z_remove` [Xavier Clerc]
-- #117 #120 #124 #129 #132 #135 #139 #141: configure & build simplifications and fixes [various authors]
+- #117 #120 #129 #132 #135 #139 #141: configure & build simplifications and fixes [various authors]
 - #134: CI testing: add Windows, test both 4.14 and 5.0 [Hugo Heuzard]
 
 Release 1.12 (2021-03-03)

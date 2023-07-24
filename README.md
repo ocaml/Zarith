@@ -27,6 +27,9 @@ Additional features include:
 * a module `Q` for rationals, built on top of `Z` (see `q.mli`)
 * a compatibility layer `Big_int_Z` that implements the same API as Big_int from the legacy `Num` library, but uses `Z` internally
 
+Support for [js_of_ocaml](https://github.com/ocsigen/js_of_ocaml/) is
+provided by [Zarith_stubs_js](https://github.com/janestreet/zarith_stubs_js).
+
 ## REQUIREMENTS
 
 * OCaml, version 4.04.0 or later.

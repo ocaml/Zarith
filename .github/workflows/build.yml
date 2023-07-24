@@ -56,14 +56,14 @@ jobs:
           opam-depext: true
           opam-depext-flags: --with-test
 
-      - name: configure tree
-        run: opam exec -- ./configure
+      - name: install deps
+        run: opam install . --deps-only --with-test --yes
 
       - name: Build
-        run: opam exec -- make
+        run: opam exec -- dune build
 
       - name: Run the testsuite
-        run: opam exec -- make -C tests test
+        run: opam exec -- dune runtest
 
       - run: opam install . --with-test
 

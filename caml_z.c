@@ -3335,6 +3335,7 @@ static intnat ml_z_custom_hash(value v)
   uint32_t acc = 0;
   Z_CHECK(v);
   Z_ARG(v);
+  if (!size_v) size_v = 1; // So that the hash of 0 is not 0
   for (i = 0; i < size_v; i++) {
     acc = caml_hash_mix_uint32(acc, (uint32_t)(ptr_v[i]));
 #ifdef ARCH_SIXTYFOUR
@@ -3350,9 +3351,18 @@ static intnat ml_z_custom_hash(value v)
   return acc;
 }
 
+#define FINAL_MIX(h) \
+  h ^= h >> 16; \
+  h *= 0x85ebca6b; \
+  h ^= h >> 13; \
+  h *= 0xc2b2ae35; \
+  h ^= h >> 16;
+
 CAMLprim value ml_z_hash(value v)
 {
-  return Val_long(ml_z_custom_hash(v));
+  uint32_t h = ml_z_custom_hash(v);
+  FINAL_MIX(h);
+  return Val_long(h & 0x3FFFFFFF);
 }
 
 /* serialized format:

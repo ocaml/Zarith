@@ -2048,12 +2048,12 @@ CAMLprim value ml_z_init()
   err |= mp_init_i32(&z_max_int32,   0x7fffffff);
   err |= mp_init_i32(&z_min_int32,  -0x80000000);
   err |= mp_init_i64(&z_max_int64,   0x7fffffffffffffffLL);
-  err |= mp_init_i64(&z_min_int64,  -0x8000000000000000LL);
+  err |= mp_init_i64(&z_min_int64,  -0x7fffffffffffffffLL - 1);
 #ifdef ARCH_SIXTYFOUR
   err |= mp_init_i64(&z_max_int,     0x3fffffffffffffffLL);
   err |= mp_init_i64(&z_min_int,    -0x4000000000000000LL);
   err |= mp_init_i64(&z_max_intnat,  0x7fffffffffffffffLL);
-  err |= mp_init_i64(&z_min_intnat, -0x8000000000000000LL);
+  err |= mp_init_i64(&z_min_intnat, -0x7fffffffffffffffLL - 1);
 #else
   err |= mp_init_i32(&z_max_int,     0x3fffffff);
   err |= mp_init_i32(&z_min_int,    -0x40000000);

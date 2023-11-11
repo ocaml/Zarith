@@ -261,7 +261,27 @@ external nextprime: t -> t = "ml_z_nextprime"
 external hash: t -> int = "ml_z_hash" [@@noalloc]
 external to_bits: t -> string = "ml_z_to_bits"
 external of_bits: string -> t = "ml_z_of_bits"
-external divisible: t -> t -> bool = "ml_z_divisible"
+
+external c_divisible: t -> t -> bool = "ml_z_divisible"
+
+let divisible x y =
+  if is_small_int x then
+    if is_small_int y then
+      if unsafe_to_int y = 0
+      then unsafe_to_int x = 0
+      else (unsafe_to_int x) mod (unsafe_to_int y) = 0
+    else
+      (* If y divides x, we have |y| <= |x| or x = 0.
+         Here, x is small:  min_int <= x <= max_int
+         and y is not small:  y < min_int \/ y > max_int.
+         |y| <= |x| is possible only if
+         x = min_int and y = -min_int = max_int+1 .
+         So, the only two cases where y divides x are
+         x = 0 or x = min_int /\ y = -min_int. *)
+      unsafe_to_int x = 0 || (unsafe_to_int x = min_int && y = c_neg x)
+  else
+    c_divisible x y
+
 external congruent: t -> t -> t -> bool = "ml_z_congruent"
 external jacobi: t -> t -> int = "ml_z_jacobi"
 external legendre: t -> t -> int = "ml_z_legendre"

@@ -903,6 +903,24 @@ hamdist 2^120 2^300
  = 2
 hamdist (2^120-1) (2^300-1)
  = 180
+divisible 42 7
+ = true
+divisible 43 7
+ = false
+divisible 0 0
+ = true
+divisible 0 2^120
+ = true
+divisible 2 2^120
+ = false
+divisible 2^300 2^120
+ = true
+divisible (2^300-1) 32
+ = false
+divisible min_int (max_int+1)
+ = true
+divisible (max_int+1) min_int
+ = true
 hash(2^120)
  = 691199303
 hash(2^121)

@@ -657,6 +657,16 @@ let test_Z() =
   Printf.printf "hamdist 2^120 (2^120-1)\n = %i\n" (I.hamdist p120 (I.pred p120));
   Printf.printf "hamdist 2^120 2^300\n = %i\n" (I.hamdist p120 p300);
   Printf.printf "hamdist (2^120-1) (2^300-1)\n = %i\n" (I.hamdist (I.pred p120) (I.pred p300));
+  Printf.printf "divisible 42 7\n = %B\n" (I.divisible (I.of_int 42) (I.of_int 7));
+  Printf.printf "divisible 43 7\n = %B\n" (I.divisible (I.of_int 43) (I.of_int 7));
+  Printf.printf "divisible 0 0\n = %B\n" (I.divisible I.zero I.zero);
+  Printf.printf "divisible 0 2^120\n = %B\n" (I.divisible I.zero p120);
+  Printf.printf "divisible 2 2^120\n = %B\n" (I.divisible (I.of_int 2) p120);
+  Printf.printf "divisible 2^300 2^120\n = %B\n" (I.divisible p300 p120);
+  Printf.printf "divisible (2^300-1) 32\n = %B\n" (I.divisible (I.pred p300) (I.of_int 32));
+  Printf.printf "divisible min_int (max_int+1)\n = %B\n" (I.divisible (I.of_int min_int) (I.succ (I.of_int max_int)));
+  Printf.printf "divisible (max_int+1) min_int\n = %B\n" (I.divisible (I.succ (I.of_int max_int)) (I.of_int min_int));
+
   (* always 0 when not using custom blocks *)
   Printf.printf "hash(2^120)\n = %i\n" (Hashtbl.hash p120);
   Printf.printf "hash(2^121)\n = %i\n" (Hashtbl.hash p121);

@@ -209,7 +209,7 @@ val divexact: t -> t -> t
     Can raise a [Division_by_zero].
 *)
 
-external divisible: t -> t -> bool = "ml_z_divisible"
+val divisible: t -> t -> bool
 (** [divisible a b] returns [true] if [a] is exactly divisible by [b].
     Unlike the other division functions, [b = 0] is accepted 
     (only 0 is considered divisible by 0).

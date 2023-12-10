@@ -3398,6 +3398,10 @@ static void ml_z_custom_serialize(value v,
 /* XXX: serializing a large (i.e., > 2^31) int on a 64-bit machine and
    deserializing on a 32-bit machine will fail (instead of returning a
    block).
+   YYY: serializing a large (i.e., > 2^31 and < 2^62) int on a
+   32-bit machine and deserializing on a 64-bit machine must fail
+   (instead of returning a block containing a non-normalized big integer)
+   (issue #148).
  */
 static uintnat ml_z_custom_deserialize(void * dst)
 {
@@ -3444,6 +3448,14 @@ static uintnat ml_z_custom_deserialize(void * dst)
 #if Z_PERFORM_CHECK
   d[szw] = 0xDEADBEEF ^ szw;
   szw++;
+#endif
+#if Z_USE_NATINT
+  if (i == 0 ||
+      (i == 1 && (d[0] <= Z_MAX_INT || (d[0] == -Z_MIN_INT && sign)))) {
+    /* Issue #148: this is not a canonical representation,
+       so we raise a Failure */
+    caml_deserialize_error("Z.t value produced on a 32-bit platform cannot be read on a 64-bit platform");
+  }
 #endif
   return (szw+1) * sizeof(mp_limb_t);
 }

@@ -258,7 +258,8 @@ external perfect_power: t -> bool = "ml_z_perfect_power"
 external perfect_square: t -> bool = "ml_z_perfect_square"
 external probab_prime: t -> int -> int = "ml_z_probab_prime"
 external nextprime: t -> t = "ml_z_nextprime"
-external hash: t -> int = "ml_z_hash" [@@noalloc]
+let hash: t -> int = Stdlib.Hashtbl.hash
+let seeded_hash: int -> t -> int = Stdlib.Hashtbl.seeded_hash
 external to_bits: t -> string = "ml_z_to_bits"
 external of_bits: string -> t = "ml_z_of_bits"
 

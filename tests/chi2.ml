@@ -1,12 +1,11 @@
 (* Accumulate [n] samples from function [f] and check the chi-square.
-   Only the low 8 bits of the result of [f] are sampled. *)
+   Assumes [f] returns integers in the [0..255] range. *)
 
 let chisquare n f =
   let r = 256 in
   let freq = Array.make r 0 in
   for i = 0 to n - 1 do
-    let t = Z.to_int (Z.logand (f ()) (Z.of_int 0xFF)) in
-    freq.(t) <- freq.(t) + 1
+    let t = f () in freq.(t) <- freq.(t) + 1
   done;
   let expected = float n /. float r in
   let t =
@@ -22,9 +21,19 @@ let chisquare n f =
   *)
   chi2 <= degfree +. 4.0 *. sqrt (2.0 *. degfree)
 
+let failed = ref false
+
+let test_base name f =
+  if not (chisquare 100_000 f) then begin
+    Printf.printf "%s: suspicious result\n%!" name;
+    failed := true
+  end
+
 let test name f =
-  if not (chisquare 100_000 f)
-  then Printf.printf "%s: suspicious result\n%!" name
+  (* Test the low 8 bits of the result of f *)
+  test_base name  (fun () -> Z.to_int (Z.logand (f ()) (Z.of_int 0xFF)))
+
+let p = Z.of_string "35742549198872617291353508656626642567"
 
 let _ =
   test "random_bits 15 (bits 0-7)"
@@ -38,6 +47,14 @@ let _ =
   test "random_int 2^30 (bits 21-28)"
        (fun () -> Z.(shift_right (random_int (shift_left one 30)) 21));
   test "random_int (256 * p) / p"
-       (let p = Z.of_string "35742549198872617291353508656626642567" in
-        let bound = Z.shift_left p 8 in
-        fun () -> Z.(div (random_int bound) p))
+       (let bound = Z.shift_left p 8 in
+        fun () -> Z.(div (random_int bound) p));
+  (* Also test our hash function, why not? *)
+  test_base "hash (random_int p) (bits 0-7)"
+       (fun () -> Z.(hash (random_int p)) land 0xFF);
+  test_base "hash (random_int p) (bits 16-23)"
+       (fun () -> (Z.(hash (random_int p)) lsr 16) land 0xFF);
+  exit (if !failed then 2 else 0)
+
+
+

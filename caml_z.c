@@ -3390,10 +3390,17 @@ static void ml_z_custom_serialize(value v,
 #endif
 }
 
-/* XXX: serializing a large (i.e., > 2^31) int on a 64-bit machine and
-   deserializing on a 32-bit machine will fail (instead of returning a
-   block).
- */
+/* There are two issues with integers that are tagged ints on a 64-bit
+   machine but boxed bigints on a 32-bit machine, namely integers in the
+   [2^30, 2^62) and [-2^62, -2^30) ranges:
+   - Serializing such an integer on a 64-bit machine and
+     deserializing on a 32-bit machine will fail in the generic unmarshaler.
+     The correct behavior would be to return a boxed integer.
+   - Serializing such an integer on a 32-bit machine and
+     deserializing on a 64-bit machine must fail.
+     The wrong behavior would be to return a block containing a
+     non-normalized, boxed integer (issue #148).
+*/
 static uintnat ml_z_custom_deserialize(void * dst)
 {
   mp_limb_t* d = ((mp_limb_t*)dst) + 1;
@@ -3439,6 +3446,14 @@ static uintnat ml_z_custom_deserialize(void * dst)
 #if Z_PERFORM_CHECK
   d[szw] = 0xDEADBEEF ^ szw;
   szw++;
+#endif
+#if Z_USE_NATINT
+  if (i == 0 ||
+      (i == 1 && (d[0] <= Z_MAX_INT || (d[0] == -Z_MIN_INT && sign)))) {
+    /* Issue #148: this is not a canonical representation,
+       so we raise a Failure */
+    caml_deserialize_error("Z.t value produced on a 32-bit platform cannot be read on a 64-bit platform");
+  }
 #endif
   return (szw+1) * sizeof(mp_limb_t);
 }

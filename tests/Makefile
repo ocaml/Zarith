@@ -50,6 +50,14 @@ test:: tst_extract.exe
 	@echo "Testing extract..."
 	@if ./tst_extract.exe; then echo "tst_extract: passed"; else echo "tst_extract: FAILED"; exit 2; fi
 
+test:: intern.exe
+	@echo "Testing unmarshaling..."
+	@if ./intern.exe extern.data32 | cmp -s intern.output32$(WORDSIZE) -; then echo "intern 32: passed"; else echo "intern 32: failed"; exit 2; fi
+	@if ./intern.exe extern.data64 | cmp -s intern.output64$(WORDSIZE) -; then echo "intern 64: passed"; else echo "intern 64: failed"; exit 2; fi
+
+extern.data$(WORDSIZE): extern.exe
+	./extern.exe extern.data$(WORDSIZE)
+
 tofloat.exe: tofloat.ml setround.o ../zarith.cmxa
 	ocamlopt -I .. -ccopt "-L.." zarith.cmxa -o tofloat.exe \
            setround.o tofloat.ml

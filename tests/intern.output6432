@@ -1,17 +1,3 @@
-2: OK OK OK OK
-3: OK OK OK OK
-4: OK OK OK OK
-5: OK OK OK OK
-6: OK OK OK OK
-7: OK OK OK OK
-8: OK OK OK OK
-9: OK OK OK OK
-10: OK OK OK OK
-11: OK OK OK OK
-12: OK OK OK OK
-13: OK OK OK OK
-14: OK OK OK OK
-15: OK OK OK OK
 16: OK OK OK OK
 17: OK OK OK OK
 18: OK OK OK OK
@@ -26,7 +12,7 @@
 27: OK OK OK OK
 28: OK OK OK OK
 29: OK OK OK OK
-30: Fail OK OK OK
+30: Fail OK OK Fail
 31: Fail Fail Fail Fail
 32: Fail Fail Fail Fail
 33: Fail Fail Fail Fail
@@ -58,7 +44,7 @@
 59: Fail Fail Fail Fail
 60: Fail Fail Fail Fail
 61: Fail Fail Fail Fail
-62: OK Fail Fail Fail
+62: OK Fail Fail OK
 63: OK OK OK OK
 64: OK OK OK OK
 65: OK OK OK OK

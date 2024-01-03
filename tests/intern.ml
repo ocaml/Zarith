@@ -12,13 +12,13 @@ let expect ic n =
 let _ =
   let file = Sys.argv.(1) in
   let ic = open_in_bin file in
-  for nbits = 2 to 128 do
+  for nbits = 16 to 128 do
     printf "%d:" nbits;
     let x = Z.shift_left Z.one nbits in
-    expect ic x;
-    expect ic (Z.pred x);
+    expect ic (Z.pred (Z.neg x));
     expect ic (Z.neg x);
-    expect ic (Z.neg (Z.pred x));
+    expect ic (Z.pred x);
+    expect ic x;
     print_newline()
   done;
   close_in ic

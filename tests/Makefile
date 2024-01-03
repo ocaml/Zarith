@@ -38,7 +38,7 @@ test:: ofstring.exe
 
 test:: chi2.exe
 	@echo "Testing random number generation..."
-	@./chi2.exe
+	@if ./chi2.exe; then echo "chi2: passed"; else echo "chi2: FAILED"; exit 2; fi
 
 bench:: timings.exe
 	./timings.exe

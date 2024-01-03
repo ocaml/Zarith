@@ -3350,11 +3350,6 @@ static intnat ml_z_custom_hash(value v)
   return acc;
 }
 
-CAMLprim value ml_z_hash(value v)
-{
-  return Val_long(ml_z_custom_hash(v));
-}
-
 /* serialized format:
    - 1-byte sign (1 for negative, 0 for positive)
    - 4-byte size in bytes

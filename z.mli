@@ -486,12 +486,24 @@ val is_odd: t -> bool
     @since 1.4
 *)
 
-external hash: t -> int = "ml_z_hash" [@@noalloc]
+val hash: t -> int
 (** Hashes a number, producing a small integer.
-    The result is consistent with equality: if [a] = [b], then [hash a] =
-    [hash b].
-    OCaml's generic hash function, [Hashtbl.hash], works correctly with
-    numbers, but {!Z.hash} is slightly faster.
+    The result is consistent with equality:
+    if [a] = [b], then [hash a] = [hash b].
+    The result is the same as produced by OCaml's generic hash function,
+    {!Hashtbl.hash}.
+    Together with type {!Z.t}, the function {!Z.hash} makes it possible
+    to pass module {!Z} as argument to the functor {!Hashtbl.Make}.
+    @before 1.14 a different hash algorithm was used.
+*)
+
+val seeded_hash: int -> t -> int
+(** Like {!Z.hash}, but takes a seed as extra argument for diversification.
+    The result is the same as produced by OCaml's generic seeded hash function,
+    {!Hashtbl.seeded_hash}.
+    Together with type {!Z.t}, the function {!Z.hash} makes it possible
+    to pass module {!Z} as argument to the functor {!Hashtbl.MakeSeeded}.
+    @since 1.14
 *)
 
 (** {1 Elementary number theory} *)
@@ -717,6 +729,8 @@ val random_int: ?rng: Random.State.t -> t -> t
     Random numbers produced by this function are not cryptographically
     strong and must not be used in cryptographic or high-security
     contexts.  See {!Z.random_int_gen} for an alternative.
+
+    @since 1.13
 *)
 
 val random_bits: ?rng: Random.State.t -> int -> t
@@ -731,6 +745,8 @@ val random_bits: ?rng: Random.State.t -> int -> t
     Random numbers produced by this function are not cryptographically
     strong and must not be used in cryptographic or high-security
     contexts.  See {!Z.random_bits_gen} for an alternative.
+
+    @since 1.13
 *)
 
 val random_int_gen: fill: (bytes -> int -> int -> unit) -> t -> t
@@ -751,6 +767,7 @@ val random_int_gen: fill: (bytes -> int -> int -> unit) -> t -> t
 <<
     Z.random_int_gen ~fill:Cryptokit.Random.secure_rng#bytes bound
 >>
+    @since 1.13
 *)
 
 val random_bits_gen: fill: (bytes -> int -> int -> unit) -> int -> t
@@ -759,6 +776,7 @@ val random_bits_gen: fill: (bytes -> int -> int -> unit) -> int -> t
     This is a more efficient special case of {!Z.random_int_gen} when the
     bound is a power of two.  The [fill] parameter is as described in
     {!Z.random_int_gen}.
+    @since 1.13
 *)
 
 (** {1 Prefix and infix operators} *)

@@ -22,9 +22,9 @@ jobs:
           - 4.14.x
         include:
           - os: ubuntu-latest
-            ocaml-compiler: 5.0.x
+            ocaml-compiler: 5.1.x
           - os: macos-latest
-            ocaml-compiler: 5.0.x
+            ocaml-compiler: 5.1.x
           - os: windows-latest
             ocaml-compiler: ocaml.5.0.0,ocaml-option-mingw
 

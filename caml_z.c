@@ -3395,14 +3395,17 @@ static void ml_z_custom_serialize(value v,
 #endif
 }
 
-/* XXX: serializing a large (i.e., > 2^31) int on a 64-bit machine and
-   deserializing on a 32-bit machine will fail (instead of returning a
-   block).
-   YYY: serializing a large (i.e., > 2^31 and < 2^62) int on a
-   32-bit machine and deserializing on a 64-bit machine must fail
-   (instead of returning a block containing a non-normalized big integer)
-   (issue #148).
- */
+/* There are two issues with integers that are tagged ints on a 64-bit
+   machine but boxed bigints on a 32-bit machine, namely integers in the
+   [2^30, 2^62) and [-2^62, -2^30) ranges:
+   - Serializing such an integer on a 64-bit machine and
+     deserializing on a 32-bit machine will fail in the generic unmarshaler.
+     The correct behavior would be to return a boxed integer.
+   - Serializing such an integer on a 32-bit machine and
+     deserializing on a 64-bit machine must fail.
+     The wrong behavior would be to return a block containing a
+     non-normalized, boxed integer (issue #148).
+*/
 static uintnat ml_z_custom_deserialize(void * dst)
 {
   mp_limb_t* d = ((mp_limb_t*)dst) + 1;

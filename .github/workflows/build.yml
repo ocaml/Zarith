@@ -19,45 +19,25 @@ jobs:
           - windows-latest
           - macos-latest
         ocaml-compiler:
-          - 4.14.x
-        include:
-          - os: ubuntu-latest
-            ocaml-compiler: 5.1.x
-          - os: macos-latest
-            ocaml-compiler: 5.1.x
-          - os: windows-latest
-            ocaml-compiler: ocaml.5.0.0,ocaml-option-mingw
+          - "4.14"
+          - "5.2"
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Use OCaml ${{ matrix.ocaml-compiler }}
-        uses: ocaml/setup-ocaml@v2
-        if: runner.os != 'Windows'
+      - name: Set-up OCaml ${{ matrix.ocaml-compiler }}
+        uses: ocaml/setup-ocaml@v3.0.0-beta
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
-          dune-cache: true
-          opam-depext: true
-          opam-depext-flags: --with-test
+          allow-prerelease-opam: true
 
-      - name: Use OCaml ${{ matrix.ocaml-compiler }}
-        uses: ocaml/setup-ocaml@v2
-        if: runner.os == 'Windows'
-        with:
-          ocaml-compiler: ${{ matrix.ocaml-compiler }}
-          opam-repositories: |
-            dra27: https://github.com/dra27/opam-repository.git#windows-5.0
-            default: https://github.com/ocaml-opam/opam-repository-mingw.git#sunset
-            opam: https://github.com/ocaml/opam-repository.git
-          dune-cache: true
-          opam-depext: true
-          opam-depext-flags: --with-test
+      - run: opam install -v . --with-test --deps-only
 
       - name: configure tree
-        run: opam exec -- ./configure
+        run: opam exec -- sh ./configure
 
       - name: Build
         run: opam exec -- make
@@ -68,4 +48,3 @@ jobs:
       - run: opam install . --with-test
 
       - run: opam exec -- git diff --exit-code
-        if: ${{ !matrix.skip-test }}

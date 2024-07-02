@@ -29,12 +29,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set-up OCaml ${{ matrix.ocaml-compiler }}
-        uses: ocaml/setup-ocaml@v3.0.0-beta
+        uses: ocaml/setup-ocaml@v3
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
-          allow-prerelease-opam: true
 
-      - run: opam install -v . --with-test --deps-only
+      - run: opam install . --with-test --deps-only
 
       - name: configure tree
         run: opam exec -- sh ./configure

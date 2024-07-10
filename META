@@ -1,6 +1,6 @@
 description = "Arbitrary precision integers"
 requires = ""
-version = "1.13"
+version = "1.14"
 archive(byte) = "zarith.cma"
 archive(native) = "zarith.cmxa"
 plugin(byte) = "zarith.cma"

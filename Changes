@@ -1,3 +1,8 @@
+Release 1.14 (2024-07-10)
+- #148, #149: Fail unmarshaling when it would produce non-canonical big ints
+- #145, #150: Use standard hash function for `Z.hash` and add `Z.seeded_hash`
+- #140, #147: Add fast path for `Z.divisible` on small arguments
+
 Release 1.13 (2023-07-19)
 - #113: add conversions to/from small unsigned integers `(to|fits)_(int32|int64|nativeint)_unsigned` [Antoine Miné]
 - #128: add functions to pseudo-randomly generate integers [Xavier Leroy]

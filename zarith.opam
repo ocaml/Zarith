@@ -12,25 +12,16 @@ bug-reports: "https://github.com/ocaml/Zarith/issues"
 dev-repo: "git+https://github.com/ocaml/Zarith.git"
 license: "LGPL-2.0-only WITH OCaml-LGPL-linking-exception"
 build: [
-  ["./configure"] {os != "openbsd" & os != "freebsd" & os != "macos"}
-  [
-    "sh"
-    "-exc"
-    "LDFLAGS=\"$LDFLAGS -L/usr/local/lib\" CFLAGS=\"$CFLAGS -I/usr/local/include\" ./configure"
-  ] {os = "openbsd" | os = "freebsd"}
-  [
-    "sh"
-    "-exc"
-    "LDFLAGS=\"$LDFLAGS -L/opt/local/lib -L/usr/local/lib\" CFLAGS=\"$CFLAGS -I/opt/local/include -I/usr/local/include\" ./configure"
-  ] {os = "macos"}
+  ["./configure"]
   [make]
 ]
 install: [
   [make "install"]
 ]
 depends: [
-  "ocaml"     {>= "4.04.0"}
+  "ocaml"     {>= "4.07.0"}
   "ocamlfind"
+  "conf-pkg-config"
   "conf-gmp"
 ]
 synopsis:

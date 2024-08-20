@@ -913,7 +913,14 @@ divisible 0 2^120
  = true
 divisible 2 2^120
  = false
-Failure: Z.divisible: not implemented in LibTomMath backend
+divisible 2^300 2^120
+ = true
+divisible (2^300-1) 32
+ = false
+divisible min_int (max_int+1)
+ = true
+divisible (max_int+1) min_int
+ = true
 hash(2^120)
  = 900619431
 hash(2^121)

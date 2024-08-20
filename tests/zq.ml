@@ -125,13 +125,11 @@ let maxni = I.of_nativeint Nativeint.max_int
 let minni = I.of_nativeint Nativeint.min_int
 
 let chk_bits x =
-  failure_harness (fun () ->
-      Printf.printf "to_bits %a\n =" pr x;
-      String.iter (fun c -> Printf.printf " %02x" (Char.code c)) (I.to_bits x);
-      Printf.printf "\n";
-      assert(I.equal (I.abs x) (I.of_bits (I.to_bits x)));
-      assert((I.to_bits x) = (I.to_bits (I.neg x)));
-    );
+  Printf.printf "to_bits %a\n =" pr x;
+  String.iter (fun c -> Printf.printf " %02x" (Char.code c)) (I.to_bits x);
+  Printf.printf "\n";
+  assert(I.equal (I.abs x) (I.of_bits (I.to_bits x)));
+  assert((I.to_bits x) = (I.to_bits (I.neg x)));
   Printf.printf "marshal round trip %a\n =" pr x;
   let y = Marshal.(from_string (to_string x []) 0) in
   Printf.printf " %a\n" prmarshal (y, x)
@@ -646,37 +644,33 @@ let test_Z() =
   Printf.printf "sqrt 2\n = %a\n" pr (I.sqrt p2);
   Printf.printf "sqrt 2^120\n = %a\n" pr (I.sqrt p120);
   Printf.printf "sqrt 2^121\n = %a\n" pr (I.sqrt p121);
-  failure_harness (fun () ->
-      Printf.printf "sqrt_rem 0\n = %a\n" pr2 (I.sqrt_rem I.zero);
-      Printf.printf "sqrt_rem 1\n = %a\n" pr2 (I.sqrt_rem I.one);
-      Printf.printf "sqrt_rem 2\n = %a\n" pr2 (I.sqrt_rem p2);
-      Printf.printf "sqrt_rem 2^120\n = %a\n" pr2 (I.sqrt_rem p120);
-      Printf.printf "sqrt_rem 2^121\n = %a\n" pr2 (I.sqrt_rem p121);
-    );
+  Printf.printf "sqrt_rem 0\n = %a\n" pr2 (I.sqrt_rem I.zero);
+  Printf.printf "sqrt_rem 1\n = %a\n" pr2 (I.sqrt_rem I.one);
+  Printf.printf "sqrt_rem 2\n = %a\n" pr2 (I.sqrt_rem p2);
+  Printf.printf "sqrt_rem 2^120\n = %a\n" pr2 (I.sqrt_rem p120);
+  Printf.printf "sqrt_rem 2^121\n = %a\n" pr2 (I.sqrt_rem p121);
   Printf.printf "popcount 0\n = %i\n" (I.popcount I.zero);
   Printf.printf "popcount 1\n = %i\n" (I.popcount I.one);
   Printf.printf "popcount 2\n = %i\n" (I.popcount p2);
   Printf.printf "popcount max_int32\n = %i\n" (I.popcount maxi32);
   Printf.printf "popcount 2^120\n = %i\n" (I.popcount p120);
   Printf.printf "popcount (2^120-1)\n = %i\n" (I.popcount (I.pred p120));
-  failure_harness (fun () ->
-      Printf.printf "hamdist 0 0\n = %i\n" (I.hamdist I.zero I.zero);
-      Printf.printf "hamdist 0 1\n = %i\n" (I.hamdist I.zero I.one);
-      Printf.printf "hamdist 0 2^300\n = %i\n" (I.hamdist I.zero p300);
-      Printf.printf "hamdist 2^120 2^120\n = %i\n" (I.hamdist p120 p120);
-      Printf.printf "hamdist 2^120 (2^120-1)\n = %i\n" (I.hamdist p120 (I.pred p120));
-      Printf.printf "hamdist 2^120 2^300\n = %i\n" (I.hamdist p120 p300);
-      Printf.printf "hamdist (2^120-1) (2^300-1)\n = %i\n" (I.hamdist (I.pred p120) (I.pred p300));
-      Printf.printf "divisible 42 7\n = %B\n" (I.divisible (I.of_int 42) (I.of_int 7));
-      Printf.printf "divisible 43 7\n = %B\n" (I.divisible (I.of_int 43) (I.of_int 7));
-      Printf.printf "divisible 0 0\n = %B\n" (I.divisible I.zero I.zero);
-      Printf.printf "divisible 0 2^120\n = %B\n" (I.divisible I.zero p120);
-      Printf.printf "divisible 2 2^120\n = %B\n" (I.divisible (I.of_int 2) p120);
-      Printf.printf "divisible 2^300 2^120\n = %B\n" (I.divisible p300 p120);
-      Printf.printf "divisible (2^300-1) 32\n = %B\n" (I.divisible (I.pred p300) (I.of_int 32));
-      Printf.printf "divisible min_int (max_int+1)\n = %B\n" (I.divisible (I.of_int min_int) (I.succ (I.of_int max_int)));
-      Printf.printf "divisible (max_int+1) min_int\n = %B\n" (I.divisible (I.succ (I.of_int max_int)) (I.of_int min_int));
-    );
+  Printf.printf "hamdist 0 0\n = %i\n" (I.hamdist I.zero I.zero);
+  Printf.printf "hamdist 0 1\n = %i\n" (I.hamdist I.zero I.one);
+  Printf.printf "hamdist 0 2^300\n = %i\n" (I.hamdist I.zero p300);
+  Printf.printf "hamdist 2^120 2^120\n = %i\n" (I.hamdist p120 p120);
+  Printf.printf "hamdist 2^120 (2^120-1)\n = %i\n" (I.hamdist p120 (I.pred p120));
+  Printf.printf "hamdist 2^120 2^300\n = %i\n" (I.hamdist p120 p300);
+  Printf.printf "hamdist (2^120-1) (2^300-1)\n = %i\n" (I.hamdist (I.pred p120) (I.pred p300));
+  Printf.printf "divisible 42 7\n = %B\n" (I.divisible (I.of_int 42) (I.of_int 7));
+  Printf.printf "divisible 43 7\n = %B\n" (I.divisible (I.of_int 43) (I.of_int 7));
+  Printf.printf "divisible 0 0\n = %B\n" (I.divisible I.zero I.zero);
+  Printf.printf "divisible 0 2^120\n = %B\n" (I.divisible I.zero p120);
+  Printf.printf "divisible 2 2^120\n = %B\n" (I.divisible (I.of_int 2) p120);
+  Printf.printf "divisible 2^300 2^120\n = %B\n" (I.divisible p300 p120);
+  Printf.printf "divisible (2^300-1) 32\n = %B\n" (I.divisible (I.pred p300) (I.of_int 32));
+  Printf.printf "divisible min_int (max_int+1)\n = %B\n" (I.divisible (I.of_int min_int) (I.succ (I.of_int max_int)));
+  Printf.printf "divisible (max_int+1) min_int\n = %B\n" (I.divisible (I.succ (I.of_int max_int)) (I.of_int min_int));
   (* always 0 when not using custom blocks *)
   Printf.printf "hash(2^120)\n = %i\n" (Hashtbl.hash p120);
   Printf.printf "hash(2^121)\n = %i\n" (Hashtbl.hash p121);
@@ -804,56 +798,46 @@ let test_Z() =
      b,1,1; b,1,5; b,1,32; b,1,63; b,1,64; b,1,127; b,1,128;
      b,69,12;
      c,0,1; c,0,64; c,128,1; c,128,5; c,131,32; c,175,63; c,277,123] in
-  failure_harness (fun () ->
-      List.iter chk_extract extract_testdata;
-      List.iter chk_signed_extract extract_testdata;
-    );
-  failure_harness (fun () ->
-      chk_bits I.zero;
-      chk_bits p2;
-      chk_bits (I.neg p2);
-      chk_bits p30;
-      chk_bits (I.neg p30);
-      chk_bits p62;
-      chk_bits (I.neg p62);
-      chk_bits p300;
-      chk_bits p120;
-      chk_bits p121;
-      chk_bits maxi;
-      chk_bits mini;
-      chk_bits maxi32;
-      chk_bits mini32;
-      chk_bits maxi64;
-      chk_bits mini64;
-      chk_bits maxni;
-      chk_bits minni;
-    );
-  failure_harness (fun () ->
-      List.iter chk_testbit [
-          I.zero; I.one; I.of_int (-42);
-          I.of_string "31415926535897932384626433832795028841971693993751058209749445923078164062862089986";
-          I.neg (I.shift_left (I.of_int 123456) 64);
-        ];
-    );
-  failure_harness (fun () ->
-      List.iter chk_numbits_tz [
-          I.zero; I.one; I.of_int (-42);
-          I.shift_left (I.of_int 9999) 77;
-          I.neg (I.shift_left (I.of_int 123456) 64);
-        ];
-    );
-  failure_harness (fun () ->
-      Printf.printf "random_bits 45 = %a\n"
-        pr (I.random_bits_gen ~fill:pr_bytes 45);
-      Printf.printf "random_bits 45 = %a\n"
-        pr (I.random_bits_gen ~fill:pr_bytes 45);
-      Printf.printf "random_bits 12 = %a\n"
-        pr (I.random_bits_gen ~fill:pr_bytes 12);
-      Printf.printf "random_int 123456 = %a\n"
-        pr (I.random_int_gen ~fill:pr_bytes (I.of_int 123456));
-      Printf.printf "random_int 9999999 = %a\n"
-        pr (I.random_int_gen ~fill:pr_bytes (I.of_int 9999999));
-    );
+  List.iter chk_extract extract_testdata;
+  List.iter chk_signed_extract extract_testdata;
+  chk_bits I.zero;
+  chk_bits p2;
+  chk_bits (I.neg p2);
+  chk_bits p30;
+  chk_bits (I.neg p30);
+  chk_bits p62;
+  chk_bits (I.neg p62);
+  chk_bits p300;
+  chk_bits p120;
+  chk_bits p121;
+  chk_bits maxi;
+  chk_bits mini;
+  chk_bits maxi32;
+  chk_bits mini32;
+  chk_bits maxi64;
+  chk_bits mini64;
+  chk_bits maxni;
+  chk_bits minni;
+  List.iter chk_testbit [
+      I.zero; I.one; I.of_int (-42);
+      I.of_string "31415926535897932384626433832795028841971693993751058209749445923078164062862089986";
+      I.neg (I.shift_left (I.of_int 123456) 64);
+    ];
+  List.iter chk_numbits_tz [
+      I.zero; I.one; I.of_int (-42);
+      I.shift_left (I.of_int 9999) 77;
+      I.neg (I.shift_left (I.of_int 123456) 64);
+    ];
+  Printf.printf "random_bits 45 = %a\n"
+    pr (I.random_bits_gen ~fill:pr_bytes 45);
+  Printf.printf "random_bits 45 = %a\n"
+    pr (I.random_bits_gen ~fill:pr_bytes 45);
+  Printf.printf "random_bits 12 = %a\n"
+    pr (I.random_bits_gen ~fill:pr_bytes 12);
+  Printf.printf "random_int 123456 = %a\n"
+    pr (I.random_int_gen ~fill:pr_bytes (I.of_int 123456));
+  Printf.printf "random_int 9999999 = %a\n"
+    pr (I.random_int_gen ~fill:pr_bytes (I.of_int 9999999));
   ()
 
 

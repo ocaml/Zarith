@@ -1979,9 +1979,37 @@ CAMLprim value ml_z_invert(UNUSED_PARAM value base, UNUSED_PARAM value mod)
   caml_failwith("Z.invert: not implemented in LibTomMath backend");
 }
 
-CAMLprim value ml_z_divisible(UNUSED_PARAM value a, UNUSED_PARAM value b)
+CAMLprim value ml_z_divisible(value arg1, value arg2)
 {
-  caml_failwith("Z.divisible: not implemented in LibTomMath backend");
+  if (Z_ISZERO(arg2)) ml_z_raise_divide_by_zero();
+  if (Is_long(arg1) && Is_long(arg2)) {
+    /* fast path */
+    intnat a1 = Long_val(arg1);
+    intnat a2 = Long_val(arg2);
+    return Val_bool(a1 % a2 == 0);
+  }
+  /* slow path */
+  {
+    Z_DECL(arg1);
+    Z_DECL(arg2);
+    mp_int r;
+    int res;
+    if (mp_init(&r) != MP_OKAY)
+      caml_failwith("Z.divisible: internal error");
+    Z_ARG(arg1);
+    Z_ARG(arg2);
+    if (mp_div(mp_arg1, mp_arg2, NULL, &r) != MP_OKAY) {
+      Z_END_ARG(arg1);
+      Z_END_ARG(arg2);
+      mp_clear(&r);
+      caml_failwith("Z.divisible: internal error");
+    }
+    res = mp_iszero(&r);
+    mp_clear(&r);
+    Z_END_ARG(arg1);
+    Z_END_ARG(arg2);
+    return Val_bool(res);
+  }
 }
 
 CAMLprim value ml_z_congruent(UNUSED_PARAM value a, UNUSED_PARAM value b, UNUSED_PARAM value c)

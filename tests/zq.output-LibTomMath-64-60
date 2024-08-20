@@ -867,7 +867,16 @@ sqrt 2^120
  = 1152921504606846976
 sqrt 2^121
  = 1630477228166597776
-Failure: Z.sqrt_rem: not implemented in LibTomMath backend
+sqrt_rem 0
+ = 0, 0
+sqrt_rem 1
+ = 1, 0
+sqrt_rem 2
+ = 1, 1
+sqrt_rem 2^120
+ = 1152921504606846976, 0
+sqrt_rem 2^121
+ = 1630477228166597776, 1772969445592542976
 popcount 0
  = 0
 popcount 1

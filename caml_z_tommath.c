@@ -1357,9 +1357,33 @@ CAMLprim value ml_z_sqrt(value arg)
   CAMLreturn(r);
 }
 
-CAMLprim value ml_z_sqrt_rem(UNUSED_PARAM value arg)
+CAMLprim value ml_z_sqrt_rem(value arg)
 {
-  caml_failwith("Z.sqrt_rem: not implemented in LibTomMath backend");
+  CAMLparam1(arg);
+  CAMLlocal3(r1,r2,r);
+  Z_DECL(arg);
+  Z_ARG(arg);
+  if (mp_isneg(mp_arg)) {
+    Z_END_ARG(arg);
+    caml_invalid_argument("Z.sqrt_rem: square root of a negative number");
+  }
+  r1 = ml_z_alloc();
+  r2 = ml_z_alloc();
+  Z_REFRESH(arg);
+  if (mp_sqrt(mp_arg, Z_MP(r1)) != MP_OKAY ||
+      mp_mul(Z_MP(r1),Z_MP(r1),Z_MP(r2)) != MP_OKAY ||
+      mp_sub(mp_arg,Z_MP(r2),Z_MP(r2)) != MP_OKAY) {
+    caml_failwith("Z.sqrt_rem: internal error");
+    Z_END_ARG(arg);
+  }
+  r1 = ml_z_reduce(r1);
+  r2 = ml_z_reduce(r2);
+  r = caml_alloc_small(2, 0);
+  Field(r,0) = r1;
+  Field(r,1) = r2;
+  Z_END_ARG(arg);
+  CAMLreturn(r);
+  //caml_failwith("Z.sqrt_rem: not implemented in LibTomMath backend");
 }
 
 CAMLprim value ml_z_gcd(value arg1, value arg2)

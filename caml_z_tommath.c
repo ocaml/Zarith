@@ -1825,9 +1825,42 @@ CAMLprim value ml_z_popcount(value arg)
   }
 }
 
-CAMLprim value ml_z_hamdist(UNUSED_PARAM value arg1, UNUSED_PARAM value arg2)
+CAMLprim value ml_z_hamdist(value arg1, value arg2)
 {
-  caml_failwith("Z.hamdist: not implemented in LibTomMath backend");
+  if (Z_ISNEG(arg1) != Z_ISNEG(arg2))
+    ml_z_raise_overflow();
+  /* XXX TODO: case where arg1 & arg2 are both negative */
+  if (Z_ISNEG(arg1) || Z_ISNEG(arg2))
+    caml_invalid_argument("Z.hamdist: negative arguments");
+  if (Is_long(arg1) && Is_long(arg2)) {
+    return Val_long(ml_z_count(Long_val(arg1) ^ Long_val(arg2)));
+  }
+  else {
+    Z_DECL(arg1);
+    Z_DECL(arg2);
+    intnat r = 0;
+    mp_digit *a1, *a2;
+    size_t len1, len2;
+    Z_ARG(arg1);
+    Z_ARG(arg2);
+    /* a1 is the shortest one */
+    if (mp_arg1->used <= mp_arg2->used) {
+      a1 = mp_arg1->dp; len1 = mp_arg1->used;
+      a2 = mp_arg2->dp; len2 = mp_arg2->used;
+    }
+    else  {
+      a1 = mp_arg2->dp; len1 = mp_arg2->used;
+      a2 = mp_arg1->dp; len2 = mp_arg1->used;
+    }
+    for (size_t i = 0; i < len1; i++)
+      r += ml_z_count(a1[i] ^ a2[i]);
+    for (size_t i = len1; i < len2; i++)
+      r += ml_z_count(a2[i]);
+    Z_END_ARG(arg1);
+    Z_END_ARG(arg2);
+    if (r < 0 || !Z_FITS_INT(r)) ml_z_raise_overflow();
+    return Val_long(r);
+  }
 }
 
 CAMLprim value ml_z_testbit(value arg, value index)

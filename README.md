@@ -7,7 +7,7 @@ arbitrary-precision integers.
 
 The module is simply named `Z`.  Its interface is similar to that of
 the `Int32`, `Int64` and `Nativeint` modules from the OCaml standard
-library, with some additional functions.  See the file `z.mlip` for
+library, with some additional functions.  See the file `z.mli` for
 documentation.
 
 The implementation uses GMP (the GNU Multiple Precision arithmetic
@@ -26,6 +26,9 @@ polymorphic comparison operators (`=`, `<`, `>`, etc.).
 Additional features include:
 * a module `Q` for rationals, built on top of `Z` (see `q.mli`)
 * a compatibility layer `Big_int_Z` that implements the same API as Big_int from the legacy `Num` library, but uses `Z` internally
+
+Support for [js_of_ocaml](https://github.com/ocsigen/js_of_ocaml/) is
+provided by [Zarith_stubs_js](https://github.com/janestreet/zarith_stubs_js).
 
 ## REQUIREMENTS
 
@@ -126,6 +129,7 @@ Source files        | Description
   z_mlgmpidl.ml[i]  | conversion between Zarith and MLGMPIDL
   tests/            | simple regression tests and benchmarks
 
+
 ## BACK-END COMPATIBILITY
 
 Zarith supports several back-ends to implement multi-word integers: GMP, MPIR, and LibTomMath.
@@ -134,10 +138,10 @@ The `configure` script will try them in the following order: GMP, MPIR, LibTomMa
 The choice of back-end can be overridden with the `-gmp`, `-mpir`, and `-tommath` configure options.
 
 GMP and MPIR support all functions and should give identical results.
-The hashing function is notably identical and the marshalling format is compatible for GMP and MPIR, and for 32-bit and 64-bit.
+The hashing function is identical and the marshalling format is compatible for GMP and MPIR, and for 32-bit and 64-bit.
 
 LibTomMath support is partial and experimental.
-Not all functions are implemented. 
+Not all functions are implemented.
 Unsupported functions raise a `Failure` exception.
 The hashing function is different from the GMP/MPIR one, and the hashed value actually depends on the digit bit-size used by LibTomMath (which can be queried with `digit_bits ()`).
 Additionally, the marshaling format is incompatible with the GMP/MPIR one, although it is independent from the digit bit-size.

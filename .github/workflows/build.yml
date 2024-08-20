@@ -1,0 +1,49 @@
+name: build
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+  schedule:
+    # Prime the caches every Monday
+    - cron: 0 1 * * MON
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+        ocaml-compiler:
+          - "4.14"
+          - "5.2"
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set-up OCaml ${{ matrix.ocaml-compiler }}
+        uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: ${{ matrix.ocaml-compiler }}
+
+      - run: opam install . --with-test --deps-only
+
+      - name: configure tree
+        run: opam exec -- sh ./configure
+
+      - name: Build
+        run: opam exec -- make
+
+      - name: Run the testsuite
+        run: opam exec -- make -C tests test
+
+      - run: opam install . --with-test
+
+      - run: opam exec -- git diff --exit-code

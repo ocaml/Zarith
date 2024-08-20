@@ -1,6 +1,6 @@
 /**
   Implementation of Z module.
-  
+
   This version uses LibTomMath instead of GMP / MPIR.
   Not all functions are supported.
   Requires LibTomMath 1.2.0.
@@ -58,11 +58,11 @@
 #endif
 
 /* Whether the fast path (arguments and result are small integers)
-￼   has already be handled in OCaml, so that there is no need to
-￼   re-test for it in C functions.
-￼   Applies to: neg, abs, add, sub, mul, div, rem, succ, pred,
-￼   logand, logor, logxor, lognot, shifts, divexact.
-￼*/
+   has already be handled in OCaml, so that there is no need to
+   re-test for it in C functions.
+   Applies to: neg, abs, add, sub, mul, div, rem, succ, pred,
+   logand, logor, logxor, lognot, shifts, divexact.
+*/
 #define Z_FAST_PATH_IN_OCAML 1
 
 
@@ -85,6 +85,9 @@ static mp_int z_max_int,    z_min_int;
 static mp_int z_max_intnat, z_min_intnat;
 static mp_int z_max_int32,  z_min_int32;
 static mp_int z_max_int64,  z_min_int64;
+static mp_int z_max_intnat_unsigned;
+static mp_int z_max_int32_unsigned;
+static mp_int z_max_int64_unsigned;
 
 /* greatest/smallest double that can fit in an int */
 #ifdef ARCH_SIXTYFOUR
@@ -106,6 +109,7 @@ static mp_int z_max_int64,  z_min_int64;
 
 /* hi bit of OCaml int32, int64 & nativeint */
 #define Z_HI_INT32    0x80000000
+#define Z_HI_UINT32   0x100000000LL
 #define Z_HI_INT64    0x8000000000000000LL
 #ifdef ARCH_SIXTYFOUR
 #define Z_HI_INTNAT   Z_HI_INT64
@@ -183,7 +187,7 @@ static value ml_z_alloc()
 #define Z_DECL(arg)                             \
   const mp_int *mp_##arg;                       \
   mp_int mp_s_##arg                             \
-  
+
 #define Z_ARG(arg)                                                      \
   if (Is_long(arg)) {                                                   \
     mp_##arg = & mp_s_##arg;                                            \
@@ -388,7 +392,7 @@ CAMLprim value ml_z_to_int(value v)
     return Val_long(mp_get_i64(Z_MP(v)));
 #else
     return Val_long(mp_get_i32(Z_MP(v)));
-#endif    
+#endif
   }
   ml_z_raise_overflow();
   return 0;
@@ -403,7 +407,7 @@ CAMLprim value ml_z_to_nativeint(value v)
     return caml_copy_nativeint(mp_get_i64(Z_MP(v)));
 #else
     return caml_copy_nativeint(mp_get_i32(Z_MP(v)));
-#endif    
+#endif
   }
   ml_z_raise_overflow();
   return 0;
@@ -433,6 +437,58 @@ CAMLprim value ml_z_to_int64(value v)
   if (mp_cmp(Z_MP(v), &z_min_int64) >= 0 &&
       mp_cmp(Z_MP(v), &z_max_int64) <= 0) {
     return caml_copy_int64(mp_get_i64(Z_MP(v)));
+  }
+  ml_z_raise_overflow();
+  return 0;
+}
+
+CAMLprim value ml_z_to_nativeint_unsigned(value v)
+{
+  if (Is_long(v)) {
+    if (Long_val(v) < 0)
+      ml_z_raise_overflow();
+    return caml_copy_nativeint(Long_val(v));
+  }
+  if (!mp_isneg(Z_MP(v)) &&
+      mp_cmp(Z_MP(v), &z_max_intnat_unsigned) <= 0) {
+#ifdef ARCH_SIXTYFOUR
+    return caml_copy_nativeint(mp_get_u64(Z_MP(v)));
+#else
+    return caml_copy_nativeint(mp_get_u32(Z_MP(v)));
+#endif
+  }
+  ml_z_raise_overflow();
+  return 0;
+}
+
+CAMLprim value ml_z_to_int32_unsigned(value v)
+{
+  if (Is_long(v)) {
+    intnat x = Long_val(v);
+#ifdef ARCH_SIXTYFOUR
+    if (x >= (intnat)Z_HI_UINT32 || x < 0)
+      ml_z_raise_overflow();
+#endif
+    return caml_copy_int32(x);
+  }
+  if (!mp_isneg(Z_MP(v)) &&
+      mp_cmp(Z_MP(v), &z_max_int32_unsigned) <= 0) {
+    return caml_copy_int32(mp_get_u32(Z_MP(v)));
+  }
+  ml_z_raise_overflow();
+  return 0;
+}
+
+CAMLprim value ml_z_to_int64_unsigned(value v)
+{
+  if (Is_long(v)) {
+    if (Long_val(v) < 0)
+      ml_z_raise_overflow();
+    return caml_copy_int64(Long_val(v));
+  }
+  if (!mp_isneg(Z_MP(v)) &&
+      mp_cmp(Z_MP(v), &z_max_int64_unsigned) <= 0) {
+    return caml_copy_int64(mp_get_u64(Z_MP(v)));
   }
   ml_z_raise_overflow();
   return 0;
@@ -506,7 +562,7 @@ CAMLprim value ml_z_format(value f, value v)
     dst++;
     size_dst--;
   }
-  
+
   /* lower-case conversion */
   if (cas) {
     for (i = 0; i < size_dst; i++)
@@ -552,6 +608,11 @@ CAMLprim value ml_z_format(value f, value v)
 CAMLprim value ml_z_extract(UNUSED_PARAM value arg, UNUSED_PARAM value off, UNUSED_PARAM  value len)
 {
   caml_failwith("Z.extract: not implemented in LibTomMath backend");
+}
+
+CAMLprim value ml_z_extract_small(UNUSED_PARAM value arg, UNUSED_PARAM value off, UNUSED_PARAM  value len)
+{
+  caml_failwith("Z.extract_small: not implemented in LibTomMath backend");
 }
 
 CAMLprim value ml_z_to_bits(UNUSED_PARAM value arg)
@@ -666,9 +727,8 @@ CAMLprim value ml_z_fits_int32(value v)
     intnat x = Long_val(v);
     if (x >= (intnat)Z_HI_INT32 || x < -(intnat)Z_HI_INT32)
       return Val_false;
-#else
-    return Val_true;
 #endif
+    return Val_true;
   }
   if (mp_cmp(Z_MP(v), &z_min_int32) >= 0 &&
       mp_cmp(Z_MP(v), &z_max_int32) <= 0)
@@ -691,6 +751,47 @@ CAMLprim value ml_z_size(value v)
   if (Is_long(v)) return Val_long(1);
   else return Val_long(Z_MP(v)->used);
 }
+
+
+CAMLprim value ml_z_fits_nativeint_unsigned(value v)
+{
+  if (Is_long(v))
+    return Long_val(v) >= 0 ? Val_true : Val_false;
+  if (!mp_isneg(Z_MP(v)) &&
+      mp_cmp(Z_MP(v), &z_max_intnat_unsigned) <= 0)
+    return Val_true;
+  return Val_false;
+}
+
+CAMLprim value ml_z_fits_int32_unsigned(value v)
+{
+  if (Is_long(v)) {
+    intnat x = Long_val(v);
+#ifdef ARCH_SIXTYFOUR
+    if (x >= (intnat)Z_HI_UINT32 || x < 0)
+      return Val_false;
+#else
+    if (x < 0)
+      return Val_false;
+#endif
+    return Val_true;
+  }
+  if (!mp_isneg(Z_MP(v)) &&
+      mp_cmp(Z_MP(v), &z_max_int32_unsigned) <= 0)
+    return Val_true;
+  return Val_false;
+}
+
+CAMLprim value ml_z_fits_int64_unsigned(value v)
+{
+  if (Is_long(v))
+    return Long_val(v) >= 0 ? Val_true : Val_false;
+  if (!mp_isneg(Z_MP(v)) &&
+      mp_cmp(Z_MP(v), &z_max_int64_unsigned) <= 0)
+    return Val_true;
+  return Val_false;
+}
+
 
 
 /*---------------------------------------------------
@@ -927,7 +1028,7 @@ CAMLprim value ml_z_div_rem(value arg1, value arg2)
     Z_DECL(arg2);
     q = ml_z_alloc();
     r = ml_z_alloc();
-    Z_ARG(arg1);  
+    Z_ARG(arg1);
     Z_ARG(arg2);
     if (mp_div(mp_arg1, mp_arg2, Z_MP(q), Z_MP(r)) != MP_OKAY) {
       Z_END_ARG(arg1);
@@ -964,7 +1065,7 @@ CAMLprim value ml_z_div(value arg1, value arg2)
     Z_DECL(arg1);
     Z_DECL(arg2);
     q = ml_z_alloc();
-    Z_ARG(arg1);  
+    Z_ARG(arg1);
     Z_ARG(arg2);
     if (mp_div(mp_arg1, mp_arg2, Z_MP(q), NULL) != MP_OKAY) {
       Z_END_ARG(arg1);
@@ -997,7 +1098,7 @@ CAMLprim value ml_z_rem(value arg1, value arg2)
     Z_DECL(arg1);
     Z_DECL(arg2);
     r = ml_z_alloc();
-    Z_ARG(arg1);  
+    Z_ARG(arg1);
     Z_ARG(arg2);
     if (mp_div(mp_arg1, mp_arg2, NULL, Z_MP(r)) != MP_OKAY) {
       Z_END_ARG(arg1);
@@ -1232,7 +1333,7 @@ CAMLprim value ml_z_gcdext_intern(value arg1, value arg2)
       Z_END_ARG(arg2);
       mp_clear(Z_MP(r));
       mp_clear(Z_MP(s));
-      caml_failwith("Z.gcdext: internal error");   
+      caml_failwith("Z.gcdext: internal error");
   }
   r = ml_z_reduce(r);
   s = ml_z_reduce(s);
@@ -1257,7 +1358,7 @@ CAMLprim value ml_z_logand(value arg1, value arg2)
     /* fast path */
     return arg1 & arg2;
   }
-#endif  
+#endif
   {
     /* slow path */
     CAMLparam2(arg1,arg2);
@@ -1271,7 +1372,7 @@ CAMLprim value ml_z_logand(value arg1, value arg2)
       Z_END_ARG(arg1);
       Z_END_ARG(arg2);
       mp_clear(Z_MP(r));
-      caml_failwith("Z.logand: internal error");      
+      caml_failwith("Z.logand: internal error");
     }
     r = ml_z_reduce(r);
     Z_END_ARG(arg1);
@@ -1301,7 +1402,7 @@ CAMLprim value ml_z_logor(value arg1, value arg2)
       Z_END_ARG(arg1);
       Z_END_ARG(arg2);
       mp_clear(Z_MP(r));
-      caml_failwith("Z.logor: internal error");      
+      caml_failwith("Z.logor: internal error");
     }
     r = ml_z_reduce(r);
     Z_END_ARG(arg1);
@@ -1331,7 +1432,7 @@ CAMLprim value ml_z_logxor(value arg1, value arg2)
       Z_END_ARG(arg1);
       Z_END_ARG(arg2);
       mp_clear(Z_MP(r));
-      caml_failwith("Z.logxor: internal error");      
+      caml_failwith("Z.logxor: internal error");
     }
     r = ml_z_reduce(r);
     Z_END_ARG(arg1);
@@ -1358,7 +1459,7 @@ CAMLprim value ml_z_lognot(value arg)
     if (mp_complement(mp_arg, Z_MP(r)) != MP_OKAY) {
       Z_END_ARG(arg);
       mp_clear(Z_MP(r));
-      caml_failwith("Z.lognot: internal error");      
+      caml_failwith("Z.lognot: internal error");
     }
     r = ml_z_reduce(r);
     Z_END_ARG(arg);
@@ -1392,7 +1493,7 @@ CAMLprim value ml_z_shift_left(value arg, value count)
     if (mp_mul_2d(mp_arg, c, Z_MP(r)) != MP_OKAY) {
       Z_END_ARG(arg);
       mp_clear(Z_MP(r));
-      caml_failwith("Z.shift_left: internal error");     
+      caml_failwith("Z.shift_left: internal error");
     }
     r = ml_z_reduce(r);
     Z_END_ARG(arg);
@@ -1428,7 +1529,7 @@ CAMLprim value ml_z_shift_right(value arg, value count)
     if (mp_signed_rsh(mp_arg, c, Z_MP(r)) != MP_OKAY) {
       Z_END_ARG(arg);
       mp_clear(Z_MP(r));
-      caml_failwith("Z.shift_right: internal error");     
+      caml_failwith("Z.shift_right: internal error");
     }
     r = ml_z_reduce(r);
     Z_END_ARG(arg);
@@ -1460,7 +1561,7 @@ CAMLprim value ml_z_shift_right_trunc(value arg, value count)
     if (mp_div_2d(mp_arg, c, Z_MP(r), NULL) != MP_OKAY) {
       Z_END_ARG(arg);
       mp_clear(Z_MP(r));
-      caml_failwith("Z.shift_right_trunc: internal error");     
+      caml_failwith("Z.shift_right_trunc: internal error");
     }
     r = ml_z_reduce(r);
     Z_END_ARG(arg);
@@ -1704,7 +1805,7 @@ CAMLprim value ml_z_pow(value base, value exp)
   if (mp_expt_u32(mp_base, e, Z_MP(r)) != MP_OKAY) {
     Z_END_ARG(base);
     mp_clear(Z_MP(r));
-    caml_failwith("Z.pow: internal error");     
+    caml_failwith("Z.pow: internal error");
   }
   r = ml_z_reduce(r);
   Z_END_ARG(base);
@@ -2041,7 +2142,7 @@ struct custom_operations ml_z_custom_ops = {
 CAMLprim value ml_z_init()
 {
   mp_err err = MP_OKAY;
-  /* checks */
+ /* checks */
   if (MP_LT!=-1 || MP_EQ!=0 || MP_GT!=1)
     caml_failwith("Z.init: invalid values for MP_LT, MP_EQ, MP_GT");
   /* useful constants */
@@ -2049,16 +2150,20 @@ CAMLprim value ml_z_init()
   err |= mp_init_i32(&z_min_int32,  -0x80000000);
   err |= mp_init_i64(&z_max_int64,   0x7fffffffffffffffLL);
   err |= mp_init_i64(&z_min_int64,  -0x7fffffffffffffffLL - 1);
+  err |= mp_init_u32(&z_max_int32_unsigned,   0xffffffffU);
+  err |= mp_init_u64(&z_max_int64_unsigned,   0xffffffffffffffffLLU);
 #ifdef ARCH_SIXTYFOUR
   err |= mp_init_i64(&z_max_int,     0x3fffffffffffffffLL);
   err |= mp_init_i64(&z_min_int,    -0x4000000000000000LL);
   err |= mp_init_i64(&z_max_intnat,  0x7fffffffffffffffLL);
   err |= mp_init_i64(&z_min_intnat, -0x7fffffffffffffffLL - 1);
+  err |= mp_init_u64(&z_max_intnat_unsigned,   0xffffffffffffffffLLU);
 #else
   err |= mp_init_i32(&z_max_int,     0x3fffffff);
   err |= mp_init_i32(&z_min_int,    -0x40000000);
   err |= mp_init_i32(&z_max_intnat,  0x7fffffff);
   err |= mp_init_i32(&z_min_intnat, -0x80000000);
+  err |= mp_init_u32(&z_max_intnat_unsigned,   0xffffffffU);
 #endif
   if (err != MP_OKAY) {
     caml_failwith("Z.init: failed to create constants");

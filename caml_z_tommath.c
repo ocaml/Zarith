@@ -145,6 +145,7 @@ static mp_int z_max_int64_unsigned;
 
 #define Z_MP(x) ((mp_int*)Data_custom_val((x)))
 #define Z_SIGN(x) (Z_MP((x))->sign)
+#define Z_LIMB(x) (Z_MP((x))->dp)
 
 #define Z_ISZERO(x) (Is_long((x)) ? Long_val((x)) == 0 : mp_iszero(Z_MP((x))))
 #define Z_ISNEG(x) (Is_long((x)) ? Long_val((x)) < 0 : mp_isneg(Z_MP((x))))
@@ -605,24 +606,109 @@ CAMLprim value ml_z_format(value f, value v)
   CAMLreturn(r);
 }
 
-CAMLprim value ml_z_extract(UNUSED_PARAM value arg, UNUSED_PARAM value off, UNUSED_PARAM  value len)
-{
-  caml_failwith("Z.extract: not implemented in LibTomMath backend");
+/* common part to ml_z_extract and ml_z_extract_internal */
+void ml_z_extract_internal(mp_int* dst, value arg, uintnat o, uintnat l) {
+  Z_DECL(arg);
+  size_t sz, i;
+  mp_int rem;
+
+  sz = (l + MP_DIGIT_BIT - 1) / MP_DIGIT_BIT;
+  Z_ARG(arg);
+
+  /* shift */
+  if (mp_init(&rem) != MP_OKAY ||
+      mp_div_2d(mp_arg, o, dst, &rem) != MP_OKAY ||
+      mp_grow(dst, sz) != MP_OKAY) {
+    mp_clear(&rem);
+    Z_END_ARG(arg);
+    caml_failwith("Z.extract: internal error");
+  }
+
+  /* 0-pad */
+  for (i = dst->used; i < sz; i++)
+    dst->dp[i] = 0;
+  dst->used = sz;
+  dst->sign = MP_ZPOS;
+
+  /* 2's complement */
+  if (mp_isneg(mp_arg)) {
+    for (i = 0; i < sz; i++)
+      dst->dp[i] = (~dst->dp[i]) & MP_MASK;
+    if (mp_iszero(&rem)) {
+      /* all shifted-out bits are 0 */
+      if (mp_incr(dst) != MP_OKAY) {
+        mp_clear(&rem);
+        Z_END_ARG(arg);
+        caml_failwith("Z.extract: internal error");
+      }
+      /* in case of overflow in incr, ignore the new digit */
+      dst->used = sz;
+   }
+  }
+
+  /* mask out high bits */
+  l %= MP_DIGIT_BIT;
+  if (l) dst->dp[sz-1] &= MP_MASK >> (MP_DIGIT_BIT - l);
+  mp_clamp(dst);
+  mp_clear(&rem);
+  Z_END_ARG(arg);
 }
 
-CAMLprim value ml_z_extract_small(UNUSED_PARAM value arg, UNUSED_PARAM value off, UNUSED_PARAM  value len)
+
+CAMLprim value ml_z_extract(value arg, value off, value len)
 {
-  caml_failwith("Z.extract_small: not implemented in LibTomMath backend");
+  CAMLparam1(arg);
+  CAMLlocal1(r);
+  r = ml_z_alloc();
+  ml_z_extract_internal(Z_MP(r), arg, (uintnat)Long_val(off), (uintnat)Long_val(len));
+  r = ml_z_reduce(r);
+  CAMLreturn(r);
 }
 
-CAMLprim value ml_z_to_bits(UNUSED_PARAM value arg)
+/* version without OCaml allocation */
+CAMLprim value ml_z_extract_small(value arg, value off, value len)
 {
-  caml_failwith("Z.to_bits: not implemented in LibTomMath backend");
+  mp_int r;
+  if (mp_init(&r) != MP_OKAY)
+    caml_failwith("Z.extract: internal error");
+
+  ml_z_extract_internal(&r, arg, (uintnat)Long_val(off), (uintnat)Long_val(len));
+
+  if (mp_cmp(&r, &z_min_int) < 0 ||
+      mp_cmp(&r, &z_max_int) > 0)
+    /* The result should fit in an integer */
+    caml_failwith("Z.extract: internal error");
+  intnat x = mp_get_i64(&r);
+  mp_clear(&r);
+  return Val_long(x);
 }
 
-CAMLprim value ml_z_of_bits(UNUSED_PARAM value arg)
+CAMLprim value ml_z_to_bits(value arg)
 {
-  caml_failwith("Z.of_bits: not implemented in LibTomMath backend");
+  CAMLparam1(arg);
+  CAMLlocal1(r);
+  Z_DECL(arg);
+  size_t sz;
+  Z_ARG(arg);
+  sz = mp_pack_count(mp_arg, 0, 1);
+  r = caml_alloc_string(sz);
+  if (mp_pack((void*)String_val(r), sz, NULL, MP_LSB_FIRST, 1, MP_NATIVE_ENDIAN, 0, mp_arg) != MP_OKAY) {
+    caml_failwith("Z.to_bits: internal error");
+  }
+  Z_END_ARG(arg);
+  CAMLreturn(r);
+}
+
+CAMLprim value ml_z_of_bits(value arg)
+{
+  CAMLparam1(arg);
+  CAMLlocal1(r);
+  r = ml_z_alloc();
+  if (mp_unpack(Z_MP(r), caml_string_length(arg), MP_LSB_FIRST, 1, MP_NATIVE_ENDIAN, 0, String_val(arg)) != MP_OKAY) {
+    caml_failwith("Z.of_bits: internal error");
+  }
+  r = ml_z_reduce(r);
+  CAMLreturn(r);
 }
 
 
@@ -1722,34 +1808,23 @@ CAMLprim value ml_z_hamdist(UNUSED_PARAM value arg1, UNUSED_PARAM value arg2)
 
 CAMLprim value ml_z_testbit(value arg, value index)
 {
-  intnat b_idx;
-  b_idx = Long_val(index); /* Caml code checked index >= 0 */
+  intnat b_idx = Long_val(index); /* Caml code checked index >= 0 */
+  intnat l_idx = b_idx / MP_DIGIT_BIT;
+  mp_digit d;
   if (Is_long(arg)) {
     if (b_idx >= Z_INTNAT_BITS) b_idx = Z_INTNAT_BITS - 1;
     return Val_int((Long_val(arg) >> b_idx) & 1);
   }
-  else {
-    intnat l_idx = b_idx / MP_DIGIT_BIT;
-    mp_digit d;
-    if (mp_isneg(Z_MP(arg))) {
-      mp_int a;
-      if (l_idx >= Z_MP(arg)->used) return Val_long(1);
-      /* we need to compute ~(|arg|-1) */
-      if (mp_init(&a) != MP_OKAY ||
-          mp_sub_d(Z_MP(arg), 1, &a) != MP_OKAY ||
-          mp_complement(&a, &a) != MP_OKAY) {
-        /* we probably die horribly here as testbit_internal is declared @@noalloc */
-        caml_raise_out_of_memory();
-      }
-      d = a.dp[l_idx];
-      mp_clear(&a);
+  if (l_idx >= Z_MP(arg)->used) return Val_bool(mp_isneg(Z_MP(arg)));
+  d = Z_LIMB(arg)[l_idx];
+  if (mp_isneg(Z_MP(arg))) {
+    for (intnat i = 0; i < l_idx; i++) {
+      if (Z_LIMB(arg)[i] != 0) { d = ~d; goto extract; }
     }
-    else {
-      if (l_idx >= Z_MP(arg)->used) return Val_long(0);
-      d = Z_MP(arg)->dp[l_idx];
-    }
-    return Val_int((d >> (b_idx % MP_DIGIT_BIT)) & 1);
+    d = -d;
   }
+ extract:
+  return Val_int((d >> (b_idx % MP_DIGIT_BIT)) & 1);
 }
 
 CAMLprim value ml_z_divexact(value arg1, value arg2)

@@ -202,84 +202,140 @@ abs(2^300)
  = 2037035976334486086268445688409378161051468393665936250636140449354381299763336706183397376
 abs(-(2^300))
  = 2037035976334486086268445688409378161051468393665936250636140449354381299763336706183397376
-max_natint
+max_nativeint
  = 9223372036854775807
 max_int32
  = 2147483647
 max_int64
  = 9223372036854775807
 to_int 1
- = 1
+ = true,1
 to_int max_int
- = 4611686018427387903
-to_int max_natint
- = ovf
+ = true,4611686018427387903
+to_int max_nativeint
+ = false,ovf
 to_int max_int32
- = 2147483647
+ = true,2147483647
 to_int max_int64
- = ovf
+ = false,ovf
 to_int32 1
- = 1
+ = true,1
 to_int32 max_int
- = ovf
-to_int32 max_natint
- = ovf
+ = false,ovf
+to_int32 max_nativeint
+ = false,ovf
 to_int32 max_int32
- = 2147483647
+ = true,2147483647
 to_int32 max_int64
- = ovf
+ = false,ovf
 to_int64 1
- = 1
+ = true,1
 to_int64 max_int
- = 4611686018427387903
-to_int64 max_natint
- = 9223372036854775807
+ = true,4611686018427387903
+to_int64 max_nativeint
+ = true,9223372036854775807
 to_int64 max_int32
- = 2147483647
+ = true,2147483647
 to_int64 max_int64
- = 9223372036854775807
-to_natint 1
- = 1
-to_natint max_int
- = 4611686018427387903
-to_natint max_natint
- = 9223372036854775807
-to_natint max_int32
- = 2147483647
-to_natint max_int64
- = 9223372036854775807
+ = true,9223372036854775807
+to_nativeint 1
+ = true,1
+to_nativeint max_int
+ = true,4611686018427387903
+to_nativeint max_nativeint
+ = true,9223372036854775807
+to_nativeint max_int32
+ = true,2147483647
+to_nativeint max_int64
+ = true,9223372036854775807
 to_int -min_int
- = ovf
-to_int -min_natint
- = ovf
+ = false,ovf
+to_int -min_nativeint
+ = false,ovf
 to_int -min_int32
- = 2147483648
+ = true,2147483648
 to_int -min_int64
- = ovf
+ = false,ovf
 to_int32 -min_int
- = ovf
-to_int32 -min_natint
- = ovf
+ = false,ovf
+to_int32 -min_nativeint
+ = false,ovf
 to_int32 -min_int32
- = ovf
+ = false,ovf
 to_int32 -min_int64
- = ovf
+ = false,ovf
 to_int64 -min_int
- = 4611686018427387904
-to_int64 -min_natint
- = ovf
+ = true,4611686018427387904
+to_int64 -min_nativeint
+ = false,ovf
 to_int64 -min_int32
- = 2147483648
+ = true,2147483648
 to_int64 -min_int64
- = ovf
-to_natint -min_int
- = 4611686018427387904
-to_natint -min_natint
- = ovf
-to_natint -min_int32
- = 2147483648
-to_natint -min_int64
- = ovf
+ = false,ovf
+to_nativeint -min_int
+ = true,4611686018427387904
+to_nativeint -min_nativeint
+ = false,ovf
+to_nativeint -min_int32
+ = true,2147483648
+to_nativeint -min_int64
+ = false,ovf
+to_int32_unsigned 1
+ = true,1
+to_int32_unsigned -1
+ = false,ovf
+to_int32_unsigned max_int
+ = false,ovf
+to_int32_unsigned max_nativeint
+ = false,ovf
+to_int32_unsigned max_int32
+ = true,2147483647
+to_int32_unsigned 2max_int32
+ = true,-2
+to_int32_unsigned 3max_int32
+ = false,ovf
+to_int32_unsigned max_int64
+ = false,ovf
+to_int64_unsigned 1
+ = true,1
+to_int64_unsigned -1
+ = false,ovf
+to_int64_unsigned max_int
+ = true,4611686018427387903
+to_int64_unsigned max_nativeint
+ = true,9223372036854775807
+to_int64_unsigned max_int32
+ = true,2147483647
+to_int64_unsigned max_int64
+ = true,9223372036854775807
+to_int64_unsigned 2max_int64
+ = true,-2
+to_int64_unsigned 3max_int64
+ = false,ovf
+to_nativeint_unsigned 1
+ = true,1
+to_nativeint_unsigned -1
+ = false,ovf
+to_nativeint_unsigned max_int
+ = true,4611686018427387903
+to_nativeint_unsigned max_nativeint
+ = true,9223372036854775807
+to_nativeint_unsigned 2max_nativeint
+ = true,-2
+to_nativeint_unsigned max_int32
+ = true,2147483647
+to_nativeint_unsigned max_int64
+ = true,9223372036854775807
+to_nativeint_unsigned 2max_int64
+ = true,-2
+to_nativeint_unsigned 3max_int64
+ = false,ovf
+of_int32_unsigned -1
+ = 4294967295
+of_int64_unsigned -1
+ = 18446744073709551615
+of_nativeint_unsigned -1
+ = 18446744073709551615
 of_float 1.
  = 1
 of_float -1.
@@ -947,83 +1003,155 @@ format %#-10o 1 = /0o1       /
 format %#-10o -1 = /-0o1      /
 format %#-10o 2^30 = /0o10000000000/
 format %#-10o -2^30 = /-0o10000000000/
-Failure: Z.extract: not implemented in LibTomMath backend
+extract 42 0 1 = 0 (passed)
+extract 42 0 5 = 10 (passed)
+extract 42 0 32 = 42 (passed)
+extract 42 0 64 = 42 (passed)
+extract 42 1 1 = 1 (passed)
+extract 42 1 5 = 21 (passed)
+extract 42 1 32 = 21 (passed)
+extract 42 1 63 = 21 (passed)
+extract 42 1 64 = 21 (passed)
+extract 42 1 127 = 21 (passed)
+extract 42 1 128 = 21 (passed)
+extract 42 69 12 = 0 (passed)
+extract -42 0 1 = 0 (passed)
+extract -42 0 5 = 22 (passed)
+extract -42 0 32 = 4294967254 (passed)
+extract -42 0 64 = 18446744073709551574 (passed)
+extract -42 1 1 = 1 (passed)
+extract -42 1 5 = 11 (passed)
+extract -42 1 32 = 4294967275 (passed)
+extract -42 1 63 = 9223372036854775787 (passed)
+extract -42 1 64 = 18446744073709551595 (passed)
+extract -42 1 127 = 170141183460469231731687303715884105707 (passed)
+extract -42 1 128 = 340282366920938463463374607431768211435 (passed)
+extract -42 69 12 = 4095 (passed)
+extract 3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701 0 1 = 1 (passed)
+extract 3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701 0 64 = 15536040655639606317 (passed)
+extract 3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701 128 1 = 1 (passed)
+extract 3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701 128 5 = 19 (passed)
+extract 3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701 131 32 = 2516587394 (passed)
+extract 3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701 175 63 = 7690089207107781587 (passed)
+extract 3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701 277 123 = 9888429935207999867003931753264634841 (passed)
+signed_extract 42 0 1 = 0 (passed)
+signed_extract 42 0 5 = 10 (passed)
+signed_extract 42 0 32 = 42 (passed)
+signed_extract 42 0 64 = 42 (passed)
+signed_extract 42 1 1 = -1 (passed)
+signed_extract 42 1 5 = -11 (passed)
+signed_extract 42 1 32 = 21 (passed)
+signed_extract 42 1 63 = 21 (passed)
+signed_extract 42 1 64 = 21 (passed)
+signed_extract 42 1 127 = 21 (passed)
+signed_extract 42 1 128 = 21 (passed)
+signed_extract 42 69 12 = 0 (passed)
+signed_extract -42 0 1 = 0 (passed)
+signed_extract -42 0 5 = -10 (passed)
+signed_extract -42 0 32 = -42 (passed)
+signed_extract -42 0 64 = -42 (passed)
+signed_extract -42 1 1 = -1 (passed)
+signed_extract -42 1 5 = 11 (passed)
+signed_extract -42 1 32 = -21 (passed)
+signed_extract -42 1 63 = -21 (passed)
+signed_extract -42 1 64 = -21 (passed)
+signed_extract -42 1 127 = -21 (passed)
+signed_extract -42 1 128 = -21 (passed)
+signed_extract -42 69 12 = -1 (passed)
+signed_extract 3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701 0 1 = -1 (passed)
+signed_extract 3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701 0 64 = -2910703418069945299 (passed)
+signed_extract 3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701 128 1 = -1 (passed)
+signed_extract 3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701 128 5 = -13 (passed)
+signed_extract 3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701 131 32 = -1778379902 (passed)
+signed_extract 3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701 175 63 = -1533282829746994221 (passed)
+signed_extract 3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701 277 123 = -745394031071327116226524728978121767 (passed)
 to_bits 0
- =Failure: Z.to_bits: not implemented in LibTomMath backend
+ =
 marshal round trip 0
  = OK
 to_bits 2
- =Failure: Z.to_bits: not implemented in LibTomMath backend
+ = 02
 marshal round trip 2
  = OK
 to_bits -2
- =Failure: Z.to_bits: not implemented in LibTomMath backend
+ = 02
 marshal round trip -2
  = OK
 to_bits 1073741824
- =Failure: Z.to_bits: not implemented in LibTomMath backend
+ = 00 00 00 40
 marshal round trip 1073741824
  = OK
 to_bits -1073741824
- =Failure: Z.to_bits: not implemented in LibTomMath backend
+ = 00 00 00 40
 marshal round trip -1073741824
  = OK
 to_bits 4611686018427387904
- =Failure: Z.to_bits: not implemented in LibTomMath backend
+ = 00 00 00 00 00 00 00 40
 marshal round trip 4611686018427387904
  = OK
 to_bits -4611686018427387904
- =Failure: Z.to_bits: not implemented in LibTomMath backend
+ = 00 00 00 00 00 00 00 40
 marshal round trip -4611686018427387904
  = OK
 to_bits 2037035976334486086268445688409378161051468393665936250636140449354381299763336706183397376
- =Failure: Z.to_bits: not implemented in LibTomMath backend
+ = 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 10
 marshal round trip 2037035976334486086268445688409378161051468393665936250636140449354381299763336706183397376
  = OK
 to_bits 1329227995784915872903807060280344576
- =Failure: Z.to_bits: not implemented in LibTomMath backend
+ = 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01
 marshal round trip 1329227995784915872903807060280344576
  = OK
 to_bits 2658455991569831745807614120560689152
- =Failure: Z.to_bits: not implemented in LibTomMath backend
+ = 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 02
 marshal round trip 2658455991569831745807614120560689152
  = OK
 to_bits 4611686018427387903
- =Failure: Z.to_bits: not implemented in LibTomMath backend
+ = ff ff ff ff ff ff ff 3f
 marshal round trip 4611686018427387903
  = OK
 to_bits -4611686018427387904
- =Failure: Z.to_bits: not implemented in LibTomMath backend
+ = 00 00 00 00 00 00 00 40
 marshal round trip -4611686018427387904
  = OK
 to_bits 2147483647
- =Failure: Z.to_bits: not implemented in LibTomMath backend
+ = ff ff ff 7f
 marshal round trip 2147483647
  = OK
 to_bits -2147483648
- =Failure: Z.to_bits: not implemented in LibTomMath backend
+ = 00 00 00 80
 marshal round trip -2147483648
  = OK
 to_bits 9223372036854775807
- =Failure: Z.to_bits: not implemented in LibTomMath backend
+ = ff ff ff ff ff ff ff 7f
 marshal round trip 9223372036854775807
  = OK
 to_bits -9223372036854775808
- =Failure: Z.to_bits: not implemented in LibTomMath backend
+ = 00 00 00 00 00 00 00 80
 marshal round trip -9223372036854775808
  = OK
 to_bits 9223372036854775807
- =Failure: Z.to_bits: not implemented in LibTomMath backend
+ = ff ff ff ff ff ff ff 7f
 marshal round trip 9223372036854775807
  = OK
 to_bits -9223372036854775808
- =Failure: Z.to_bits: not implemented in LibTomMath backend
+ = 00 00 00 00 00 00 00 80
 marshal round trip -9223372036854775808
  = OK
-testbit 0 Failure: Z.extract: not implemented in LibTomMath backend
+testbit 0 (passed)
+testbit 1 (passed)
+testbit -42 (passed)
+testbit 31415926535897932384626433832795028841971693993751058209749445923078164062862089986 (passed)
+testbit -2277361236363886404304896 (passed)
 numbits / trailing_zeros 0 (passed)
 numbits / trailing_zeros 1 (passed)
-numbits / trailing_zeros -42 Failure: Z.extract: not implemented in LibTomMath backend
+numbits / trailing_zeros -42 (passed)
+numbits / trailing_zeros 1511006158790834639735881728 (passed)
+numbits / trailing_zeros -2277361236363886404304896 (passed)
+random_bits 45 = 25076743995969
+random_bits 45 = 33510880286625
+random_bits 12 = 1263
+random_int 123456 = 103797
+random_int 9999999 = 1089068
 - 0 = 0
 - 1 = -1
 - -1 = 1

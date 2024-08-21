@@ -1383,7 +1383,6 @@ CAMLprim value ml_z_sqrt_rem(value arg)
   Field(r,1) = r2;
   Z_END_ARG(arg);
   CAMLreturn(r);
-  //caml_failwith("Z.sqrt_rem: not implemented in LibTomMath backend");
 }
 
 CAMLprim value ml_z_gcd(value arg1, value arg2)

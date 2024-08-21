@@ -490,10 +490,14 @@ val hash: t -> int
 (** Hashes a number, producing a small integer.
     The result is consistent with equality:
     if [a] = [b], then [hash a] = [hash b].
-    The result is the same as produced by OCaml's generic hash function,
-    {!Hashtbl.hash}.
     Together with type {!Z.t}, the function {!Z.hash} makes it possible
     to pass module {!Z} as argument to the functor {!Hashtbl.Make}.
+
+    Currently, the value depends on the backend (GMP or LibTomMath).
+    For GMP, the result is the same as produced by OCaml's generic hash function,
+    {!Hashtbl.hash}.
+    For LibTomMath, the result depends on the bit-size of limbs/digits.
+
     @before 1.14 a different hash algorithm was used.
 *)
 
@@ -872,7 +876,20 @@ end
 val version: string
 (** Library version.
     @since 1.1
-*)
+ *)
+
+val backend: string
+(** Backend implementing large integer operations.
+    Can be GMP, MPIR, LibTomMath.
+    @since 1.15
+  *)
+
+external digit_bits: unit -> int = "ml_z_digit_bits"
+(** Number of useful bits in each individual word (so-called 'limb' or 'digit').
+    Can be 32 or 64 for GMP, and 28 or 60 for LibTomMath.
+    @since 1.15
+  *)
+
 
 (**/**)
 

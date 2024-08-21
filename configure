@@ -54,6 +54,7 @@ where options include:
   -ocamllibdir dir     ocaml library directory
   -gmp                 use GMP library (default if found)
   -mpir                use MPIR library instead of GMP
+  -tommath             use TomMath library instead of GMP
   -perf                enable performance statistics
   -prefixnonocaml      add for non ocaml tool, e.g. -prefixnonocaml x86_64-w64-mingw32-
 
@@ -88,6 +89,8 @@ while : ; do
             gmp='gmp';;
         -mpir|--mpir)
             gmp='mpir';;
+        -tommath|--tommath)
+            gmp='tommath';;
         -perf|--perf)
             perf='yes';;
         -prefixnonocaml|--prefixnonocaml)
@@ -275,11 +278,14 @@ echo "OCaml's word size is $wordsize"
 rm -f tmp.ml
 
 
-# check GMP, MPIR
+# check GMP, MPIR, TomMath
+
+csrc="caml_z.c"
 
 if test "$gmp" = 'gmp' || test "$gmp" = 'auto'; then
     if pkg-config gmp 2>/dev/null; then
         echo 'package gmp: found'
+        backend='GMP'
         gmp='OK'
         cclib="$cclib $(pkg-config --libs gmp)"
         ccinc="$ccinc $(pkg-config --cflags gmp)"
@@ -289,6 +295,7 @@ if test "$gmp" = 'gmp' || test "$gmp" = 'auto'; then
         if test $? -eq 1; then
             checklib gmp
             if test $? -eq 1; then 
+                backend='GMP'
                 gmp='OK'
                 cclib="$cclib -lgmp"
                 ccdef="-DHAS_GMP $ccdef"
@@ -301,13 +308,27 @@ if test "$gmp" = 'mpir' || test "$gmp" = 'auto'; then
     if test $? -eq 1; then
         checklib mpir
         if test $? -eq 1; then 
+            backend='MPIR'
             gmp='OK'
             cclib="$cclib -lmpir"
             ccdef="-DHAS_MPIR $ccdef"
         fi
     fi
 fi
-if test "$gmp" != 'OK'; then echo "cannot find GMP nor MPIR"; exit 2; fi
+if test "$gmp" = 'tommath' -o "$gmp" = 'auto'; then
+    checkinc tommath.h
+    if test $? -eq 1; then
+        checklib tommath
+        if test $? -eq 1; then 
+            backend='LibTomMath'
+            gmp='OK'
+            cclib="$cclib -ltommath"
+            ccdef="-DHAS_TOMMATH $ccdef"
+            csrc="caml_z_tommath.c"
+        fi
+    fi
+fi
+if test "$gmp" != 'OK'; then echo "cannot find GMP nor MPIR nor TomMath"; exit 2; fi
 
 
 # OCaml version
@@ -338,6 +359,14 @@ case "$ocamlver" in
     ;;
 esac
 
+
+# zarith version
+
+version=`grep "version" META | head -1`
+echo "let $version" > zarith_version.ml
+echo "let backend = \"$backend\"" >> zarith_version.ml
+
+
 # dump Makefile
 
 cat > Makefile <<EOF
@@ -351,6 +380,7 @@ OCAMLDOC=$ocamldoc
 OCAMLFLAGS=$mlflags
 OCAMLOPTFLAGS=$mloptflags
 OCAMLINC=$mlinc
+CSRC=$csrc
 CFLAGS=$ccinc $ccdef $ccopt
 LIBS=$cclib
 LDFLAGS=$ldflags
@@ -362,6 +392,7 @@ OBJSUFFIX=$objsuffix
 HASOCAMLOPT=$hasocamlopt
 HASDYNLINK=$hasdynlink
 HASBINANNOT=$hasbinannot
+BACKEND=$backend
 
 include project.mak
 EOF
@@ -373,6 +404,7 @@ cat <<EOF
 
 detected configuration:
 
+  backend               $backend
   native-code:          $hasocamlopt
   dynamic linking:      $hasdynlink
   defines:              $ccdef

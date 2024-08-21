@@ -31,11 +31,10 @@ endif
 # project files
 ###############
 
-CSRC = caml_z.c
 MLSRC = zarith_version.ml z.ml q.ml big_int_Z.ml
 MLISRC = z.mli q.mli big_int_Z.mli
 
-AUTOGEN = zarith_version.ml
+AUTOGEN =
 
 CMIOBJ = $(MLISRC:%.mli=%.cmi)
 CMXOBJ = $(MLSRC:%.ml=%.cmx)
@@ -93,8 +92,7 @@ else
 	$(error ocamldoc is required to build the documentation)
 endif
 
-zarith_version.ml: META
-	(echo "let"; grep "version" META | head -1) > zarith_version.ml
+
 
 # install targets
 #################

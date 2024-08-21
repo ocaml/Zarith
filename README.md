@@ -119,7 +119,8 @@ Source files        | Description
 --------------------|-----------------------------------------
   configure         | configuration script
   z.ml[i]           | Z module and implementation for small integers
-  caml_z.c          | C implementation
+  caml_z.c          | C implementation using GMP/MPIR
+  caml_z_tommath.c  | C implementation using LibTomMath
   big_int_z.ml[i]   | wrapper to provide a Big_int compatible API to Z
   q.ml[i]           | rational library, pure OCaml on top of Z
   zarith_top.ml     | toplevel module to provide pretty-printing
@@ -127,3 +128,20 @@ Source files        | Description
   zarith.opam       | package description for opam
   z_mlgmpidl.ml[i]  | conversion between Zarith and MLGMPIDL
   tests/            | simple regression tests and benchmarks
+
+
+## BACK-END COMPATIBILITY
+
+Zarith supports several back-ends to implement multi-word integers: GMP, MPIR, and LibTomMath.
+GMP is the default.
+The `configure` script will try them in the following order: GMP, MPIR, LibTomMath.
+The choice of back-end can be overridden with the `-gmp`, `-mpir`, and `-tommath` configure options.
+
+GMP and MPIR support all functions and should give identical results.
+The hashing function is identical and the marshalling format is compatible for GMP and MPIR, and for 32-bit and 64-bit.
+
+LibTomMath support is partial and experimental.
+Not all functions are implemented.
+Unsupported functions raise a `Failure` exception.
+The hashing function is different from the GMP/MPIR one, and the hashed value actually depends on the digit bit-size used by LibTomMath (which can be queried with `digit_bits ()`).
+Additionally, the marshaling format is incompatible with the GMP/MPIR one, although it is independent from the digit bit-size.

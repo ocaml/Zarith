@@ -552,4 +552,8 @@ module Compare = struct
   let (<>) a b = not (equal a b)
 end
 
+external digit_bits: unit -> int = "ml_z_digit_bits"
+
 let version = Zarith_version.version
+let backend = Zarith_version.backend
+

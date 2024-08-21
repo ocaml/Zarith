@@ -16,6 +16,11 @@
 *)
 
 
+let failure_harness f =
+  try f ()
+  with Failure f -> Printf.printf "Failure: %s\n" f
+
+
 (* testing Z *)
 
 module I = Z
@@ -666,7 +671,6 @@ let test_Z() =
   Printf.printf "divisible (2^300-1) 32\n = %B\n" (I.divisible (I.pred p300) (I.of_int 32));
   Printf.printf "divisible min_int (max_int+1)\n = %B\n" (I.divisible (I.of_int min_int) (I.succ (I.of_int max_int)));
   Printf.printf "divisible (max_int+1) min_int\n = %B\n" (I.divisible (I.succ (I.of_int max_int)) (I.of_int min_int));
-
   (* always 0 when not using custom blocks *)
   Printf.printf "hash(2^120)\n = %i\n" (Hashtbl.hash p120);
   Printf.printf "hash(2^121)\n = %i\n" (Hashtbl.hash p121);
@@ -796,7 +800,6 @@ let test_Z() =
      c,0,1; c,0,64; c,128,1; c,128,5; c,131,32; c,175,63; c,277,123] in
   List.iter chk_extract extract_testdata;
   List.iter chk_signed_extract extract_testdata;
-
   chk_bits I.zero;
   chk_bits p2;
   chk_bits (I.neg p2);
@@ -815,19 +818,16 @@ let test_Z() =
   chk_bits mini64;
   chk_bits maxni;
   chk_bits minni;
-
   List.iter chk_testbit [
-    I.zero; I.one; I.of_int (-42);
-    I.of_string "31415926535897932384626433832795028841971693993751058209749445923078164062862089986";
-    I.neg (I.shift_left (I.of_int 123456) 64);
-  ];
-
+      I.zero; I.one; I.of_int (-42);
+      I.of_string "31415926535897932384626433832795028841971693993751058209749445923078164062862089986";
+      I.neg (I.shift_left (I.of_int 123456) 64);
+    ];
   List.iter chk_numbits_tz [
-    I.zero; I.one; I.of_int (-42);
-    I.shift_left (I.of_int 9999) 77;
-    I.neg (I.shift_left (I.of_int 123456) 64);
-  ];
-
+      I.zero; I.one; I.of_int (-42);
+      I.shift_left (I.of_int 9999) 77;
+      I.neg (I.shift_left (I.of_int 123456) 64);
+    ];
   Printf.printf "random_bits 45 = %a\n"
     pr (I.random_bits_gen ~fill:pr_bytes 45);
   Printf.printf "random_bits 45 = %a\n"
@@ -838,7 +838,6 @@ let test_Z() =
     pr (I.random_int_gen ~fill:pr_bytes (I.of_int 123456));
   Printf.printf "random_int 9999999 = %a\n"
     pr (I.random_int_gen ~fill:pr_bytes (I.of_int 9999999));
-
   ()
 
 
@@ -918,3 +917,5 @@ let test_Q () =
 
 let _ = test_Z()
 let _ = test_Q()
+let _ = Gc.full_major ()
+

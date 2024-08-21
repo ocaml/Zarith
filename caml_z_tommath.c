@@ -613,11 +613,13 @@ void ml_z_extract_internal(mp_int* dst, value arg, uintnat o, uintnat l) {
   mp_int rem;
 
   sz = (l + MP_DIGIT_BIT - 1) / MP_DIGIT_BIT;
-  Z_ARG(arg);
+
+  if (mp_init(&rem) != MP_OKAY)
+    ml_z_raise_out_of_memory();
 
   /* shift */
-  if (mp_init(&rem) != MP_OKAY ||
-      mp_div_2d(mp_arg, o, dst, &rem) != MP_OKAY ||
+  Z_ARG(arg);
+  if (mp_div_2d(mp_arg, o, dst, &rem) != MP_OKAY ||
       mp_grow(dst, sz) != MP_OKAY) {
     mp_clear(&rem);
     Z_END_ARG(arg);
@@ -670,7 +672,7 @@ CAMLprim value ml_z_extract_small(value arg, value off, value len)
 {
   mp_int r;
   if (mp_init(&r) != MP_OKAY)
-    caml_failwith("Z.extract: internal error");
+    ml_z_raise_out_of_memory();
 
   ml_z_extract_internal(&r, arg, (uintnat)Long_val(off), (uintnat)Long_val(len));
 
@@ -1994,7 +1996,7 @@ CAMLprim value ml_z_divisible(value arg1, value arg2)
     mp_int r;
     int res;
     if (mp_init(&r) != MP_OKAY)
-      caml_failwith("Z.divisible: internal error");
+      ml_z_raise_out_of_memory();
     Z_ARG(arg1);
     Z_ARG(arg2);
     if (mp_div(mp_arg1, mp_arg2, NULL, &r) != MP_OKAY) {

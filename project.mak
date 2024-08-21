@@ -140,7 +140,7 @@ endif
 	$(OCAMLOPT) $(OCAMLOPTFLAGS) $(OCAMLINC) -c $<
 
 %.$(OBJSUFFIX): %.c
-	$(OCAMLC) -ccopt "$(CFLAGS) -g" -c $<
+	$(OCAMLC) -ccopt "$(CFLAGS)" -c $<
 
 clean:
 	/bin/rm -rf *.$(OBJSUFFIX) *.$(LIBSUFFIX) *.$(DLLSUFFIX) *.cmi *.cmo *.cmx *.cmxa *.cmxs *.cma  *.cmt *.cmti *~ \#* depend test $(AUTOGEN) tmp.c depend

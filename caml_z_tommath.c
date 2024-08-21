@@ -622,6 +622,7 @@ void ml_z_extract_internal(mp_int* dst, value arg, uintnat o, uintnat l) {
   if (mp_div_2d(mp_arg, o, dst, &rem) != MP_OKAY ||
       mp_grow(dst, sz) != MP_OKAY) {
     mp_clear(&rem);
+    mp_clear(dst);
     Z_END_ARG(arg);
     caml_failwith("Z.extract: internal error");
   }
@@ -639,6 +640,7 @@ void ml_z_extract_internal(mp_int* dst, value arg, uintnat o, uintnat l) {
     if (mp_iszero(&rem)) {
       /* all shifted-out bits are 0 */
       if (mp_incr(dst) != MP_OKAY) {
+        mp_clear(dst);
         mp_clear(&rem);
         Z_END_ARG(arg);
         caml_failwith("Z.extract: internal error");
@@ -677,9 +679,11 @@ CAMLprim value ml_z_extract_small(value arg, value off, value len)
   ml_z_extract_internal(&r, arg, (uintnat)Long_val(off), (uintnat)Long_val(len));
 
   if (mp_cmp(&r, &z_min_int) < 0 ||
-      mp_cmp(&r, &z_max_int) > 0)
+      mp_cmp(&r, &z_max_int) > 0) {
     /* The result should fit in an integer */
+    mp_clear(&r);
     caml_failwith("Z.extract: internal error");
+  }
   intnat x = mp_get_i64(&r);
   mp_clear(&r);
   return Val_long(x);
@@ -695,6 +699,7 @@ CAMLprim value ml_z_to_bits(value arg)
   sz = mp_pack_count(mp_arg, 0, 1);
   r = caml_alloc_string(sz);
   if (mp_pack((void*)String_val(r), sz, NULL, MP_LSB_FIRST, 1, MP_NATIVE_ENDIAN, 0, mp_arg) != MP_OKAY) {
+    Z_END_ARG(arg);
     caml_failwith("Z.to_bits: internal error");
   }
   Z_END_ARG(arg);
@@ -707,6 +712,7 @@ CAMLprim value ml_z_of_bits(value arg)
   CAMLlocal1(r);
   r = ml_z_alloc();
   if (mp_unpack(Z_MP(r), caml_string_length(arg), MP_LSB_FIRST, 1, MP_NATIVE_ENDIAN, 0, String_val(arg)) != MP_OKAY) {
+    mp_clear(Z_MP(r));
     caml_failwith("Z.of_bits: internal error");
   }
   r = ml_z_reduce(r);
@@ -1375,8 +1381,10 @@ CAMLprim value ml_z_sqrt_rem(value arg)
   if (mp_sqrt(mp_arg, Z_MP(r1)) != MP_OKAY ||
       mp_mul(Z_MP(r1),Z_MP(r1),Z_MP(r2)) != MP_OKAY ||
       mp_sub(mp_arg,Z_MP(r2),Z_MP(r2)) != MP_OKAY) {
-    caml_failwith("Z.sqrt_rem: internal error");
+    mp_clear(Z_MP(r1));
+    mp_clear(Z_MP(r2));
     Z_END_ARG(arg);
+    caml_failwith("Z.sqrt_rem: internal error");
   }
   r1 = ml_z_reduce(r1);
   r2 = ml_z_reduce(r2);
@@ -1898,10 +1906,10 @@ CAMLprim value ml_z_powm(value base, value exp, value mod)
   Z_DECL(exp);
   Z_DECL(mod);
 
+  r = ml_z_alloc();
   Z_ARG(base);
   Z_ARG(exp);
   Z_ARG(mod);
-  r = ml_z_alloc();
   if (mp_exptmod(mp_base, mp_exp, mp_mod, Z_MP(r)) != MP_OKAY) {
     Z_END_ARG(base);
     Z_END_ARG(exp);
@@ -1933,8 +1941,8 @@ CAMLprim value ml_z_pow(value base, value exp)
   if (e > 0x7fffffff)
     caml_invalid_argument("Z.pow: exponent too large");
 #endif
-  Z_ARG(base);
   r = ml_z_alloc();
+  Z_ARG(base);
   if (mp_expt_u32(mp_base, e, Z_MP(r)) != MP_OKAY) {
     Z_END_ARG(base);
     mp_clear(Z_MP(r));

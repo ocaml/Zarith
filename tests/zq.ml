@@ -917,3 +917,5 @@ let test_Q () =
 
 let _ = test_Z()
 let _ = test_Q()
+let _ = Gc.full_major ()
+

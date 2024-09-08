@@ -34,7 +34,6 @@ ccdef=''
 mlflags="$OCAMLFLAGS"
 mloptflags="$OCAMLOPTFLAGS"
 mlinc="$OCAMLINC"
-objsuffix="o"
 ocamlfind="auto"
 
 # sanitize
@@ -209,6 +208,30 @@ else
   ccopt="-O3 -Wall -Wextra $CFLAGS"
 fi
 
+case "$("$ocamlc" -config | tr -d '\r' | sed -ne '/^system:/s/.*: //p')" in
+  win32|win64)
+    # MSVC
+    objsuffix='obj'
+    libsuffix='lib'
+    dllsuffix='dll'
+    exe='.exe'
+    ;;
+  mingw|mingw64)
+    # mingw-w64
+    objsuffix='o'
+    libsuffix='a'
+    dllsuffix='dll'
+    exe='.exe'
+    ;;
+  *)
+    # Unix
+    objsuffix='o'
+    libsuffix='a'
+    dllsuffix='so'
+    exe=''
+    ;;
+esac
+
 # optional native-code generation
 
 hasocamlopt='no'
@@ -359,9 +382,14 @@ INSTALL=install
 OCAMLFIND=ocamlfind
 INSTMETH=$instmeth
 OBJSUFFIX=$objsuffix
+LIBSUFFIX=$libsuffix
+DLLSUFFIX=$dllsuffix
+EXESUFFIX=$exe
 HASOCAMLOPT=$hasocamlopt
 HASDYNLINK=$hasdynlink
 HASBINANNOT=$hasbinannot
+WORDSIZE=$wordsize
+STDLIBDIR=$ocamllibdir
 EOF
 
 

@@ -12,24 +12,6 @@
 
 include Makefile.config
 
-ifeq "$(shell $(OCAMLC) -config |grep ccomp_type)" "ccomp_type: msvc"
-OBJSUFFIX    := obj
-LIBSUFFIX    := lib
-DLLSUFFIX    := dll
-EXE          := .exe
-else
-OBJSUFFIX    := o
-LIBSUFFIX    := a
-ifeq "$(findstring mingw,$(shell $(OCAMLC) -config |grep system))" "mingw"
-DLLSUFFIX    := dll
-EXE          := .exe
-else
-DLLSUFFIX    := so
-EXE          :=
-endif
-endif
-
-
 # project files
 ###############
 
@@ -147,7 +129,7 @@ endif
 	$(OCAMLC) -ccopt "$(CFLAGS)" -c $<
 
 clean:
-	/bin/rm -rf *.$(OBJSUFFIX) *.$(LIBSUFFIX) *.$(DLLSUFFIX) *.cmi *.cmo *.cmx *.cmxa *.cmxs *.cma  *.cmt *.cmti *~ \#* depend test $(AUTOGEN) tmp.c depend
+	/bin/rm -rf *.o *.obj *.lib *.a *.cmi *.cmo *.cmx *.cmxa *.cmxs *.cma  *.cmt *.cmti *~ \#* depend test $(AUTOGEN) tmp.c depend
 	make -C tests clean
 
 depend: $(AUTOGEN)

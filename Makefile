@@ -10,6 +10,8 @@
 # ENS (École normale supérieure, Paris, France),
 # INRIA Rocquencourt (Institut national de recherche en informatique, France).
 
+include Makefile.config
+
 ifeq "$(shell $(OCAMLC) -config |grep ccomp_type)" "ccomp_type: msvc"
 OBJSUFFIX    := obj
 LIBSUFFIX    := lib

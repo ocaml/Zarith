@@ -7,6 +7,6 @@
 *.byt
 *.o
 *.so
-Makefile
+Makefile.config
 depend
 zarith_version.ml

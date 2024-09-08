@@ -231,7 +231,7 @@ fi
 # directories
 
 if test "$ocamllibdir" = "auto"
-then ocamllibdir=`ocamlc -where | sed 's/\r$//'`
+then ocamllibdir="$(ocamlc -where | sed 's/\r$//')"
 fi
 
 if test ! -f "$ocamllibdir/caml/mlvalues.h"
@@ -258,7 +258,7 @@ searchbin ocamlfind
 if test $? -eq 1 && test $ocamlfind != "no"; then 
     instmeth='findlib'
     if test "$installdir" = "auto"
-    then installdir=`ocamlfind printconf destdir`; fi
+    then installdir="$(ocamlfind printconf destdir)"; fi
 else
     searchbin install
     if test $? -eq 1; then instmeth='install'
@@ -270,7 +270,7 @@ fi
 # detect OCaml's word-size
 
 echo "print_int (Sys.word_size);;" > tmp.ml
-wordsize=`ocaml tmp.ml`
+wordsize="$(ocaml tmp.ml)"
 echo "OCaml's word size is $wordsize"
 rm -f tmp.ml
 
@@ -312,7 +312,7 @@ if test "$gmp" != 'OK'; then echo "cannot find GMP nor MPIR"; exit 2; fi
 
 # OCaml version
 
-ocamlver=`ocamlc -version`
+ocamlver="$(ocamlc -version)"
 
 # OCaml version 4.04 or later is required
 

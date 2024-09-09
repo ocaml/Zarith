@@ -1,5 +1,3 @@
-WORDSIZE:=$(shell echo 'print_int Sys.word_size' | ocaml -stdin)
-STDLIBDIR:=$(shell ocamlc -where)
 ifeq ($(wildcard $(STDLIBDIR)/big_int.cmi),)
 HAS_NUM=false
 NUMS_CMA=
@@ -9,6 +7,8 @@ HAS_NUM=true
 NUMS_CMA=nums.cma
 NUMS_CMXA=nums.cmxa
 endif
+
+include ../Makefile.config
 
 test:: zq.exe
 	@echo "Testing zq (native)..."
@@ -58,16 +58,16 @@ test:: intern.exe
 extern.data$(WORDSIZE): extern.exe
 	./extern.exe extern.data$(WORDSIZE)
 
-tofloat.exe: tofloat.ml setround.o ../zarith.cmxa
+tofloat.exe: tofloat.ml setround.$(OBJSUFFIX) ../zarith.cmxa
 	ocamlopt -I .. -ccopt "-L.." zarith.cmxa -o tofloat.exe \
-           setround.o tofloat.ml
+           setround.$(OBJSUFFIX) tofloat.ml
 
 %.exe: %.ml ../zarith.cmxa
 	ocamlopt -I .. -ccopt "-L.." zarith.cmxa $(NUMS_CMXA) -o $*.exe $*.ml
 %.byt: %.ml ../zarith.cma
 	ocamlc -I .. -ccopt "-L.." zarith.cma $(NUMS_CMA) -o $*.byt $*.ml
-%.o: %.c
+%.$(OBJSUFFIX): %.c
 	ocamlc -c $*.c
 
 clean:
-	rm -f *.cm[iox] *.o *.exe *.byt
+	rm -f *.cm[iox] *.o *.obj *.exe *.byt

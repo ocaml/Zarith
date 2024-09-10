@@ -35,35 +35,20 @@ provided by [Zarith_stubs_js](https://github.com/janestreet/zarith_stubs_js).
 * OCaml, version 4.04.0 or later.
 * Either the GMP library or the MPIR library, including development files.
 * GCC or Clang or a gcc-compatible C compiler and assembler (other compilers may work).
-* The Findlib package manager (optional, recommended).
+* dune, version 2.7 or later
 
 
 ## INSTALLATION
 
-1) First, run the "configure" script by typing:
+1) First, build with
 ```
-   ./configure
+   dune build
 ```
-The `configure` script has a few options. Use the `-help` option to get a
-list and short description of each option.
-
-2) It creates a Makefile, which can be invoked by:
-```
-   make
-```
-This builds native and bytecode versions of the library.
 
 3) The libraries are installed by typing:
 ```
-   make install
+   dune install
 ```
-or, if you install to a system location but are not an administrator
-```
-   sudo make install
-```
-If Findlib is detected, it is used to install files.
-Otherwise, the files are copied to a `zarith/` subdirectory of the directory
-given by `ocamlc -where`.
 
 The libraries are named `zarith.cmxa` and `zarith.cma`, and the Findlib module
 is named `zarith`.
@@ -73,13 +58,13 @@ option to `ocamlc` / `ocamlopt`, or the `-package zarith` option to `ocamlfind`.
 
 4) (optional, recommended) Test programs are built and run by the additional command
 ```
-  make tests
+   dune runtest
 ```
 (but these are  not installed).
 
-5) (optional) HTML API documentation is built (using `ocamldoc`) by the additional command
+5) (optional) HTML API documentation is built (using `odoc`) by the additional command
 ```
-  make doc
+   dune build @doc
 ```
 
 ## ONLINE DOCUMENTATION
@@ -115,15 +100,13 @@ INRIA Rocquencourt (Institut national de recherche en informatique, France).
 
 ## CONTENTS
 
-Source files        | Description
---------------------|-----------------------------------------
-  configure         | configuration script
-  z.ml[i]           | Z module and implementation for small integers
-  caml_z.c          | C implementation
-  big_int_z.ml[i]   | wrapper to provide a Big_int compatible API to Z
-  q.ml[i]           | rational library, pure OCaml on top of Z
-  zarith_top.ml     | toplevel module to provide pretty-printing
-  projet.mak        | builds Z, Q and the tests
-  zarith.opam       | package description for opam
-  z_mlgmpidl.ml[i]  | conversion between Zarith and MLGMPIDL
-  tests/            | simple regression tests and benchmarks
+Source files            | Description
+----- ------------------|-----------------------------------------
+  src/z.ml[i]           | Z module and implementation for small integers
+  src/caml_z.c          | C implementation
+  src/big_int_z.ml[i]   | wrapper to provide a Big_int compatible API to Z
+  src/q.ml[i]           | rational library, pure OCaml on top of Z
+  src/top/zarith_top.ml | toplevel module to provide pretty-printing
+  zarith.opam           | package description for opam
+  z_mlgmpidl/*          | conversion between Zarith and MLGMPIDL
+  tests/                | simple regression tests and benchmarks

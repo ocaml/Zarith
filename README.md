@@ -17,7 +17,7 @@ space and improve performance. Big integers are allocated in the Caml heap,
 bypassing GMP's memory management and achieving better GC behavior than e.g.
 the MLGMP library.
 Computations on small integers use a special, faster path (in C or OCaml)
-eschewing calls to GMP, while computations on large intergers use the
+eschewing calls to GMP, while computations on large integers use the
 low-level MPN functions from GMP.
 
 Arbitrary-precision integers can be compared correctly using OCaml's

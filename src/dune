@@ -1,0 +1,26 @@
+(library
+ (name zarith)
+ (wrapped false)
+ (flags -w -6)
+ (public_name zarith)
+ (c_library_flags
+  (:include c-library-flags.sexp))
+ (synopsis "Arbitrary precision integers")
+ (foreign_stubs
+  (language c)
+  (names caml_z)
+  (flags
+   :standard
+   (:include c-flags.sexp))))
+
+(rule
+ (target zarith_version.ml)
+ (action
+  (with-stdout-to
+   %{target}
+   (run ./gen/gen_version.exe %{dep:../VERSION}))))
+
+(rule
+ (targets c-flags.sexp c-library-flags.sexp)
+ (action
+  (run ../config/discover.exe)))

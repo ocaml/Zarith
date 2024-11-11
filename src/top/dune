@@ -1,0 +1,6 @@
+(library
+ (name zarith_top)
+ (public_name zarith.top)
+ (synopsis "ZArith toplevel support")
+ (library_flags (:standard -linkall))
+ (libraries compiler-libs.toplevel zarith))

@@ -626,6 +626,20 @@ let test_Z() =
   Printf.printf "lcm -2^120 -2^300 = %a\n" pr (I.lcm (I.neg p120) (I.neg p300));
   Printf.printf "lcm 2^120 0 = %a\n" pr (I.lcm p120 I.zero);
   Printf.printf "lcm -2^120 0 = %a\n" pr (I.lcm (I.neg p120) I.zero);
+  begin
+    let print_solve l =
+      match I.solve_linear_congruences l with
+      | (c, p) -> Printf.printf "    x = %a + %a k\n" pr c pr p
+      | exception I.No_solution -> Printf.printf "    no solution\n" in
+    Printf.printf "solve_linear_congruences 2x = 5 mod 7 & 3x = 1 mod 11\n";
+    print_solve
+        [(I.of_int 2, I.of_int 5, I.of_int 7);
+         (I.of_int 3, I.of_int 1, I.of_int 11)];
+    Printf.printf "solve_linear_congruences x = 1 mod 6 & x = 5 mod 9\n";
+    print_solve
+        [(I.of_int 1, I.of_int 1, I.of_int 6);
+         (I.of_int 1, I.of_int 5, I.of_int 9)]
+  end;
   Printf.printf "is_odd 0\n = %b\n" (I.is_odd (Z.of_int 0));
   Printf.printf "is_odd 1\n = %b\n" (I.is_odd (Z.of_int 1));
   Printf.printf "is_odd 2\n = %b\n" (I.is_odd (Z.of_int 2));

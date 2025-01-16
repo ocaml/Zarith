@@ -337,12 +337,12 @@ if test "$gmp" != 'OK'; then echo "cannot find GMP nor MPIR"; exit 2; fi
 
 ocamlver="$(ocamlc -version)"
 
-# OCaml version 4.04 or later is required
+# OCaml version 4.07 or later is required
 
 case "$ocamlver" in
-    [123].* | 4.0[0123].*)
+    [123].* | 4.0[0123456].*)
         echo "OCaml version $ocamlver is no longer supported."
-        echo "OCaml version 4.04.0 or later is required."
+        echo "OCaml version 4.07.0 or later is required."
         exit 2
         ;;
 esac

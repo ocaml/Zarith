@@ -553,6 +553,20 @@ external invert: t -> t -> t = "ml_z_invert"
     Raises a [Division_by_zero] if [base] is not invertible modulo [mod].
  *)
 
+val solve_linear_congruences: (t * t * t) list -> t * t
+(** Solve a set of linear congruence (Diophantine) equations of one unknown [x].
+    [solve_linear_congruences [(a₁, b₁, m₁); ...; (aₙ, bₙ, mₙ)] solves
+    the equations [a₁·x = b₁ mod m₁ /\ ... /\ aₙ·x = bₙ mod mₙ].
+    The moduli [mᵢ] must be nonzero.
+    The Chinese remainder theorem is a special case, taking [aᵢ = 1].
+    @return a pair [(c, p)] with [0 <= c < p]. The solutions are [x = c + p·k] for [k ∈ Z].
+    @raise No_solution if the system has no solution.
+    @since 1.15
+*)
+
+exception No_solution
+(** Exception raised by [solve_linear_congruences] when no solution exists. *)
+
 external probab_prime: t -> int -> int = "ml_z_probab_prime"
 (** [probab_prime x r] returns 0 if [x] is definitely composite,
     1 if [x] is probably prime, and 2 if [x] is definitely prime.

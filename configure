@@ -190,15 +190,40 @@ checkcmxalib()
     return $r    
 }
 
-
-# check required programs
+# check required program
 
 searchbinreq $ocaml
-searchbinreq $ocamlc
-searchbinreq $ocamldep
-searchbinreq $ocamlmklib
-if searchbin $ocamldoc; then
-  ocamldoc=''
+
+# rely on ocamlfind or not
+
+searchbin ocamlfind
+if test $? -eq 1 && test $ocamlfind != "no"; then
+    # set installation method
+    instmeth='findlib'
+    if test "$installdir" = "auto"
+    then installdir="$(ocamlfind printconf destdir | tr -d '\r')"; fi
+
+    # use wrapper to call compilers
+    ocamlc='ocamlfind ocamlc'
+    ocamlopt='ocamlfind opt'
+    ocamlmklib='ocamlfind ocamlmklib'
+    ocamldep='ocamlfind ocamldep'
+    ocamldoc='ocamlfind ocamldoc'
+else
+    # set installation method
+    searchbin install
+    if test $? -eq 1; then instmeth='install'
+    else echo "no installation method found"; exit 2; fi
+    if test "$installdir" = "auto"; then installdir="$ocamllibdir"; fi
+
+    # check required tools
+    searchbinreq $ocamlc
+    searchbinreq $ocamldep
+    searchbinreq $ocamlmklib
+fi
+
+if $ocamldoc -version >/dev/null 2>/dev/null; then
+    ocamldoc=''
 fi
 
 if test -n "$CC"; then
@@ -236,8 +261,7 @@ esac
 
 hasocamlopt='no'
 
-searchbin $ocamlopt
-if test $? -eq 1; then hasocamlopt='yes'; fi
+if $ocamlopt -version >/dev/null 2>/dev/null; then hasocamlopt='yes'; fi
 
 
 # check C compiler
@@ -272,21 +296,6 @@ if test $hasocamlopt = yes
 then
     checkcmxalib dynlink.cmxa
     if test $? -eq 1; then hasdynlink='yes'; fi
-fi
-
-
-# installation method
-
-searchbin ocamlfind
-if test $? -eq 1 && test $ocamlfind != "no"; then 
-    instmeth='findlib'
-    if test "$installdir" = "auto"
-    then installdir="$(ocamlfind printconf destdir | tr -d '\r')"; fi
-else
-    searchbin install
-    if test $? -eq 1; then instmeth='install'
-    else echo "no installation method found"; exit 2; fi
-    if test "$installdir" = "auto"; then installdir="$ocamllibdir"; fi
 fi
 
 

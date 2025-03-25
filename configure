@@ -301,11 +301,11 @@ rm -f tmp.ml
 # check GMP, MPIR
 
 if test "$gmp" = 'gmp' || test "$gmp" = 'auto'; then
-    if pkg-config gmp 2>/dev/null; then
+    if ${prefixnonocaml}pkg-config gmp 2>/dev/null; then
         echo 'package gmp: found'
         gmp='OK'
-        cclib="$cclib $(pkg-config --libs gmp)"
-        ccinc="$ccinc $(pkg-config --cflags gmp)"
+        cclib="$cclib $(${prefixnonocaml}pkg-config --libs gmp)"
+        ccinc="$ccinc $(${prefixnonocaml}pkg-config --cflags gmp)"
         ccdef="-DHAS_GMP $ccdef"
     else
         checkinc gmp.h

@@ -76,3 +76,7 @@ val shift_left_big_int : Z.t -> int -> Z.t
 val shift_right_big_int : Z.t -> int -> Z.t
 val shift_right_towards_zero_big_int : Z.t -> int -> Z.t
 val extract_big_int : Z.t -> int -> int -> Z.t
+val random_big_int : ?rng: Random.State.t -> Z.t -> Z.t
+val random_big_int_bits : ?rng: Random.State.t -> int -> Z.t
+val random_big_int_gen : fill: (bytes -> int -> int -> unit) -> Z.t -> Z.t
+val random_big_int_bits_gen : fill: (bytes -> int -> int -> unit) -> int -> Z.t

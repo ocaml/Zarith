@@ -140,5 +140,10 @@ let shift_right_towards_zero_big_int = Z.shift_right_trunc
 
 let extract_big_int = Z.extract
 
+let random_big_int = Z.random_int
 
+let random_big_int_bits = Z.random_bits
 
+let random_big_int_gen = Z.random_int_gen
+
+let random_big_int_bits_gen = Z.random_bits_gen

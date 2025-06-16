@@ -127,3 +127,4 @@ Source files        | Description
   zarith.opam       | package description for opam
   z_mlgmpidl.ml[i]  | conversion between Zarith and MLGMPIDL
   tests/            | simple regression tests and benchmarks
+  examples/         | an annotated introductory example

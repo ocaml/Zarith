@@ -40,6 +40,10 @@ test:: chi2.exe
 	@echo "Testing random number generation..."
 	@if ./chi2.exe; then echo "chi2: passed"; else echo "chi2: FAILED"; exit 2; fi
 
+test:: tobytes.exe
+	@echo "Testing tobytes..."
+	@if ./tobytes.exe | cmp -s tobytes.output - ; then echo "tobytes: passed"; else echo "tobytes: FAILED"; exit 2; fi
+
 bench:: timings.exe
 	./timings.exe
 

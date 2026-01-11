@@ -522,6 +522,51 @@ let random_int_gen ~fill bound =
 let random_bits_gen ~fill nbits =
   random_bits_aux (raw_bits_from_bytes ~fill) nbits
 
+(* Conversions Z.t <-> byte sequence *)
+
+let string_init len (f: int -> int) =
+  String.init len (fun i -> Char.unsafe_chr (f i))
+
+let to_bytes ?len ~(endian:[`Big|`Little]) ?(signed = false) x =
+  let (y, mask) =
+    if sign x >= 0 then (x, 0x00)
+    else if signed then (pred (neg x), 0xFF)
+    else invalid_arg "Z.to_bytes" in
+  (* Signed representation needs one extra bit for the sign *)
+  let nb =
+    numbits y + (if signed then 1 else 0) in
+  let l =
+    match len with
+    | None -> (nb + 7) / 8
+    | Some len -> if nb <= len * 8 then len else raise Overflow in
+  let s = to_bits y in
+  let get_byte i =
+    let j =
+      match endian with
+      | `Little -> i
+      | `Big -> l - 1 - i in
+    if j >= 0 && j < String.length s
+    then String.get_uint8 s j lxor mask
+    else mask in
+  string_init l get_byte
+
+let of_bytes ~(endian:[`Big|`Little]) ?(signed = false) s =
+  let l = String.length s in
+  let sign_byte =
+    if l = 0
+    then '\x00'
+    else s.[match endian with `Little -> l - 1 | `Big -> 0] in
+  let mask =
+    if signed && Char.code sign_byte land 0x80 = 0x80 then 0xFF else 0x00 in
+  let get_byte i =
+    let j =
+      match endian with
+      | `Little -> i
+      | `Big -> l - 1 - i in
+    String.get_uint8 s j lxor mask in
+  let x = of_bits (string_init l get_byte) in
+  if mask = 0 then x else pred (neg x)
+
 (* Infix notations *)
 
 let (~-) = neg

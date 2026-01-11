@@ -1,7 +1,7 @@
 opam-version: "2.0"
 name: "zarith"
-version: "1.14"
-maintainer: "Xavier Leroy <xavier.leroy@inria.fr>"
+version: "1.15"
+maintainer: "Xavier Leroy <xavier.leroy@college-de-france.fr>"
 authors: [
   "Antoine Miné"
   "Xavier Leroy"
@@ -13,27 +13,7 @@ dev-repo: "git+https://github.com/ocaml/Zarith.git"
 license: "LGPL-2.0-only WITH OCaml-LGPL-linking-exception"
 x-maintenance-intent: ["(latest)"]
 build: [
-  ["./configure"] {os != "openbsd" & os != "freebsd" & os != "macos"}
-  [
-    "sh"
-    "-exc"
-    "LDFLAGS=\"$LDFLAGS -L/usr/local/lib\" CFLAGS=\"$CFLAGS -I/usr/local/include\" ./configure"
-  ] {os = "openbsd" | os = "freebsd"}
-  [
-    "sh"
-    "-exc"
-    "LDFLAGS=\"$LDFLAGS -L/opt/local/lib -L/usr/local/lib\" CFLAGS=\"$CFLAGS -I/opt/local/include -I/usr/local/include\" ./configure"
-  ] {os = "macos" & os-distribution != "homebrew"}
-  [
-    "sh"
-    "-exc"
-    "LDFLAGS=\"$LDFLAGS -L/opt/local/lib -L/usr/local/lib\" CFLAGS=\"$CFLAGS -I/opt/local/include -I/usr/local/include\" ./configure"
-  ] {os = "macos" & os-distribution = "homebrew" & arch = "x86_64" }
-  [
-    "sh"
-    "-exc"
-    "LDFLAGS=\"$LDFLAGS -L/opt/homebrew/lib\" CFLAGS=\"$CFLAGS -I/opt/homebrew/include\" ./configure"
-  ] {os = "macos" & os-distribution = "homebrew" & arch = "arm64" }
+  ["./configure"]
   [make]
 ]
 install: [

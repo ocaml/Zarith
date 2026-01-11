@@ -1,3 +1,5 @@
+- #167: Add `Z.to_bytes` and `Z.of_bytes` to convert between integers and byte sequences, with control of byte size and enddianness.
+
 Release 1.14 (2024-07-10)
 - #148, #149: Fail unmarshaling when it would produce non-canonical big ints
 - #145, #150: Use standard hash function for `Z.hash` and add `Z.seeded_hash`

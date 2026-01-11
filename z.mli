@@ -818,7 +818,7 @@ val random_int_gen: fill: (bytes -> int -> int -> unit) -> t -> t
 >>
     Example of use where the Cryptokit library provides the random bytes:
 <<
-    Z.random_int_gen ~fill:Cryptokit.Random.secure_rng#bytes bound
+    Z.random_int_gen ~fill:Cryptokit.Random.secure_rng#random_bytes bound
 >>
     @since 1.13
 *)

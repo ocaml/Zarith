@@ -812,14 +812,18 @@ val random_int_gen: fill: (bytes -> int -> int -> unit) -> t -> t
     the byte array [buf].
 
     Example of use where [/dev/random] provides the random bytes:
-<<
+
+    {[
     In_channel.with_open_bin "/dev/random"
       (fun ic -> Z.random_int_gen ~fill:(really_input ic) bound)
->>
+    ]}
+
     Example of use where the Cryptokit library provides the random bytes:
-<<
-    Z.random_int_gen ~fill:Cryptokit.Random.secure_rng#random_bytes bound
->>
+
+    {[
+      Z.random_int_gen ~fill:Cryptokit.Random.secure_rng#random_bytes bound
+    ]}
+
     @since 1.13
 *)
 

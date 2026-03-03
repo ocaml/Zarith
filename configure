@@ -144,7 +144,7 @@ checkinc()
     echo_n "include $1: "
     rm -f tmp.c tmp.o
     echo "#include <$1>" > tmp.c
-    echo "int main() { return 1; }" >> tmp.c
+    echo "int main(void) { return 0; }" >> tmp.c
     r=1
     $ocamlc -ccopt "$ccopt $ccinc" -c tmp.c -o tmp.o >/dev/null 2>/dev/null || r=0
     if test ! -f tmp.o; then r=0; fi
@@ -170,7 +170,7 @@ checkcc()
 {
     echo_n "checking compilation with $ocamlc $ccopt: "
     rm -f tmp.c tmp.out
-    echo "int main() { return 1; }" >> tmp.c
+    echo "int main(void) { return 0; }" >> tmp.c
     echo "" > tmpml.ml
     r=1
     $ocamlc -ccopt "$ccopt" tmp.c tmpml.ml -o tmp.out >/dev/null 2>/dev/null || r=0

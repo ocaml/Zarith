@@ -1,4 +1,5 @@
 - #167: Add `Z.to_bytes` and `Z.of_bytes` to convert between integers and byte sequences, with control of byte size and enddianness.
+- Make unmarshaling of big integers more resistant to corrupted serialized data, on OCaml 5.4.1 and later.
 
 Release 1.14 (2024-07-10)
 - #148, #149: Fail unmarshaling when it would produce non-canonical big ints

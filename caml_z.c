@@ -3407,8 +3407,15 @@ static uintnat ml_z_custom_deserialize(void * dst)
   int sign = caml_deserialize_uint_1();
   uint32_t sz = caml_deserialize_uint_4();
   uint32_t szw = (sz + sizeof(mp_limb_t) - 1) / sizeof(mp_limb_t);
+  uintnat sz_data_custom_block = (szw+1) * sizeof(mp_limb_t);
   uint32_t i = 0;
   mp_limb_t x;
+#ifdef Bsize_custom_data
+  /* Protect against corrupted marshaled data that would overflow
+     the custom block allocated by OCaml. Available since OCaml 5.4.1. */
+  if (sz_data_custom_block > Bsize_custom_data(dst))
+    caml_deserialize_error("Z.t buffer overflow");
+#endif
   /* all limbs but last */
   if (szw > 1) {
     for (; i < szw - 1; i++) {
@@ -3455,7 +3462,7 @@ static uintnat ml_z_custom_deserialize(void * dst)
     caml_deserialize_error("Z.t value produced on a 32-bit platform cannot be read on a 64-bit platform");
   }
 #endif
-  return (szw+1) * sizeof(mp_limb_t);
+  return sz_data_custom_block;
 }
 
 struct custom_operations ml_z_custom_ops = {

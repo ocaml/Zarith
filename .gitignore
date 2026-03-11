@@ -13,3 +13,4 @@
 Makefile.config
 depend
 zarith_version.ml
+html/

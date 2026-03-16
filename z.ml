@@ -447,6 +447,51 @@ let sprint () x = to_string x
 let bprint b x = Buffer.add_string b (to_string x)
 let pp_print f x = Format.pp_print_string f (to_string x)
 
+(* Diophantine equations *)
+
+exception No_solution
+
+(* Chinese remainder theorem.
+   Solve the system [ x = a mod m /\ x = b mod n ]
+   Assume 0 <= a < m, 0 <= b < n.
+   Result is (c, p) with 0 <= c < p.
+   The solutions are x = c + pk for k in Z. *)
+
+let crt2 (a, m) (b, n) =
+  let (d, u, _) = gcdext m n in
+  let (c, r) = (ediv_rem (sub b a) d) in
+  if r <> zero then raise No_solution;
+  let p = mul (div m d) n in
+  let x = add a (mul (mul c u) m) in
+  (erem x p, p)
+
+(* Solve the equation [ a * x = b mod m ].
+   Assume m <> 0.
+   Result is (c, p) with 0 <= c < p.
+   The solutions are x = c + pk for k in Z *)
+
+let solve_linear_congruence (a, b, m) =
+  let m = abs m in
+  let (d, inv_a', _) = gcdext a m in
+  let (b', r) = ediv_rem b d in
+  if r <> zero then raise No_solution;
+  let m' = div m d in
+  let c = mul inv_a' b' in
+  (erem c m', m')
+
+(* Solve the set of equations [ a_i * x = b_i mod m_i ].
+   The m_i must not be 0.
+   Result is (c, p) with 0 <= c < p.
+   The solutions are x = c + pk for k in Z *)
+
+let solve_linear_congruences = function
+  | [] -> (of_int 0, of_int 1)
+  | first :: rem ->
+      List.fold_left
+        (fun cur next -> crt2 cur (solve_linear_congruence next))
+        (solve_linear_congruence first)
+        rem
+
 (* Pseudo-random generation *)
 
 let rec raw_bits_random ?(rng: Random.State.t option) nbits =

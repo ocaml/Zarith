@@ -1402,6 +1402,12 @@ mul_2exp (2)  -1 = -4
 mul_2exp (2)  +inf = +inf
 mul_2exp (2)  -inf = -inf
 mul_2exp (2)  undef = undef
+mul_2exp (-3)  0 = 0
+mul_2exp (-3)  1 = 1/8
+mul_2exp (-3)  -1 = -1/8
+mul_2exp (-3)  +inf = +inf
+mul_2exp (-3)  -inf = -inf
+mul_2exp (-3)  undef = undef
 div_2exp (1)  0 = 0
 div_2exp (1)  1 = 1/2
 div_2exp (1)  -1 = -1/2
@@ -1414,6 +1420,12 @@ div_2exp (2)  -1 = -1/4
 div_2exp (2)  +inf = +inf
 div_2exp (2)  -inf = -inf
 div_2exp (2)  undef = undef
+div_2exp (-3)  0 = 0
+div_2exp (-3)  1 = 8
+div_2exp (-3)  -1 = -8
+div_2exp (-3)  +inf = +inf
+div_2exp (-3)  -inf = -inf
+div_2exp (-3)  undef = undef
 identity checking 0 0
 identity checking 0 1
 identity checking 0 -1

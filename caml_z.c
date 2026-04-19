@@ -3478,9 +3478,7 @@ struct custom_operations ml_z_custom_ops = {
   ml_z_custom_serialize,
   ml_z_custom_deserialize,
   ml_z_custom_compare,
-#ifndef Z_OCAML_LEGACY_CUSTOM_OPERATIONS
   custom_fixed_length_default
-#endif
 };
 
 

@@ -337,12 +337,12 @@ if test "$gmp" != 'OK'; then echo "cannot find GMP nor MPIR"; exit 2; fi
 
 ocamlver="$(ocamlc -version)"
 
-# OCaml version 4.07 or later is required
+# OCaml version 4.08 or later is required
 
 case "$ocamlver" in
-    [123].* | 4.0[0123456].*)
+    [123].* | 4.0[01234567].*)
         echo "OCaml version $ocamlver is no longer supported."
-        echo "OCaml version 4.07.0 or later is required."
+        echo "OCaml version 4.08.0 or later is required."
         exit 2
         ;;
 esac
@@ -350,16 +350,6 @@ esac
 # -bin-annot available since 4.00.0
 echo "OCaml supports -bin-annot to produce documentation"
 hasbinannot='yes'
-
-# Changes to C API (the custom_operation struct) since 4.08.0
-case "$ocamlver" in
-    [123].* | 4.0[01234567].* )
-        echo "Using OCaml legacy C API custom operations"
-        ccdef="-DZ_OCAML_LEGACY_CUSTOM_OPERATIONS $ccdef"
-    ;;
-    *)
-    ;;
-esac
 
 # dump Makefile
 

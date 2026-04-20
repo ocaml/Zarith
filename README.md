@@ -82,10 +82,11 @@ option to `ocamlc` / `ocamlopt`, or the `-package zarith` option to `ocamlfind`.
   make doc
 ```
 
-## ONLINE DOCUMENTATION
+## DOCUMENTATION
 
 The documentation for the latest release is hosted on [GitHub Pages](https://antoinemine.github.io/Zarith/doc/latest/index.html).
 
+The tests/ directory contains examples, regression tests, and benchmarks.
 
 ## LICENSE
 
@@ -126,4 +127,4 @@ Source files        | Description
   projet.mak        | builds Z, Q and the tests
   zarith.opam       | package description for opam
   z_mlgmpidl.ml[i]  | conversion between Zarith and MLGMPIDL
-  tests/            | simple regression tests and benchmarks
+  tests/            | examples, simple regression tests and benchmarks

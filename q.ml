@@ -391,12 +391,17 @@ let div x y =
    we have div x y = mul x (inv y)
 *)
 
-let  mul_2exp x n =
+let rec mul_2exp x n =
   if x.den == Z.zero then x
+  else if n < 0 then
+    if n > min_int then div_2exp x (-n)
+    else invalid_arg "mul_2exp: exponent out of valid range"
   else make_real (Z.shift_left x.num n) x.den
-
-let  div_2exp x n =
+and div_2exp x n =
   if x.den == Z.zero then x
+  else if n < 0 then
+    if n > min_int then mul_2exp x (-n)
+    else invalid_arg "div_2exp: exponent out of valid range"
   else make_real x.num (Z.shift_left x.den n)
 
 

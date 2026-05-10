@@ -203,10 +203,14 @@ val div: t -> t -> t
  *)
 
 val mul_2exp: t -> int -> t
-(** [mul_2exp x n] multiplies [x] by 2 to the power of [n]. *)
+(** [mul_2exp x n] multiplies [x] by 2 to the power of [n].
+    Raises [Invalid_argument] if [n] = [min_int].
+ *)
 
 val div_2exp: t -> int -> t
-(** [div_2exp x n] divides [x] by 2 to the power of [n]. *)
+(** [div_2exp x n] divides [x] by 2 to the power of [n].
+    Raises [Invalid_argument] if [n] = [min_int].
+ *)
 
 
 (** {1 Printing} *)

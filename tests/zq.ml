@@ -889,13 +889,17 @@ let test_Q () =
   let _ = test2 "* 1/" (fun a b -> Q.mul a (Q.inv b)) in
   let _ = test1 "mul_2exp (1) " (fun a -> Q.mul_2exp a 1) in
   let _ = test1 "mul_2exp (2) " (fun a -> Q.mul_2exp a 2) in
+  let _ = test1 "mul_2exp (-3) " (fun a -> Q.mul_2exp a (-3)) in
   let _ = test1 "div_2exp (1) " (fun a -> Q.div_2exp a 1) in
   let _ = test1 "div_2exp (2) " (fun a -> Q.div_2exp a 2) in
+  let _ = test1 "div_2exp (-3) " (fun a -> Q.div_2exp a (-3)) in
   (* check simple identitites *)
   List.iter
     (fun x ->
       assert (0 = Q.compare x (Q.div_2exp (Q.mul_2exp x 2) 2));
       assert (0 = Q.compare x (Q.mul_2exp (Q.div_2exp x 2) 2));
+      assert (0 = Q.compare x (Q.div_2exp (Q.mul_2exp x (-2)) (-2)));
+      assert (0 = Q.compare x (Q.mul_2exp (Q.div_2exp x (-2)) (-2)));
       List.iter
         (fun y ->
           Printf.printf "identity checking %s %s\n" (Q.to_string x) (Q.to_string y);

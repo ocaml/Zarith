@@ -1,4 +1,5 @@
 - Honor the `OCAML`, `OCAMLC`, `OCAMLOPT`, `OCAMLMKLIB`, `OCAMLDEP` and `OCAMLDOC` environment variables in configure, so a cross build can supply its own toolchain.
+- Do not build `zarith.cmxs` when the compiler reports no shared-library support (e.g. a freestanding/static cross target), gating on `ocamlopt -config` rather than the mere presence of `dynlink.cmxa`.
 - #167: Add `Z.to_bytes` and `Z.of_bytes` to convert between integers and byte sequences, with control of byte size and endianness.
 - Make unmarshaling of big integers more resistant to corrupted serialized data, on OCaml 5.4.1 and later.
 - Drop support for OCaml 4.07.  OPAM only supports OCaml >= 4.08 now, and probably >= 4.11 soon.

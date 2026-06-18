@@ -268,7 +268,11 @@ if test $? -eq 0; then echo "cannot include caml/mlvalues.h"; exit 2; fi
 
 hasdynlink='no'
 
-if test $hasocamlopt = yes
+# A static/freestanding cross target has no shared libraries but still ships
+# dynlink.cmxa, so gate on the compiler's report instead.
+if test $hasocamlopt = yes \
+    && $ocamlopt -config 2>/dev/null \
+       | grep -q '^supports_shared_libraries: *true'
 then
     checkcmxalib dynlink.cmxa
     if test $? -eq 1; then hasdynlink='yes'; fi

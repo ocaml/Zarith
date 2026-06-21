@@ -21,12 +21,12 @@ ocamllibdir='auto'
 gmp='auto'
 perf='no'
 
-ocaml='ocaml'
-ocamlc='ocamlc'
-ocamlopt='ocamlopt'
-ocamlmklib='ocamlmklib'
-ocamldep='ocamldep'
-ocamldoc='ocamldoc'
+ocaml="${OCAML:-ocaml}"
+ocamlc="${OCAMLC:-ocamlc}"
+ocamlopt="${OCAMLOPT:-ocamlopt}"
+ocamlmklib="${OCAMLMKLIB:-ocamlmklib}"
+ocamldep="${OCAMLDEP:-ocamldep}"
+ocamldoc="${OCAMLDOC:-ocamldoc}"
 ccinc="$CPPFLAGS"
 ldflags="$LDFLAGS"
 cclib=''
@@ -254,7 +254,7 @@ fi
 # directories
 
 if test "$ocamllibdir" = "auto"
-then ocamllibdir="$(ocamlc -where | tr -d '\r')"
+then ocamllibdir="$($ocamlc -where | tr -d '\r')"
 fi
 
 if test ! -f "$ocamllibdir/caml/mlvalues.h"
@@ -268,7 +268,11 @@ if test $? -eq 0; then echo "cannot include caml/mlvalues.h"; exit 2; fi
 
 hasdynlink='no'
 
-if test $hasocamlopt = yes
+# A static/freestanding cross target has no shared libraries but still ships
+# dynlink.cmxa, so gate on the compiler's report instead.
+if test $hasocamlopt = yes \
+    && $ocamlopt -config 2>/dev/null \
+       | grep -q '^supports_shared_libraries: *true'
 then
     checkcmxalib dynlink.cmxa
     if test $? -eq 1; then hasdynlink='yes'; fi
@@ -335,7 +339,7 @@ if test "$gmp" != 'OK'; then echo "cannot find GMP nor MPIR"; exit 2; fi
 
 # OCaml version
 
-ocamlver="$(ocamlc -version)"
+ocamlver="$($ocamlc -version)"
 
 # OCaml version 4.08 or later is required
 
